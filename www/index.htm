@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin:0px;
+            padding:0px;
+        }
+        canvas {
+            position:absolute;
+            height:100%;
+            width:100%;
+            background-color: black;
+        }
+        .menu {
+            position:absolute;
+            background-color: black;
+            border: 5px solid white;
+            border-radius: 5px;
+            padding:20px;
+            color:white;
+            display:none;
+            font-size:24px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+        .menu div {
+            padding:10px;
+        }
+        #playerMenu {
+            top:20px;
+            left:20px;
+        }
+        #responseOptions {
+            top:90px;
+            right:20px;
+        }
+        #coinCount {
+            top:15px;
+            right:20px;
+        }
+        #priceList, #gearList {
+            top:45px;
+            left:25%;
+            width:50%;
+        }
+        #dialogBox {
+            left:25%;
+            width:50%;
+            top:70%;
+            bottom:1%;
+        }
+
+        img {
+            display:none;
+        }
+    </style>
+</head>
+<body>
+
+    <img id="characters-spritesheet" src="img/characters_alpha.gif">
+    
+    <canvas id="mainCanvas"></canvas>
+    <div id="playerMenu" class="menu">
+        <div>TALK</div>
+    </div>
+    <div id="coinCount" class="menu">
+        <div>$ 0</div>
+    </div>
+    <div id="dialogBox" class="menu">
+        <div>dialog</div>
+    </div>
+    <div id="responseOptions" class="menu">
+        <div>opt</div>
+    </div>
+    <div id="priceList" class="menu">
+        <div>m   m</div>
+    </div>
+    <div id="gearList" class="menu">
+        <div>gear</div>
+    </div>
+    <div id="askToTalk" class="menu">
+        <div>Talk?</div>
+    </div>
+    <script src="game.js"></script>
+
+</body>
+</html>
