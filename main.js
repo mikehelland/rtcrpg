@@ -12,7 +12,7 @@ try {
     };
     //var httpsServer = https.createServer(options, app);
     var httpsServer = https.createServer(app);
-    var port = 3000
+    const port = process.env.PORT || 3000
     httpsServer.listen(port, function () {
         console.log("https port", port);
     });
