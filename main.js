@@ -1,16 +1,18 @@
 const express = require('express');
 const app = express();
-const https = require("https")
-const fs = require("fs")
+//const https = require("https")
+//const fs = require("fs")
+const https = require("http")
 
 
 try {
     var options = {
-        key: fs.readFileSync('privkey.pem'),
-        cert: fs.readFileSync('fullchain.pem')
+    //    key: fs.readFileSync('privkey.pem'),
+    //    cert: fs.readFileSync('fullchain.pem')
     };
-    var httpsServer = https.createServer(options, app);
-    var port = 8081
+    //var httpsServer = https.createServer(options, app);
+    var httpsServer = https.createServer(app);
+    var port = 3000
     httpsServer.listen(port, function () {
         console.log("https port", port);
     });
