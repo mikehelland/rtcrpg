@@ -1,17 +1,23 @@
 const express = require('express');
 const app = express();
-//const https = require("https")
-//const fs = require("fs")
-const https = require("http")
+
+var useHttps = false //heroku can do it
+
+const https = useHttps ? require("https") : require("http")
+const fs = require("fs")
 
 
 try {
-    var options = {
-    //    key: fs.readFileSync('privkey.pem'),
-    //    cert: fs.readFileSync('fullchain.pem')
-    };
-    //var httpsServer = https.createServer(options, app);
-    var httpsServer = https.createServer(app);
+    if (useHttps) {
+        var options = {
+            key: fs.readFileSync('privkey.pem'),
+            cert: fs.readFileSync('fullchain.pem')
+        };
+        var httpsServer = https.createServer(options, app);    
+    }
+    else {
+        var httpsServer = https.createServer(app);
+    }
     const port = process.env.PORT || 3000
     httpsServer.listen(port, function () {
         console.log("https port", port);

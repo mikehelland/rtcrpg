@@ -32,21 +32,22 @@
         </div>
 
         <script src="/socket.io/socket.io.js"></script>
-        <!--<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>-->
+        <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
         <script>
 
         // show our name and face
-        var userName = window.location.search.slice(1)
+        var userName = window.location.search.slice(1) || (Math.round(Math.random() * 100000) + "")
         var connectedStatusEl = document.getElementById("connected-status")
         document.getElementById("your-name").innerHTML = userName
         var v1 = document.getElementById('your-video')
         var localStream
         navigator.mediaDevices.getUserMedia({
             video: true,
-            audio: false
+            audio: true
         }).then((stream) => {
             v1.srcObject = stream
             localStream = stream
+            v1.muted = true
             v1.play()
 
             socket.emit("join", {
@@ -89,6 +90,13 @@
                 }
                 if (firstJoin && localStream) {
                     callUser(name)
+                }
+            }
+            for (name in remoteUsers) {
+                if (!users[name]) {
+                    userListEl.removeChild(remoteUsers[name].div)
+                    remoteUsers[name].peerConnection.close()
+                    delete remoteUsers[name]
                 }
             }
             if (Object.keys(remoteUsers).length === 0) {
