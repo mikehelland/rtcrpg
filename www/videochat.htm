@@ -30,6 +30,7 @@
             </div>
     
         </div>
+        <div id="activity-log"></div>
 
         <script src="/socket.io/socket.io.js"></script>
         <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
@@ -54,12 +55,16 @@
                 name: userName
             })
         })
+        var activityLog = document.getElementById("activity-log")
+        var log = text => {
+            activityLog.innerHTML = text + "<br>" + activityLog.innerHTML
+        }
 
         // this is for the other users
         var userListEl = document.getElementById('user-list')
         var remoteUsers = {}
         var setupNewUser = (name, data) => {
-            console.log(name, data)
+            log(name + " joined")
             remoteUsers[name] = {id: data}
             userEl = document.createElement("div")
             userEl.className = "user-panel"
@@ -94,6 +99,7 @@
             }
             for (name in remoteUsers) {
                 if (!users[name]) {
+                    log(name + " disconnected")
                     userListEl.removeChild(remoteUsers[name].div)
                     remoteUsers[name].peerConnection.close()
                     delete remoteUsers[name]

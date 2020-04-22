@@ -470,7 +470,7 @@ bw.advanceDialog = () => {
             if (currentLine.showCoins) {
                 bw.showCoinCount()
             }
-            if (currentLine.option) {
+            if (currentLine.options) {
                 bw.showResponseOptions(currentLine.options)
             }
             else if (currentLine.priceList) {
