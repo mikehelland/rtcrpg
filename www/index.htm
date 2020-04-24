@@ -83,6 +83,20 @@
         <div>Talk?</div>
     </div>
     <script src="game.js"></script>
+    <script src="socket.io/socket.io.js"></script>
+    <script src="omgrtc.js"></script>
+    <script>
+    var rt = new OMGRealTime()
+    ge.remoteUsers = rt.remoteUsers
+
+    ge.onMoveHero = (hero) => {
+        rt.updateLocalUserData(hero)
+    }
+    rt.onjoined = () => {
+        rt.updateLocalUserData(ge.hero)
+    }
+    rt.join("map1", window.location.search.substring(1))
+    </script>
 
 </body>
 </html>

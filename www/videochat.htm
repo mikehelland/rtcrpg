@@ -33,7 +33,7 @@
         <div id="activity-log"></div>
 
         <script src="/socket.io/socket.io.js"></script>
-        <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+        <!--<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>-->
         <script>
 
         // show our name and face
@@ -65,7 +65,7 @@
         var remoteUsers = {}
         var setupNewUser = (name, data) => {
             log(name + " joined")
-            remoteUsers[name] = {id: data}
+            remoteUsers[name] = {id: data.id}
             userEl = document.createElement("div")
             userEl.className = "user-panel"
             nameEl = document.createElement("div")
@@ -82,16 +82,22 @@
         // get touch with the signaling server
         var socket = io("")
 
+        socket.on("joined", users => {
+            connectedStatusEl.innerHTML = "connected"
+            updateUsers(users)
+        })
         var firstJoin = true
         socket.on("update-user-list", users => {
-            connectedStatusEl.innerHTML = "connected"
+            updateUsers(users)
+        })
+        var updateUsers = users => {
             for (var name in users) {
                 if (name == userName) continue;
                 if (!remoteUsers[name]) {
                     setupNewUser(name, users[name])
                 }
                 else {
-                    remoteUsers[name].id = users[name]
+                    remoteUsers[name].id = users[name].id
                 }
                 if (firstJoin && localStream) {
                     callUser(name)
@@ -109,7 +115,7 @@
                 //userListEl.innerHTML = "no users yet"
             }
             firstJoin = false
-        })
+        }
 
         socket.on("disconnect", () => {
             connectedStatusEl.innerHTML = "not connected"
@@ -234,6 +240,7 @@
                     return peerConnection.setLocalDescription(offer);
                 })
                 .then(function() {
+                    console.log("call-user", user.id)
                     socket.emit("call-user", {
                         offer: peerConnection.localDescription, 
                         to: user.id

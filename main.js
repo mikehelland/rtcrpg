@@ -36,19 +36,17 @@ app.use(express.static('www'))
 
 var io = require('socket.io')(httpsServer);
 
-
-var activeSockets = []
 var users = {}
 io.on("connection", socket => {
     var name
 
-    socket.on("join", data => {
-        if (users[data.name]) {
+    socket.on("join", msg => {
+        if (users[msg.name]) {
             //todo
         }
 
-        name = data.name
-        users[name] = socket.id
+        name = msg.name
+        users[name] = {id: socket.id, data: msg.data}
 
         io.emit("update-user-list", users);
     })
@@ -62,7 +60,6 @@ io.on("connection", socket => {
     });
 
     socket.on("call-user", data => {
-        console.log("call-user", data)
         io.to(data.to).emit("incoming-call", {
           offer: data.offer,
           callerName: name,
@@ -71,7 +68,6 @@ io.on("connection", socket => {
     });
 
     socket.on("make-answer", data => {
-        console.log("make-answer", data)
         io.to(data.to).emit("answer-made", {
           calleeName: name,
           socket: socket.id,
@@ -80,7 +76,6 @@ io.on("connection", socket => {
     });
 
     socket.on("candidate", data => {
-        console.log("candidate", data)
         io.to(data.to).emit("candidate", {
           caller: name,
           socket: socket.id,
@@ -89,4 +84,12 @@ io.on("connection", socket => {
           candidate: data.candidate
         });
     });
+
+    socket.on("updateLocalUserData", data => {
+        io.emit("updateRemoteUserData", {
+            name: name,
+            data, data
+        });
+    });
+
 })

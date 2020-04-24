@@ -1,59 +1,281 @@
-                                                                                                    
-                                                                                                    
-      IllllllllllI                                                                         IlllllllI
-      I          I                                                                         I       I
-      I          I                         IllllllI       IllllllI                         I       I
-      I          I                         I      I       I      I                         I       I
-      I          I                         I      I       I      I                         I       I
-      I          I                         I      I       I      I                         I       I
-      I          I                         l      l       l      l                         I       I
-      l          l                                                                         l       l
-                                                                                                    
-rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
-rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
-rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
-rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
-                  rrrrr                             rrrr                           rrrr             
-                  rrrrr                             rrrr                           rrrr             
-                  rrrrr                             rrrr                           rrrr             
-    Illllllllll   rrrrr                             rrrr                           rrrr             
-    I             rrrrr                             rrrr                           rrrr             
-    I             rrrrr                             rrrr                           rrrr             
-    I             rrrrr                             rrrr                           rrrr             
-    I             rrrrr                IllllllllI   rrrr                           rrrr             
-    I             rrrrr                IbbbbbbbbI   rrrr                           rrrr             
-    I             rrrrr                IbbbbbbbbI   rrrr                           rrrr             
-    lllllllllll   rrrrr                Ibbbbbbbbl   rrrr                           rrrr             
-                  rrrrr                Ibbbbbbbbbrrrrrrr                           rrrr             
-                  rrrrr                IbbbbbbbbI   rrrr                           rrrr             
-                  rrrrr                IbbbbbbbbI   rrrr                           rrrr             
-                  rrrrr                llllllllll   rrrr                           rrrr             
-                  rrrrr                             rrrr                           rrrr             
-                  rrrrr  ..........    ..........   rrrr                           rrrr             
-                  rrrrr  .                      .   rrrr    IlllI                  rrrr             
-                  rrrrr  .                      .   rrrr    IbbbI                  rrrr             
-                  rrrrr  .                      .   rrrr    ldddl                  rrrr             
-                  rrrrrrrrrrrrrrrrrrrrrrrrrrrrrr.  rrrr      r                    rrrr   IllllI    
-                  rrrrr  .                     r.    rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr   d    I    
-                  rrrrr                    rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr   d    I    
-                  rrrrr               rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr   d    I    
-                  rrrrr         rrrrrrrrrrrrrrrrrrrrrrrr                                  llllll    
-  I               rrrrr      rrrrrrrrrrrrrrr                                                        
-  I               rrrrr    rrrrrrrrrrrr                                                             
-  Iss             rrrrr  rrrrrrrr                                               wwwwwwwwwwwwwwwwwwww
-  Iss             rrrrrrrrrrrr                                           wwwwwwwwwwwwwwwwwwwwwwwwwww
-  lllllllllllll   rrrrrrrrrr                                      wwwwwwwwwwwwwwwwwwwwwwwww         
-                   rrrrrrr                           wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww              
-                                      wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                            
-                               wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                  
-            wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                         
-      wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                            
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                                    
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                                       
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                                                 
-wwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                                                      
-wwwwwwwwwwwwwwwwwwwww                                                                               
-wwwwwwwwwwwwwwwww                                                                                   
-wwwwwwwwwwwww                                                                                       
-wwwwwwwwwww                                                                                         
-wwwwwwwww                                                                                           
+{
+  "name": "",
+  "width": 100,
+  "height": 59,
+  "startX": 63,
+  "startY": 37,
+  "tileSet": {
+            "d": "desk.png",
+            "b": "brick.png",
+            "s": "brick.png",
+            ".": "bushes.png",
+            "r": "sand.png",
+            " ": "grass.png",
+            "t": "trees.png",
+            "I": "wall1.png",
+            "l": "wall2.png",
+            "w": "water1.png",
+            "c": "chair.png",
+            "C": "chest.png",
+            "O": "chestopen.png",
+            "<": "stagenw.png",
+            "/": "stagen.png",
+            ">": "stagene.png",
+            "[": "stagew.png",
+            "]": "stagee.png",
+            "{": "stagesw.png",
+            "\\": "stages.png",
+            "}": "stagese.png",
+            "f": "flowers.png",
+            "p": "portal.png"
+            
+        },
+  "npcs": [
+    {
+      "character": "DRAGO",
+      "x": 57,
+      "y": 42,
+      "characterI": 5,
+      "dialog": [
+        "Hi! I'm a Dragon.",
+        "I'm you're only friend.",
+        "And we live in this van down by the river."
+      ]
+    },
+    {
+      "character": "VAN",
+      "x": 58,
+      "y": 42,
+      "characterI": 25,
+      "facing": 1,
+      "dialog": [
+        ".. crank crank...",
+        "Won't start."
+      ]
+    },
+    {
+      "character": "RANDO",
+      "x": 5,
+      "y": 5,
+      "characterI": 0,
+      "dialog": [
+        "Hi! I'm rando",
+        "This is Hometown"
+      ]
+    },
+    {
+      "character": "RANDO",
+      "x": 13,
+      "y": 39,
+      "characterI": 20,
+      "dialog": [
+        "I like this park.",
+        "There's a stage for people to sing and play!"
+      ]
+    },
+    {
+      "character": "RANDO",
+      "x": 6,
+      "y": 37,
+      "characterI": 2,
+      "dialog": [
+        "I haven't heard anyone sing yet today."
+      ]
+    },
+    {
+      "character": "RANDO",
+      "x": 5,
+      "y": 15,
+      "characterI": 3,
+      "dialog": [
+        {
+          "question": "Want to hear a joke?",
+          "options": [
+            {
+              "caption": "YES",
+              "dialog": [
+                "A nurse pulls an rectal thermometer out of her breast pocket, and says...",
+                "Some asshole has my pen."
+              ]
+            },
+            {
+              "caption": "NO",
+              "action": "hideMenus"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "WELCOME",
+      "x": 32,
+      "y": 9,
+      "characterI": 4,
+      "dialog": [
+        "welcome"
+      ]
+    },
+    {
+      "character": "MERCHANT",
+      "x": 62,
+      "y": 33,
+      "characterI": 13,
+      "dialog": [
+        {
+          "question": "Pawn shop here. Whadya want?",
+          "options": [
+            {
+              "caption": "BUY",
+              "priceList": [
+                {
+                  "caption": "Acoustic Guitar",
+                  "price": 100,
+                  "action": "buyGear"
+                },
+                {
+                  "caption": "Electric Guitar",
+                  "price": 250,
+                  "action": "buyGear"
+                },
+                {
+                  "caption": "Guitar Amp",
+                  "price": 100
+                }
+              ]
+            },
+            {
+              "caption": "SELL",
+              "dialog": [
+                "I'm a Buying"
+              ]
+            },
+            {
+              "caption": "NOPE",
+              "action": "hideMenus"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "TALENTSHOW",
+      "x": 64,
+      "y": 5,
+      "characterI": 6,
+      "dialog": [
+        "Welcome to our Coffee Shop!",
+        "There's a Talent Show tonight...",
+        "You can win $100!",
+        {
+          "question": "It costs $15 to enter. Wanna try it?",
+          "showCoins": true,
+          "options": [
+            {
+              "caption": "YES",
+              "action": {
+                "function": "enterTalentShow",
+                "price": 15
+              }
+            },
+            {
+              "caption": "NOPE",
+              "action": "hideMenus"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "character": "TEACHER",
+      "x": 41,
+      "y": 24,
+      "characterI": 1,
+      "dialog": ""
+    },
+    {
+      "character": "AUTOPARTS",
+      "x": 50,
+      "y": 5,
+      "characterI": 6,
+      "dialog": [
+        "This is an auto parts store.",
+        {
+          "question": "Need something?",
+          "priceList": [
+            {
+              "caption": "Van Parts",
+              "price": 300,
+              "action": "buyGear"
+            },
+            {
+              "caption": "Helicopter Parts",
+              "price": 1000,
+              "action": "buyGear"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "mapLines": [
+    "                                                                                                    ",
+    "                                                                                                    ",
+    "      IllllllllllI                                                                         IlllllllI",
+    "      I          I                                                                         I       I",
+    "      I          I                        IllllllI        IllllllI                         I       I",
+    "      I          I                        IbbbbbbI        IbbbbbbI                         I       I",
+    "      I          I                        IbbbbbbI        IbbbbbbI                         I       I",
+    "      I          I                        IbbbbbbI        IbbbbbbI                         I       I",
+    "      I          I                        lbbbbbbl        lbbbbbbl                         I       I",
+    "      l          l                           r                r                            l       l",
+    "                                             r                r                                     ",
+    "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+    "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+    "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+    "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",
+    "                  rrrrr                             rrrr fffffffffffffffffffffffff rrrr             ",
+    "                  rrrrr                             rrrr tIllllIlllllllllllIllllIt rrrr             ",
+    "                  rrrrr                             rrrr tIbbbbIbbbbbbbbbbbIbbbbIt rrrr             ",
+    "    Illllllllll   rrrrr                             rrrr tIbbbbIbbbbbbbbbbbIb  bIt rrrr             ",
+    "    I             rrrrr                             rrrr tIbbbbIbbbbbbbbbbbIb  bIt rrrr             ",
+    "    I             rrrrr                             rrrr tIbbbbIbbbbbbbbbbbIb  bIt rrrr             ",
+    "    I             rrrrr                             rrrr tIbbbbIbbbbbbbbbbbIbbbbIt rrrr             ",
+    "    I             rrrrr                IllllllllI   rrrr tIlllllbbbbbbbbbbblllllIt rrrr             ",
+    "    I             rrrrr                IbbbbbbbbI   rrrr tIbbbb{\\\\\\\\\\\\\\\\\\\\\\}bbbbIt rrrr             ",
+    "    I             rrrrr                IbbbbbbbbI   rrrr tIbbbbbbbbbbbbbbbbbbbbbIt rrrr             ",
+    "    lllllllllll   rrrrr                Ibbbbbbbbl   rrrr tIbbbbbcbbbbbbbbbcbbbbbIt rrrr             ",
+    "                  rrrrr                Ibbbbbbbbbrrrrrrr tIbbbbcpcbbbbbbbcpcbbbbIt rrrr             ",
+    "                  rrrrr                IbbbbbbbbI   rrrr tIbbbbbcbbbbcbbbbcbbbbbIt rrrr             ",
+    "                  rrrrr                IbbbbbbbbI   rrrr tIbbbbbbbbbcpcbbbbbbbbbIt rrrr             ",
+    "                  rrrrr                llllllllll   rrrr tIbbcbbbbbbbcbbbbbbbcbbIt rrrr             ",
+    "                  rrrrr                             rrrr tIbcpcbbbbbbbbbbbbbcpcbIt rrrr             ",
+    "                  rrrrr  ..........    ..........   rrrr tIbbcbbbbbbbbbbbbbbbcbbIt rrrr             ",
+    "                  rrrrr  .                      .   rrrr tIbbbbbbbIdddddIbbbbbbbIt rrrr             ",
+    "                  rrrrr  .                      .   rrrr tIbbbbbbbIbbbbbIbbbbbbbIt rrrr             ",
+    "                  rrrrr  .                      .   rrrr fllllbbblllllllllbbbllllf rrrr             ",
+    "                  rrrrrrrrrrrrrrrrrrrrrrrrrrrrrr.   rrrr      rrr         rrr      rrrr   IllllI    ",
+    "                  rrrrr  .                     r.   rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr   d    I    ",
+    "                  rrrrr                    rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr   d    I    ",
+    "                  rrrrr               rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr   d    I    ",
+    "                  rrrrr         rrrrrrrrrrrrrrrrrrrrrrrr                                  llllll    ",
+    "  I               rrrrr      rrrrrrrrrrrrrrr                                                        ",
+    "  I               rrrrr    rrrrrrrrrrrr                                                             ",
+    "  Iss             rrrrr  rrrrrrrr                                               wwwwwwwwwwwwwwwwwwww",
+    "  Iss             rrrrrrrrrrrr                                           wwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "  lllllllllllll   rrrrrrrrrr                                      wwwwwwwwwwwwwwwwwwwwwwwww         ",
+    "                   rrrrrrr                           wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww              ",
+    "                                      wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                            ",
+    "                               wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                  ",
+    "            wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                         ",
+    "      wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                            ",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                                    ",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                                       ",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                                                 ",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwww                                                                      ",
+    "wwwwwwwwwwwwwwwwwwwww                                                                               ",
+    "wwwwwwwwwwwwwwwww                                                                                   ",
+    "wwwwwwwwwwwww                                                                                       ",
+    "wwwwwwwwwww                                                                                         ",
+    "wwwwwwwww                                                                                           "
+  ]
+}
