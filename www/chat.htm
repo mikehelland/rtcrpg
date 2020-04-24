@@ -35,7 +35,17 @@
         <script src="/socket.io/socket.io.js"></script>
         <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
         <script src="omgrtc.js"></script>
+        <button id="join-button">Join</button>
         <script>
+            
+        var joinButton = document.getElementById("join-button")
+        joinButton.onclick = () => {
+            rt.getUserMedia(video => {
+                you.appendChild(video)
+                rt.join(roomName, userName)
+            })
+            joinButton.style.display = "none"
+        }
 
         var userName = window.location.search.slice(1) || (Math.round(Math.random() * 100000) + "")
         var roomName = "public"
@@ -65,11 +75,7 @@
             }
         }
 
-        rt.getUserMedia(video => {
-            you.appendChild(video)
-            rt.join(roomName, userName)
-        })
-
+        
         rt.onNewUser = (name, user) => {
             log(name + " joined")
             userEl = document.createElement("div")
