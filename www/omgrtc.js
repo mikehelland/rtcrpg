@@ -192,7 +192,12 @@ OMGRealTime.prototype.createPeerConnection = function (user) {
     var peerConnection = new RTCPeerConnection({
         iceServers: [     // Information about ICE servers - Use your own!
             {
-                urls: "stun:stun.stunprotocol.org"
+                urls: "stun:stun.openmusic.gallery:3478"
+            },
+            {
+                urls: "turn:turn.openmusic.gallery:3478",
+                credential: "12345",
+                username: "omgrtc"
             }
         ]
     });
