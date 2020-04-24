@@ -46,7 +46,7 @@ io.on("connection", socket => {
         }
 
         name = msg.name
-        users[name] = {id: socket.id, data: msg.data}
+        users[name] = {id: socket.id, data: msg.data, name: name}
 
         io.emit("update-user-list", users);
     })
@@ -86,10 +86,21 @@ io.on("connection", socket => {
     });
 
     socket.on("updateLocalUserData", data => {
-        io.emit("updateRemoteUserData", {
+        if (users[name]) {
+            users[name].data = data
+        }
+        socket.broadcast.emit("updateRemoteUserData", {
             name: name,
             data, data
         });
     });
 
+    socket.on("textMessage", data => {
+        if (users[data.to]) {
+            io.to(users[data.to].id).emit("textMessage", {
+                from: name,
+                message: data.message
+            })
+        }
+    })
 })

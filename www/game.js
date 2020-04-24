@@ -1,7 +1,15 @@
 //game engine
 var ge = {}
 
-ge.remoteUsers = {}
+try { // real time communication
+    ge.rtc = new OMGRealTime()
+    ge.remoteUsers = ge.rtc.remoteUsers
+}
+catch (e) {
+    console.log("did not create rtc", e)
+    ge.remoteUsers = {}
+}
+
 
 ge.aButton = " "
 ge.bButton = "ArrowLeft"
@@ -46,7 +54,13 @@ ge.hero = {
 ge.keysPressed = {}
 ge.visibleMenus = []
 
-window.onkeydown = e => {
+document.onkeydown = e => {
+    if (e.keyCode === 27) {
+        ge.hideMenus()
+    }
+    if (e.target.tagName.toLowerCase() === "input") {
+        return
+    }
     if (ge.visibleMenus.length) {
         ge.handleKeyForMenu(e)
     }
@@ -54,7 +68,7 @@ window.onkeydown = e => {
         ge.keysPressed[e.key] = true
     }
 }
-window.onkeyup = e => {
+document.onkeyup = e => {
     delete ge.keysPressed[e.key]
 }
 ge.handleKeyForMenu = e => {
@@ -89,6 +103,7 @@ ge.hideMenus = () => {
     })
     ge.visibleMenus = []
     ge.menus.coinCount.div.style.display = "none"
+    ge.textMessageDialog.showing = false
 }
 
 ge.mainLoop = () => {
@@ -159,8 +174,8 @@ ge.hero.move = (x, y) => {
 
     ge.hero.lastMove = Date.now()
 
-    if (ge.onMoveHero) {
-        ge.onMoveHero(ge.hero)
+    if (ge.rtc) {
+        ge.rtc.updateLocalUserData(ge.hero)
     }
 }
 
@@ -306,14 +321,32 @@ ge.drawCharacters = () => {
 }
 
 ge.talk = () => {
-    var npc = ge.getCharacter()
-    if (!npc) {
+    var character = ge.getCharacter()
+    if (!character) {
         ge.showDialog(["There is no one to talk to."])
         return
     }
-    npc.facing = ge.hero.facing % 2 === 0 ? ge.hero.facing + 1 : ge.hero.facing - 1
-    ge.showDialog(npc.dialog)
+    if (!character.id) {
+        //this is an npc
+        character.facing = ge.hero.facing % 2 === 0 ? ge.hero.facing + 1 : ge.hero.facing - 1
+        ge.showDialog(character.dialog)
+        return
+    }
+    
+    ge.showDialog([{question: "Talk to " + character.name + " how?", options: [
+        {caption: "TEXT", action: {"function": "textUser", name: character.name}},
+        //{caption: "TEXT", action: {"function": "voiceCallUser", userName}},
+        {caption: "VIDEO", action: {"function": "videoCallUser", name: character.name}}
+    ]}])
+    //ge.rtc.callUser(character.name)
 }
+
+ge.textUser = (options) => {
+    console.log("texting user", options.name)
+    ge.hideMenus()
+    ge.showTextMessageDialog(options.name)
+}
+
 ge.getCharacter = () => {
     for (var i = 0; i < ge.npcs.length; i++) {
         if (ge.npcs[i].x === ge.hero.x + ge.hero.facingX && 
@@ -515,6 +548,46 @@ ge.showCoinCount = () => {
     ge.menus.coinCount.div.innerHTML = "$ " + ge.hero.coins
     ge.menus.coinCount.div.style.display = "block"
 }
+    
+ge.textMessageDialog = {
+    div: document.getElementById("textMessageDialog"),
+    input: document.getElementById("textMessageInput"),
+    output: document.getElementById("textMessageOutput"),
+    bButton: () => {
+
+    },
+    aButton: () => {
+
+    }
+}
+
+ge.showTextMessageDialog = (remoteUserName) => {
+    ge.textMessageDialog.showing = true
+    ge.textMessageDialog.remoteUserName = remoteUserName
+    ge.textMessageDialog.div.style.display = "flex"
+    ge.visibleMenus.push(ge.textMessageDialog)
+
+    ge.textMessageDialog.output.innerHTML = "Chatting with " + remoteUserName
+    ge.textMessageDialog.input.focus()
+    //ge.textMessageDialog.input.value = ""
+    ge.textMessageDialog.input.onkeypress = (e) => {
+        if (e.keyCode === 13) {
+            var message = ge.textMessageDialog.input.value
+            ge.rtc.sendTextMessage(remoteUserName, message)
+            ge.textMessageDialog.output.innerHTML += "<br><span class='text-message-from-me'>" + ge.hero.name + ": " + message + "</span>"
+            ge.textMessageDialog.input.value = ""
+            ge.textMessageDialog.output.scrollTop = ge.textMessageDialog.output.scrollHeight;
+        }
+    }
+}
+ge.showTextMessage = (data) => {
+    if (!ge.textMessageDialog.showing) {
+        ge.showTextMessageDialog(data.from)
+    }
+
+    ge.textMessageDialog.output.innerHTML += "<br>" + data.from + ": " + data.message
+    ge.textMessageDialog.output.scrollTop = ge.textMessageDialog.output.scrollHeight;
+}
 
 ge.characterHasGear = (character, gear) => {
     for (var i = 0; i < character.gear.length; i++) {
@@ -594,6 +667,25 @@ fetch("map1").then(result => {
     ge.hero.x = data.startX
     ge.hero.y = data.startY
     ge.hero.facing = 0
+
+    if (ge.rtc) {
+        ge.rtc.join("map1", window.location.search.substring(1))
+        ge.rtc.onjoined = () => {
+            ge.rtc.updateLocalUserData(ge.hero)
+        }
+        ge.rtc.onincomingcall = (userName, callback) => {
+            ge.showDialog([
+                {question: "Accept a call from " + userName, options: [
+                    {caption: "Yes", action: callback},
+                    {caption: "Nope", action: "hideMenus"}
+                ]}
+            ])            
+        }
+        ge.rtc.ontextmessage = (data) => {
+            console.log("tm", data)
+            ge.showTextMessage(data)
+        }
+    }
 
     ge.mainLoop()
 })

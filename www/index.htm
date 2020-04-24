@@ -50,9 +50,39 @@
             top:70%;
             bottom:1%;
         }
+        #textMessageDialog {
+            left:25%;
+            width:50%;
+            top:55%;
+            bottom:2px;
+            font-weight: normal;
+            font-size: 16px;
+            padding:0px;
+            display: none;
+            flex-direction: column;
+        }
+        #textMessageOutput {
+            box-sizing: border-box;
+            height:100%;
+            overflow-y: scroll;
+            flex-grow: 1;
+        }
+        #textMessageInput {
+            background-color: black;
+            color:white;
+            padding-left: 5px;
+            width:100%;
+            box-sizing: border-box;
+            border:none;
+        }
 
         img {
             display:none;
+        }
+
+
+        .text-message-from-me {
+            color: #AAAAAA;
         }
     </style>
 </head>
@@ -70,6 +100,10 @@
     <div id="dialogBox" class="menu">
         <div>dialog</div>
     </div>
+    <div id="textMessageDialog" class="menu">
+        <div id="textMessageOutput"></div>
+        <input id="textMessageInput" placeholder="[press enter to send]">
+    </div>
     <div id="responseOptions" class="menu">
         <div>opt</div>
     </div>
@@ -82,21 +116,9 @@
     <div id="askToTalk" class="menu">
         <div>Talk?</div>
     </div>
-    <script src="game.js"></script>
     <script src="socket.io/socket.io.js"></script>
     <script src="omgrtc.js"></script>
-    <script>
-    var rt = new OMGRealTime()
-    ge.remoteUsers = rt.remoteUsers
-
-    ge.onMoveHero = (hero) => {
-        rt.updateLocalUserData(hero)
-    }
-    rt.onjoined = () => {
-        rt.updateLocalUserData(ge.hero)
-    }
-    rt.join("map1", window.location.search.substring(1))
-    </script>
-
+    <script src="game.js"></script>
+    
 </body>
 </html>

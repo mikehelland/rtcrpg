@@ -9,6 +9,7 @@ function OMGRealTime() {
     this.socket.on("candidate", data => this.onCandidate(data))
 
     this.socket.on("updateRemoteUserData", msg => this.updateRemoteUserData(msg))
+    this.socket.on("textMessage", data => this.ontextmessage(data))
 
     this.socket.on("disconnect", () => {
         //connectedStatusEl.innerHTML = "not connected"
@@ -90,20 +91,32 @@ OMGRealTime.prototype.onIncomingCall = async function(data) {
         // todo 
     }
 
-    user.caller = true
-    user.peerConnection = this.createPeerConnection(user)
-
-    this.localStream.getTracks().forEach(track => user.peerConnection.addTrack(track, this.localStream));
-
-    await user.peerConnection.setRemoteDescription(data.offer)
-
-    const answer = await user.peerConnection.createAnswer();
-    await user.peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+    var acceptCall = async () => {
+        user.caller = true
+        user.peerConnection = this.createPeerConnection(user)
     
-    this.socket.emit("make-answer", {
-        answer,
-        to: data.socket
-    });
+        this.localStream.getTracks().forEach(track => user.peerConnection.addTrack(track, this.localStream));
+    
+        await user.peerConnection.setRemoteDescription(data.offer)
+    
+        const answer = await user.peerConnection.createAnswer();
+        await user.peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+        
+        this.socket.emit("make-answer", {
+            answer,
+            to: data.socket
+        });    
+    }
+
+    if (this.acceptAllCalls) {
+        acceptCall()
+    }
+    else if (this.onincomingcall) {
+        this.onIncomingCall(() => {
+            acceptCall()
+        })
+    }
+
 };
 
     
@@ -163,8 +176,14 @@ OMGRealTime.prototype.callUser = async function(name) {
         
         user.peerConnection = this.createPeerConnection(user)
 
-        this.localStream.getTracks().forEach(track => user.peerConnection.addTrack(track, this.localStream));
-
+        if (this.localStream) {
+            this.localStream.getTracks().forEach(track => user.peerConnection.addTrack(track, this.localStream));
+        }
+        else {
+            this.getUserMedia(() => {
+                this.localStream.getTracks().forEach(track => user.peerConnection.addTrack(track, this.localStream));
+            })
+        }
     }; 
 
 
@@ -231,3 +250,12 @@ OMGRealTime.prototype.updateRemoteUserData = function (msg) {
     }   
     this.remoteUsers[msg.name].data = msg.data
 }
+
+OMGRealTime.prototype.sendTextMessage = function (remoteUserName, message) {
+    this.socket.emit("textMessage", {
+        to: remoteUserName,
+        message: message
+    })
+}
+
+OMGRealTime.prototype.ontextmessage = function () {}
