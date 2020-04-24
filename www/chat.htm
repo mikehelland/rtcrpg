@@ -13,12 +13,12 @@
             video {
                 width: 100%;;
             }
-
-            @media all and (orientation:landscape) {
-                #user-list {
+            #user-list {
                     display: flex;
                     flex-wrap: wrap;
                 }
+
+            @media all and (orientation:landscape) {
                 .user-panel {
                     position: relative;
                     width: 33%;
@@ -27,10 +27,10 @@
             }
 
             @media all and (orientation:portrait) {
-                #user-list {
-                    display: flex;
-                    flex-direction: column;
-                } 
+                .user-panel {
+                    position: relative;
+                    width: 50%;
+                }
             }
 
             #join-button {

@@ -190,7 +190,7 @@ OMGRealTime.prototype.callUser = async function(name) {
 OMGRealTime.prototype.createPeerConnection = function (user) {
     console.log("creating peer connection", user)
     var peerConnection = new RTCPeerConnection({
-        iceServers: [     // Information about ICE servers - Use your own!
+        iceServers: [     // Information about ICE servers - Use your own! 
             {
                 urls: "stun:stun.openmusic.gallery:3478"
             },
@@ -264,3 +264,8 @@ OMGRealTime.prototype.sendTextMessage = function (remoteUserName, message) {
 }
 
 OMGRealTime.prototype.ontextmessage = function () {}
+
+
+
+
+//[1] https://ourcodeworld.com/articles/read/1175/how-to-create-and-configure-your-own-stun-turn-server-with-coturn-in-ubuntu-18-04

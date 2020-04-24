@@ -1,14 +1,14 @@
 //game engine
 var ge = {}
 
-try { // real time communication
+/*try { // real time communication
     ge.rtc = new OMGRealTime()
     ge.remoteUsers = ge.rtc.remoteUsers
 }
 catch (e) {
-    console.log("did not create rtc", e)
+    console.log("did not create rtc", e)*/
     ge.remoteUsers = {}
-}
+//}
 
 
 ge.aButton = " "
