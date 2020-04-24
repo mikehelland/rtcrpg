@@ -9,16 +9,32 @@
                 color:white;
                 box-sizing: border-box;
             }
-            #user-list {
-                display: flex;
-                flex-wrap: wrap;
-            }
-            .user-panel {
-                position: relative;
-                width: 33%;
-            }
             video {
                 width: 100%;;
+            }
+
+            @media all and (orientation:landscape) {
+                #user-list {
+                    display: flex;
+                    flex-wrap: wrap;
+                }
+                .user-panel {
+                    position: relative;
+                    width: 33%;
+                }
+    
+            }
+
+            @media all and (orientation:portrait) {
+                #user-list {
+                    display: flex;
+                    flex-direction: column;
+                } 
+            }
+
+            #join-button {
+                width: 100%;
+                left: 25%;
             }
         </style>
     </head>
