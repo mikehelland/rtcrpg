@@ -39,6 +39,7 @@ var io = require('socket.io')(httpsServer);
 var rooms = {}
 io.on("connection", socket => {
     var name
+    var roomName
     var room = {users: {}}
 
     socket.on("join", msg => {
@@ -50,6 +51,7 @@ io.on("connection", socket => {
         }
         room = rooms[msg.room]
         name = msg.name
+        roomName = msg.room
 
         room.users[name] = {id: socket.id, data: msg.data, name: name}
 
@@ -63,7 +65,7 @@ io.on("connection", socket => {
         if (name) {
             delete room.users[name]
         }
-        socket.to(room).emit("update-user-list", room.users);
+        io.in(roomName).emit("update-user-list", room.users);
     });
 
     socket.on("call-user", data => {
