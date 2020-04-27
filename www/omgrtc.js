@@ -35,6 +35,7 @@ OMGRealTime.prototype.getUserMedia = function (callback) {
     this.log("Getting camera and microphone")
 
     this.localVideo = document.createElement("video")
+    this.localVideo.controls = true
 
     navigator.mediaDevices.getUserMedia({
         video: true,
@@ -90,6 +91,7 @@ OMGRealTime.prototype.updateUserList = function (users) {
 OMGRealTime.prototype.setupNewUser = function (name, data) {
     this.remoteUsers[name] = data
     this.remoteUsers[name].video = document.createElement("video")
+    this.remoteUsers[name].video.controls = true
     if (this.onNewUser) this.onNewUser(name, this.remoteUsers[name])
 }
 
