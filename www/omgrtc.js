@@ -1,12 +1,20 @@
-function OMGRealTime() {
-    this.userName = window.location.search.slice(1) || (Math.round(Math.random() * 100000) + "")
+function OMGRealTime(userName) {
+    this.userName = userName || (Math.round(Math.random() * 100000) + "")
     this.remoteUsers = {}
 
     this.socket = io("")
+
+    this.socket.on("joined", users => {
+        this.updateUserList(users)
+        this.isJoined = true
+        if (this.onjoined) this.onjoined(this.remoteUsers)
+    })
     this.socket.on("update-user-list", users => this.updateUserList(users))
     this.socket.on("incoming-call", async data => this.onIncomingCall(data))
     this.socket.on("answer-made", data => this.onAnswerMade(data))
     this.socket.on("candidate", data => this.onCandidate(data))
+
+    this.socket.on("signaling", data => this.onSignal(data))
 
     this.socket.on("updateRemoteUserData", msg => this.updateRemoteUserData(msg))
     this.socket.on("textMessage", data => this.ontextmessage(data))
@@ -16,7 +24,15 @@ function OMGRealTime() {
     });
 }
 
+OMGRealTime.prototype.log = function (message) {
+    console.log(message)
+    if (this.onlog) {
+        this.onlog(message)
+    }
+}
+
 OMGRealTime.prototype.getUserMedia = function (callback) {
+    this.log("Getting camera and microphone")
 
     this.localVideo = document.createElement("video")
 
@@ -24,6 +40,8 @@ OMGRealTime.prototype.getUserMedia = function (callback) {
         video: true,
         audio: true
     }).then((stream) => {
+        this.log("Got camera and microphone.")
+
         this.localStream = stream
         this.localVideo.srcObject = stream
         this.localVideo.muted = true
@@ -33,13 +51,16 @@ OMGRealTime.prototype.getUserMedia = function (callback) {
     })
 }
 OMGRealTime.prototype.join = function (roomName, userName) {
+    this.log("Joining room.")
     this.socket.emit("join", {
-        name: userName
+        name: userName,
+        room: roomName
     })
 }
 
 OMGRealTime.prototype.updateUserList = function (users) {
     //connectedStatusEl.innerHTML = "connected"
+    this.log("Updating user list.")
     for (var name in users) {
         if (name == this.userName) continue;
         if (!this.remoteUsers[name]) {
@@ -64,11 +85,6 @@ OMGRealTime.prototype.updateUserList = function (users) {
     if (Object.keys(this.remoteUsers).length === 0) {
         //userListEl.innerHTML = "no users yet"
     }
-
-    if (!this.isJoined) {
-        this.isJoined = true
-        if (this.onjoined) this.onjoined(this.remoteUsers)
-    }
 }
 
 OMGRealTime.prototype.setupNewUser = function (name, data) {
@@ -78,78 +94,59 @@ OMGRealTime.prototype.setupNewUser = function (name, data) {
 }
 
 OMGRealTime.prototype.onIncomingCall = async function(data) {
-    console.log("incoming-call")
+    this.log("incoming-offer")
     var remoteUsers = this.remoteUsers
     var name = data.callerName
     var user = remoteUsers[name]
     if (!user) {
-        console.log("incoming caller doesn't exist", name)
+        this.log("incoming caller doesn't exist", data)
         // todo not there
     }
     if (user.peerConnection) {
-        console.log("incoming connection already exists", name)
+        this.log("incoming connection already exists", name)
         // todo 
     }
 
-    var acceptCall = async () => {
-        user.caller = true
-        user.peerConnection = this.createPeerConnection(user)
-    
-        this.localStream.getTracks().forEach(track => user.peerConnection.addTrack(track, this.localStream));
-    
-        await user.peerConnection.setRemoteDescription(data.offer)
-    
-        const answer = await user.peerConnection.createAnswer();
-        await user.peerConnection.setLocalDescription(new RTCSessionDescription(answer));
-        
-        this.socket.emit("make-answer", {
-            answer,
-            to: data.socket
-        });    
-    }
+    user.caller = true
+    user.peerConnection = this.createPeerConnection(user)
 
-    if (this.acceptAllCalls) {
-        acceptCall()
-    }
-    else if (this.onincomingcall) {
-        this.onIncomingCall(() => {
-            acceptCall()
-        })
-    }
+    await user.peerConnection.setRemoteDescription(data.offer)
 
+    const answer = await user.peerConnection.createAnswer();
+    await user.peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+
+    this.log("make-answer")
+    this.socket.emit("make-answer", {
+        answer,
+        to: data.socket
+    });    
 };
 
     
 
 OMGRealTime.prototype.onAnswerMade = async function(data) {
     var remoteUsers = this.remoteUsers
-    console.log("answer-made", data)
+    this.log("answer-made")
     var name = data.calleeName
     var user = remoteUsers[name]
     if (!user) {
-        console.log("callUser doesn't exist", name)
+        this.log("onanswermade calleeName doesn't exist", name)
         // todo not there
     }
     if (!user.peerConnection) {
-        console.log("callUser connection doesn't exists", name)
+        this.log("onanswermade calleeName connection doesn't exists", name)
         // todo 
     }
 
-    await user.peerConnection.setRemoteDescription(
-        new RTCSessionDescription(data.answer)
-    );
-    
-    //user.peerConnection.ontrack = function({ streams: [stream] }) {
-    //    user.video.srcObject = stream;
-    //    user.video.play()
-    //};
+    await user.peerConnection.setRemoteDescription(data.answer);
+    this.log("ok?")    
 };
 
 OMGRealTime.prototype.onCandidate = function (data) {
     var name = data.caller
     var user = this.remoteUsers[name]
     if (!user) {
-        console.log("caller doesn't exist", name)
+        this.log("caller doesn't exist", name)
         // todo not there
     }
 
@@ -162,33 +159,38 @@ OMGRealTime.prototype.onCandidate = function (data) {
     user.peerConnection.addIceCandidate(candidate)
 }
 
-OMGRealTime.prototype.callUser = async function(name) {
-        console.log("call", name)
-        var user = this.remoteUsers[name]
-        if (!user) {
-            console.log("callUser doesn't exist", name)
-            // todo not there
-        }
-        if (user.peerConnection) {
-            console.log("callUser connection already exists", name)
-            // todo 
-        }
-        
-        user.peerConnection = this.createPeerConnection(user)
+OMGRealTime.prototype.callUser = async function(name, callback) {
+    this.log("call", name)
+    var user = this.remoteUsers[name]
+    if (!user) {
+        this.log("callUser doesn't exist", name)
+        return
+    }
 
-        if (this.localStream) {
-            this.localStream.getTracks().forEach(track => user.peerConnection.addTrack(track, this.localStream));
-        }
-        else {
-            this.getUserMedia(() => {
-                this.localStream.getTracks().forEach(track => user.peerConnection.addTrack(track, this.localStream));
-            })
-        }
-    }; 
+    user.callee = true
 
+    user.outgoingCallCallback = callback
+    var whenReady = () => {
+        this.socket.emit("signaling", {
+            from: this.userName,
+            to: name,
+            type: "call"
+        })
+    }
+
+    if (!this.localStream) {
+        this.getUserMedia(() => {
+            whenReady()
+        })
+    }
+    else {
+        whenReady()
+    }
+}
+    
 
 OMGRealTime.prototype.createPeerConnection = function (user) {
-    console.log("creating peer connection", user)
+    this.log("creating peer connection")
     var peerConnection = new RTCPeerConnection({
         iceServers: [     // Information about ICE servers - Use your own! 
             {
@@ -215,7 +217,12 @@ OMGRealTime.prototype.createPeerConnection = function (user) {
     };
 
     peerConnection.onnegotiationneeded = () => {
-        console.log("onnegotiatedneedeed")
+        //should only need to do this when calling, not being called
+        if (!user.callee) {
+            return
+        }
+
+        this.log("negotiating connection...")
         peerConnection.createOffer().then(function(offer) {
             return peerConnection.setLocalDescription(offer);
         })
@@ -225,17 +232,26 @@ OMGRealTime.prototype.createPeerConnection = function (user) {
                 to: user.id
             })
         })
-        .catch((error) => console.error(error));
+        .catch((error) => this.log("error negotiating"));
     };
 
     peerConnection.ontrack = function({ streams: [stream] }) {
-        user.video.srcObject = stream;
-        user.video.play()
+        try {
+            user.video.srcObject = stream;
+            user.video.play()
+        }
+        catch (e) {
+            console.log("user stream ended")
+        }
     };
+
+    this.localStream.getTracks().forEach(track => peerConnection.addTrack(track, this.localStream));
     /*peerConnection.onremovetrack = handleRemoveTrackEvent;
     peerConnection.oniceconnectionstatechange = handleICEConnectionStateChangeEvent;
     peerConnection.onicegatheringstatechange = handleICEGatheringStateChangeEvent;
     peerConnection.onsignalingstatechange = handleSignalingStateChangeEvent;*/
+
+    this.log("peer connection created")
     return peerConnection
 }
 
@@ -250,7 +266,7 @@ OMGRealTime.prototype.updateRemoteUserData = function (msg) {
     }
 
     if (!this.remoteUsers[msg.name]) {
-        console.log("no user to update", msg)
+        this.log("no user to update", msg)
         return
     }   
     this.remoteUsers[msg.name].data = msg.data
@@ -265,7 +281,60 @@ OMGRealTime.prototype.sendTextMessage = function (remoteUserName, message) {
 
 OMGRealTime.prototype.ontextmessage = function () {}
 
+OMGRealTime.prototype.onSignal = function (signal) {
+    this.log("signal " + signal.type)
+    if (signal.type === "call") {
+        this.onGetCall(signal)
+    }
+    else if (signal.type === "pickup") {
+        this.onPickUp(signal)
+    }
+}
 
+OMGRealTime.prototype.onGetCall = function (signal) {
+    this.log("get call " + signal.from)
+    var pickUp = () => {
+        if (!this.localStream) {
+            this.getUserMedia(() => {
+                this.socket.emit("signaling", {
+                    type: "pickup",
+                    from: this.userName,
+                    to: signal.from
+                })
+            })
+        }
+        else {
+            this.socket.emit("signaling", {
+                type: "pickup",
+                from: this.userName,
+                to: signal.from
+            })
+        }
+    }
 
+    if (this.acceptAllCalls) {
+        pickUp()
+    }
+    else if (this.onincomingcall) {
+        this.onincomingcall(name, () => {
+            pickUp()
+        })
+    }
+
+}
+
+OMGRealTime.prototype.onPickUp = function (signal) {
+    var user = this.remoteUsers[signal.from]
+    if (user.outgoingCallCallback) {
+        user.outgoingCallCallback(true)
+        delete user.outgoingCallCallback
+    }
+    if (user.peerConnection) {
+        this.log("onPickUp connection already exists", name)
+        // todo 
+    }    
+    user.peerConnection = this.createPeerConnection(user)
+
+}
 
 //[1] https://ourcodeworld.com/articles/read/1175/how-to-create-and-configure-your-own-stun-turn-server-with-coturn-in-ubuntu-18-04

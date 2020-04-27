@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta name="viewport" context="width=device-width, initial-scale=1.0">
         <style>
             body {
                 /*background: rgba(0, 0, 0, 0) linear-gradient(135deg, rgb(249, 241, 232) 0%, rgb(205, 214, 227) 100%) repeat scroll 0% 0%;*/
@@ -40,6 +41,10 @@
                 width: 50%;
                 left: 25%;
             }
+            #activity-log {
+                font-size: 12px;
+                font-family:'Courier New', Courier, monospace;
+            }
         </style>
     </head>
     <body>
@@ -58,15 +63,6 @@
         <button id="join-button">Join</button>
         <script>
             
-        var joinButton = document.getElementById("join-button")
-        joinButton.onclick = () => {
-            rt.getUserMedia(video => {
-                you.appendChild(video)
-                rt.join(roomName, userName)
-            })
-            joinButton.style.display = "none"
-        }
-
         var userName = window.location.search.slice(1) || (Math.round(Math.random() * 100000) + "")
         var roomName = "public"
         if (userName.indexOf("/") > -1) {
@@ -78,14 +74,29 @@
 
         var userListEl = document.getElementById('user-list')
 
-
-        var rt = new OMGRealTime()
+        var rt = new OMGRealTime(userName)
         rt.acceptAllCalls = true
 
         var activityLog = document.getElementById("activity-log")
         var log = text => {
-            activityLog.innerHTML = text + "<br>" + activityLog.innerHTML
+            //activityLog.innerHTML = text + "<br>" + activityLog.innerHTML
+            activityLog.innerHTML += text + "<br>"
         }
+
+        rt.onlog = (text) => {
+            log(text)
+        }
+
+
+        var joinButton = document.getElementById("join-button")
+        joinButton.onclick = () => {
+            rt.getUserMedia(video => {
+                you.appendChild(video)
+                rt.join(roomName, userName)
+            })
+            joinButton.style.display = "none"
+        }
+
 
         rt.onjoined = (users) => {
             console.log("onjoined!!!!!!")

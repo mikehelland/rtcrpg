@@ -5,12 +5,16 @@
         body {
             margin:0px;
             padding:0px;
+            overflow: hidden;
+            background-color: black;
         }
         canvas {
             position:absolute;
+        }
+        #mainCanvas {
+            position:absolute;
             height:100%;
             width:100%;
-            background-color: black;
         }
         .menu {
             position:absolute;
@@ -89,7 +93,8 @@
 <body>
 
     <img id="characters-spritesheet" src="img/characters_alpha.gif">
-    
+
+    <canvas id="backgroundCanvas"></canvas>    
     <canvas id="mainCanvas"></canvas>
     <div id="playerMenu" class="menu">
         <div>TALK</div>

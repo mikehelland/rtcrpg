@@ -1,20 +1,26 @@
 //game engine
 var ge = {}
+ge.userName = window.location.search.slice(1) || (Math.round(Math.random() * 100000) + "")
 
-/*try { // real time communication
-    ge.rtc = new OMGRealTime()
+try { // real time communication
+    ge.rtc = new OMGRealTime(ge.userName)
     ge.remoteUsers = ge.rtc.remoteUsers
 }
 catch (e) {
-    console.log("did not create rtc", e)*/
+    console.log("did not create rtc", e)
     ge.remoteUsers = {}
-//}
+}
 
 
 ge.aButton = " "
 ge.bButton = "ArrowLeft"
 
+ge.backgroundCanvas = document.getElementById("backgroundCanvas")
+ge.backgroundContext = ge.backgroundCanvas.getContext("2d")
+
 ge.canvas = document.getElementById("mainCanvas")
+ge.canvas.style.width = window.innerWidth + "px"
+ge.canvas.style.height = window.innerHeight + "px"
 ge.canvas.width = ge.canvas.clientWidth
 ge.canvas.height = ge.canvas.clientHeight
 ge.context = ge.canvas.getContext("2d")
@@ -25,11 +31,9 @@ ge.img = {
     frameDiff: 60
 }
 
-//our character is always in the middle
-//this sets how many tiles each direction are shown
-ge.tileOffset = 8
 
 // make it square
+ge.tileOffset = 8
 if (ge.canvas.height > ge.canvas.width) {
     ge.tileSize = ge.canvas.width / (ge.tileOffset * 2 + 1)
     ge.offsetTop = (ge.canvas.height - ge.canvas.width) / 2
@@ -40,8 +44,19 @@ else {
     ge.offsetLeft = (ge.canvas.width - ge.canvas.height) / 2
     ge.offsetTop = 0
 }
+
+ge.offsetLeft = 0
+ge.offsetTop = 0
+
 ge.tileWidth = ge.tileSize
 ge.tileHeight = ge.tileSize
+
+
+//our character is always in the middle
+//this sets how many tiles each direction are shown
+ge.middleTileX = ge.canvas.width / 2 - ge.tileWidth / 2
+ge.middleTileY = ge.canvas.height / 2 - ge.tileHeight / 2
+
 
 ge.hero = {
     characterI: Math.floor(Math.random() * 25),
@@ -261,13 +276,33 @@ ge.render = () => {
         ge.frameCount++
     }
 
-    ge.drawScene()
+    if (!ge.drawnBackground) {
+        ge.drawScene()
+        ge.drawnBackground = true
+    }
+    ge.backgroundCanvas.style.left = ge.hero.x * ge.tileWidth * -1 + ge.middleTileX + "px"
+    ge.backgroundCanvas.style.top = ge.hero.y * ge.tileHeight * -1 + ge.middleTileY  + "px"
+
+    ge.canvas.width = ge.canvas.width
     ge.drawCharacters()
 }
 ge.drawScene = () => {
-    ge.drawY = 0
-    ge.canvas.width = ge.canvas.width
 
+
+    for (var y = 0; y < ge.map.length; y++) {
+        for (var x = 0; x < ge.map[y].length; x++) {
+            if (ge.map[y][x] && ge.img.tiles[ge.map[y][x]]) {
+                ge.backgroundContext.drawImage(ge.img.tiles[ge.map[y][x]],
+                    x * ge.tileWidth - 0.25, 
+                    y * ge.tileHeight - 0.25,
+                    ge.tileWidth + 0.5, ge.tileHeight + 0.5)
+            }
+        }
+    }
+    return    
+
+
+    ge.drawY = 0
     for (var y = ge.hero.y - ge.tileOffset; y < ge.hero.y + ge.tileOffset + 1; y++) {
         if (ge.map[y]) {
             ge.drawX = 0
@@ -289,8 +324,8 @@ ge.drawCharacters = () => {
     ge.context.drawImage(ge.img.characters,
         ge.hero.spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
         ge.hero.spritesheetCoords.y + 50 * ge.hero.facing, 36, 36,
-        ge.offsetLeft+ ge.tileOffset * ge.tileWidth, 
-        ge.offsetTop + ge.tileOffset * ge.tileHeight,
+        ge.offsetLeft+ ge.middleTileX, 
+        ge.offsetTop + ge.middleTileY,
         ge.tileWidth, ge.tileHeight)    
     
     for (var i = 0; i < ge.npcs.length; i++) {
@@ -299,8 +334,8 @@ ge.drawCharacters = () => {
             ge.context.drawImage(ge.img.characters,
                 ge.npcs[i].spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
                 ge.npcs[i].spritesheetCoords.y + 50 * (ge.npcs[i].facing||0), 36, 36,
-                ge.offsetLeft + (ge.tileOffset + ge.npcs[i].x - ge.hero.x) * ge.tileWidth, 
-                ge.offsetTop + (ge.tileOffset + ge.npcs[i].y - ge.hero.y) * ge.tileHeight,
+                ge.offsetLeft + (ge.npcs[i].x - ge.hero.x) * ge.tileWidth + ge.middleTileX, 
+                ge.offsetTop + (ge.npcs[i].y - ge.hero.y) * ge.tileHeight + ge.middleTileY,
                 ge.tileWidth, ge.tileHeight)        
         }
     }
@@ -313,8 +348,8 @@ ge.drawCharacters = () => {
             ge.context.drawImage(ge.img.characters,
                 user.data.spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
                 user.data.spritesheetCoords.y + 50 * (user.data.facing||0), 36, 36,
-                ge.offsetLeft + (ge.tileOffset + user.data.x - ge.hero.x) * ge.tileWidth, 
-                ge.offsetTop + (ge.tileOffset + user.data.y - ge.hero.y) * ge.tileHeight,
+                ge.offsetLeft + (user.data.x - ge.hero.x) * ge.tileWidth + ge.middleTileX, 
+                ge.offsetTop + (user.data.y - ge.hero.y) * ge.tileHeight + ge.middleTileY,
                 ge.tileWidth, ge.tileHeight)        
         }
     }
@@ -338,13 +373,19 @@ ge.talk = () => {
         //{caption: "TEXT", action: {"function": "voiceCallUser", userName}},
         {caption: "VIDEO", action: {"function": "videoCallUser", name: character.name}}
     ]}])
-    //ge.rtc.callUser(character.name)
 }
 
 ge.textUser = (options) => {
     console.log("texting user", options.name)
     ge.hideMenus()
     ge.showTextMessageDialog(options.name)
+}
+
+ge.videoCallUser = (options) => {
+    console.log("calling user", options.name)
+    ge.hideMenus()
+    ge.showVideoCallDialog(options.name)
+    
 }
 
 ge.getCharacter = () => {
@@ -589,6 +630,25 @@ ge.showTextMessage = (data) => {
     ge.textMessageDialog.output.scrollTop = ge.textMessageDialog.output.scrollHeight;
 }
 
+ge.videoCallDialog = {
+    div: document.getElementById("textMessageDialog"),
+}
+ge.showVideoCallDialog = (remoteUserName) => {
+    //var dialog = document.createElement('div')
+    //dialog.className = "menu"
+    //document.body.appendChild(dialog)
+
+    ge.rtc.callUser(remoteUserName, (data) => {
+        ge.rtc.localVideo.className = "menu"
+        ge.rtc.localVideo.style.display = "block"
+        ge.rtc.localVideo.style.width = "25%"
+        document.body.appendChild(ge.rtc.localVideo)        
+    })
+}
+
+
+
+
 ge.characterHasGear = (character, gear) => {
     for (var i = 0; i < character.gear.length; i++) {
         if (character.gear[i].name === gear) { 
@@ -659,7 +719,16 @@ fetch("map1").then(result => {
         var img = document.createElement("img")
         img.src = "img/" + data.tileSet[key]
         ge.img.tiles[key] = img
+        img.onload = ()=>{ge.drawnBackground = false}
     })
+
+    console.log(ge.tileWidth, ge.tileHeight)
+    ge.backgroundCanvas.width = data.mapLines[0].length * ge.tileWidth
+    ge.backgroundCanvas.height = data.mapLines.length * ge.tileHeight
+    ge.backgroundCanvas.style.width = ge.backgroundCanvas.width + "px"
+    ge.backgroundCanvas.style.height = ge.backgroundCanvas.height + "px"
+    
+
     
     ge.map = data.mapLines;
     ge.npcs = data.npcs || []

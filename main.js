@@ -36,27 +36,34 @@ app.use(express.static('www'))
 
 var io = require('socket.io')(httpsServer);
 
-var users = {}
+var rooms = {}
 io.on("connection", socket => {
     var name
+    var room = {users: {}}
 
     socket.on("join", msg => {
-        if (users[msg.name]) {
-            //todo
+
+        socket.join(msg.room)
+
+        if (!rooms[msg.room]) {
+            rooms[msg.room] = {users: {}}
         }
-
+        room = rooms[msg.room]
         name = msg.name
-        users[name] = {id: socket.id, data: msg.data, name: name}
 
-        io.emit("update-user-list", users);
+        room.users[name] = {id: socket.id, data: msg.data, name: name}
+
+        socket.to(msg.room).emit("update-user-list", room.users);
+        socket.emit("joined", room.users);
+        
     })
 
 
     socket.on("disconnect", () => {
         if (name) {
-            delete users[name]
+            delete room.users[name]
         }
-        io.emit("update-user-list", users);
+        socket.to(room).emit("update-user-list", room.users);
     });
 
     socket.on("call-user", data => {
@@ -86,21 +93,30 @@ io.on("connection", socket => {
     });
 
     socket.on("updateLocalUserData", data => {
-        if (users[name]) {
-            users[name].data = data
+        if (room.users[name]) {
+            room.users[name].data = data
         }
-        socket.broadcast.emit("updateRemoteUserData", {
+        socket.to(room).emit("updateRemoteUserData", {
             name: name,
             data, data
         });
     });
 
     socket.on("textMessage", data => {
-        if (users[data.to]) {
-            io.to(users[data.to].id).emit("textMessage", {
+        if (room.users[data.to]) {
+            io.to(room.users[data.to].id).emit("textMessage", {
                 from: name,
                 message: data.message
             })
         }
+    })
+
+    socket.on("signaling", signal => {
+        try {
+            if (room.users[signal.to]) {
+                io.to(room.users[signal.to].id).emit("signaling", signal)
+            }    
+        }
+        catch (e) {}
     })
 })
