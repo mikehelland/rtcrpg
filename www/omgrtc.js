@@ -20,7 +20,7 @@ function OMGRealTime(userName) {
     this.socket.on("textMessage", data => this.ontextmessage(data))
 
     this.socket.on("disconnect", () => {
-        //connectedStatusEl.innerHTML = "not connected"
+        if (this.ondisconnect) this.ondisconnect()
     });
 }
 

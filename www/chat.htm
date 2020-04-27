@@ -126,8 +126,9 @@
             userListEl.removeChild(user.div)
         }
         
-        rt.onDisconnect = () => {
+        rt.ondisconnect = () => {
             connectedStatusEl.innerHTML = "not connected"
+            this.log("disconnected")
         };
 
 
