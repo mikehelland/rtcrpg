@@ -11,7 +11,7 @@ catch (e) {
     ge.remoteUsers = {}
 }
 
-
+ge.stepDuration = 200
 ge.aButton = " "
 ge.bButton = "ArrowLeft"
 
@@ -63,7 +63,9 @@ ge.hero = {
     coins: 1000000,
     vocalSkill: 0,
     guitarSkill: 0,
-    gear: []
+    gear: [],
+    facingX: 0,
+    facingY: 1,
 }
 
 ge.keysPressed = {}
@@ -72,6 +74,10 @@ ge.visibleMenus = []
 document.onkeydown = e => {
     if (e.keyCode === 27) {
         ge.hideMenus()
+        if (ge.stopVideoCalls) {
+            ge.stopVideoCalls()
+            ge.stopVideoCalls = null
+        }
     }
     if (e.target.tagName.toLowerCase() === "input") {
         return
@@ -152,7 +158,7 @@ ge.processKeys = () => {
 
 ge.blockedTiles = "Ilwdp"
 ge.hero.move = (x, y) => {
-    if (Date.now() - ge.hero.lastMove < 175) {
+    if (Date.now() - ge.hero.lastMove < ge.stepDuration) {
         return 
     }
 
@@ -163,23 +169,29 @@ ge.hero.move = (x, y) => {
     if (x === 1) ge.hero.facing = 2
     if (x === -1) ge.hero.facing = 3
 
+    var updatePosition = () => {
+        if (ge.rtc) {
+            ge.rtc.updateLocalUserData(ge.hero)
+        }
+    }
+
     // check to see if you can move to that position
     var target = ge.map[ge.hero.y + y]
-    if (!target) return
+    if (!target) return updatePosition()
     target = target[ge.hero.x + x]
     if (!target || ge.blockedTiles.indexOf(target) > -1) {
-        return 
+        return updatePosition()
     }
     for (var i = 0; i < ge.npcs.length; i++) {
         if (ge.npcs[i].x === ge.hero.x + x && ge.npcs[i].y === ge.hero.y + y) {
-            return
+            return updatePosition()
         }
     }
     for (i in ge.remoteUsers) {
         if (ge.remoteUsers[i].data &&
             ge.remoteUsers[i].data.x === ge.hero.x + x && 
             ge.remoteUsers[i].data.y === ge.hero.y + y) {
-            return
+            return updatePosition()
         }
     }
 
@@ -189,9 +201,7 @@ ge.hero.move = (x, y) => {
 
     ge.hero.lastMove = Date.now()
 
-    if (ge.rtc) {
-        ge.rtc.updateLocalUserData(ge.hero)
-    }
+    updatePosition()
 }
 
 
@@ -267,6 +277,7 @@ ge.handleAction = (action) => {
 }
 
 ge.frameCount = 0
+ge.stepPercent = 1
 ge.render = () => {
     if (ge.frameCount === 10) {
         ge.animationFrame = !ge.animationFrame
@@ -280,8 +291,18 @@ ge.render = () => {
         ge.drawScene()
         ge.drawnBackground = true
     }
-    ge.backgroundCanvas.style.left = ge.hero.x * ge.tileWidth * -1 + ge.middleTileX + "px"
-    ge.backgroundCanvas.style.top = ge.hero.y * ge.tileHeight * -1 + ge.middleTileY  + "px"
+
+    ge.stepPercent = 0
+    if (Date.now() - ge.hero.lastMove < ge.stepDuration) {
+        ge.stepPercent = 1 - (Date.now() - ge.hero.lastMove) / ge.stepDuration
+        ge.backgroundCanvas.style.left = ge.tileWidth * (ge.hero.x - ge.hero.facingX * ge.stepPercent) * -1 + ge.middleTileX + "px"
+        ge.backgroundCanvas.style.top = ge.tileHeight * (ge.hero.y - ge.hero.facingY * ge.stepPercent) * -1 + ge.middleTileY  + "px"
+    }
+    else {
+        ge.backgroundCanvas.style.left = ge.tileWidth * ge.hero.x * -1 + ge.middleTileX + "px"
+        ge.backgroundCanvas.style.top = ge.tileHeight * ge.hero.y * -1 + ge.middleTileY  + "px"
+    }
+
 
     ge.canvas.width = ge.canvas.width
     ge.drawCharacters()
@@ -299,25 +320,6 @@ ge.drawScene = () => {
             }
         }
     }
-    return    
-
-
-    ge.drawY = 0
-    for (var y = ge.hero.y - ge.tileOffset; y < ge.hero.y + ge.tileOffset + 1; y++) {
-        if (ge.map[y]) {
-            ge.drawX = 0
-            for (var x = ge.hero.x - ge.tileOffset; x < ge.hero.x + ge.tileOffset + 1; x++) {
-                if (ge.map[y][x] && ge.img.tiles[ge.map[y][x]]) {
-                    ge.context.drawImage(ge.img.tiles[ge.map[y][x]],
-                        ge.offsetLeft + ge.drawX * ge.tileWidth - 0.25, 
-                        ge.offsetTop + ge.drawY * ge.tileHeight - 0.25,
-                        ge.tileWidth + 0.5, ge.tileHeight + 0.5)
-                    }
-                ge.drawX++
-            }
-        }
-        ge.drawY++                
-    }
 }
 
 ge.drawCharacters = () => {
@@ -329,28 +331,40 @@ ge.drawCharacters = () => {
         ge.tileWidth, ge.tileHeight)    
     
     for (var i = 0; i < ge.npcs.length; i++) {
-        if (Math.abs(ge.npcs[i].x - ge.hero.x) <= ge.tileOffset &&
-                Math.abs(ge.npcs[i].y - ge.hero.y) <= ge.tileOffset) {
+        if (Math.abs(ge.npcs[i].x - ge.hero.x) <= ge.tileOffset * 2 &&
+                Math.abs(ge.npcs[i].y - ge.hero.y) <= ge.tileOffset * 2) {
             ge.context.drawImage(ge.img.characters,
                 ge.npcs[i].spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
                 ge.npcs[i].spritesheetCoords.y + 50 * (ge.npcs[i].facing||0), 36, 36,
-                ge.offsetLeft + (ge.npcs[i].x - ge.hero.x) * ge.tileWidth + ge.middleTileX, 
-                ge.offsetTop + (ge.npcs[i].y - ge.hero.y) * ge.tileHeight + ge.middleTileY,
+                ge.offsetLeft + (ge.npcs[i].x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX, 
+                ge.offsetTop + (ge.npcs[i].y - ge.hero.y + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY,
                 ge.tileWidth, ge.tileHeight)        
         }
     }
 
+    
     for (var userName in ge.remoteUsers) {
         var user = ge.remoteUsers[userName]
         if (user.data &&
-                Math.abs(user.data.x - ge.hero.x) <= ge.tileOffset &&
-                Math.abs(user.data.y - ge.hero.y) <= ge.tileOffset) {
+                Math.abs(user.data.x - ge.hero.x) <= ge.tileOffset * 2 &&
+                Math.abs(user.data.y - ge.hero.y) <= ge.tileOffset * 2) {
             ge.context.drawImage(ge.img.characters,
                 user.data.spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
                 user.data.spritesheetCoords.y + 50 * (user.data.facing||0), 36, 36,
-                ge.offsetLeft + (user.data.x - ge.hero.x) * ge.tileWidth + ge.middleTileX, 
-                ge.offsetTop + (user.data.y - ge.hero.y) * ge.tileHeight + ge.middleTileY,
+                ge.offsetLeft + (user.data.x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX, 
+                ge.offsetTop + (user.data.y - ge.hero.y + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY,
                 ge.tileWidth, ge.tileHeight)        
+
+            ge.context.fillStyle = "black"
+            ge.context.fillRect(
+                ge.offsetLeft + (user.data.x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX, 
+                ge.offsetTop + (user.data.y - ge.hero.y + 1 + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY,
+                ge.tileWidth, 14)
+    
+            ge.context.fillStyle = "white"
+            ge.context.fillText(user.name,
+                3 + ge.offsetLeft + (user.data.x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX, 
+                12 + ge.offsetTop + (user.data.y - ge.hero.y + 1 + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY)
         }
     }
 }
@@ -383,9 +397,9 @@ ge.textUser = (options) => {
 
 ge.videoCallUser = (options) => {
     console.log("calling user", options.name)
-    ge.hideMenus()
-    ge.showVideoCallDialog(options.name)
-    
+    ge.rtc.callUser(options.name, (user) => {
+        ge.showVideoCallDialog(user)
+    })
 }
 
 ge.getCharacter = () => {
@@ -633,17 +647,27 @@ ge.showTextMessage = (data) => {
 ge.videoCallDialog = {
     div: document.getElementById("textMessageDialog"),
 }
-ge.showVideoCallDialog = (remoteUserName) => {
-    //var dialog = document.createElement('div')
-    //dialog.className = "menu"
-    //document.body.appendChild(dialog)
 
-    ge.rtc.callUser(remoteUserName, (data) => {
-        ge.rtc.localVideo.className = "menu"
-        ge.rtc.localVideo.style.display = "block"
-        ge.rtc.localVideo.style.width = "25%"
-        document.body.appendChild(ge.rtc.localVideo)        
-    })
+
+ge.showVideoCallDialog = (user) => {
+    ge.hideMenus()
+    
+    ge.rtc.localVideo.className = "menu"
+    ge.rtc.localVideo.style.display = "block"
+    ge.rtc.localVideo.style.width = "25%"
+    document.body.appendChild(ge.rtc.localVideo)
+    user.video.className = "menu"
+    user.video.style.display = "block"
+    user.video.style.width = "25%"
+    user.video.style.right = "0px"
+    document.body.appendChild(user.video)
+
+    ge.stopVideoCalls = () => {
+        document.body.removeChild(user.video)
+        document.body.removeChild(ge.rtc.localVideo)
+        ge.rtc.stopMedia()
+        ge.rtc.closeConnection(user)
+    }
 }
 
 
@@ -749,6 +773,9 @@ fetch("map1").then(result => {
                     {caption: "Nope", action: "hideMenus"}
                 ]}
             ])            
+        }
+        ge.rtc.onconnection = (user) => {
+            ge.showVideoCallDialog(user)
         }
         ge.rtc.ontextmessage = (data) => {
             console.log("tm", data)

@@ -98,7 +98,7 @@ io.on("connection", socket => {
         if (room.users[name]) {
             room.users[name].data = data
         }
-        socket.to(room).emit("updateRemoteUserData", {
+        socket.to(roomName).emit("updateRemoteUserData", {
             name: name,
             data, data
         });

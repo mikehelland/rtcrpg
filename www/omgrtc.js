@@ -2,6 +2,7 @@ function OMGRealTime(userName) {
     this.userName = userName || (Math.round(Math.random() * 100000) + "")
     this.remoteUsers = {}
 
+    //this.socket = io("https://powerful-retreat-40064.herokuapp.com/")
     this.socket = io("")
 
     this.socket.on("joined", users => {
@@ -116,6 +117,10 @@ OMGRealTime.prototype.onIncomingCall = async function(data) {
 
     const answer = await user.peerConnection.createAnswer();
     await user.peerConnection.setLocalDescription(new RTCSessionDescription(answer));
+
+    if (this.onconnection) {
+        this.onconnection(user)
+    }
 
     this.log("make-answer")
     this.socket.emit("make-answer", {
@@ -318,7 +323,7 @@ OMGRealTime.prototype.onGetCall = function (signal) {
         pickUp()
     }
     else if (this.onincomingcall) {
-        this.onincomingcall(name, () => {
+        this.onincomingcall(signal.from, () => {
             pickUp()
         })
     }
@@ -328,7 +333,7 @@ OMGRealTime.prototype.onGetCall = function (signal) {
 OMGRealTime.prototype.onPickUp = function (signal) {
     var user = this.remoteUsers[signal.from]
     if (user.outgoingCallCallback) {
-        user.outgoingCallCallback(true)
+        user.outgoingCallCallback(user)
         delete user.outgoingCallCallback
     }
     if (user.peerConnection) {
@@ -337,6 +342,21 @@ OMGRealTime.prototype.onPickUp = function (signal) {
     }    
     user.peerConnection = this.createPeerConnection(user)
 
+}
+
+OMGRealTime.prototype.stopMedia = function () {
+    if (this.localStream) {
+        this.localStream.getTracks().forEach(function(track) {
+            track.stop();
+        });    
+        this.localStream = null
+    }
+}
+
+OMGRealTime.prototype.closeConnection = function (user) {
+    if (user && user.peerConnection) {
+        user.peerConnection.close()
+    }
 }
 
 //[1] https://ourcodeworld.com/articles/read/1175/how-to-create-and-configure-your-own-stun-turn-server-with-coturn-in-ubuntu-18-04
