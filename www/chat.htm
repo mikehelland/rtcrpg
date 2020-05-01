@@ -70,7 +70,7 @@
             <p><input id="user-name-input"></p>
             <button id="join-button">Join</button>    
         </div>
-        <button id="disconnect-button">Disconnnect</button>    
+        <button id="disconnect-button">Disconnect</button>    
 
 
         <div id="user-list">
@@ -131,7 +131,8 @@
         disconnectButton.onclick = () => {
             //rt.closeConnections()
             //rt.stopMedia()
-            window.location = window.location
+            rt.leave()
+            setTimeout(() => {window.location = window.location}, 250)
         }
 
 

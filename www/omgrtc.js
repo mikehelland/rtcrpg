@@ -12,7 +12,11 @@ function OMGRealTime(userName) {
         this.isJoined = true
         if (this.onjoined) this.onjoined(this.remoteUsers)
     })
+    
     this.socket.on("update-user-list", users => this.updateUserList(users))
+    this.socket.on("userLeft", name => this.onUserLeft(name))
+    this.socket.on("userDisconnected", name => this.onUserDisconnected(name))
+
     this.socket.on("incoming-call", async data => this.onIncomingCall(data))
     this.socket.on("answer-made", data => this.onAnswerMade(data))
     this.socket.on("candidate", data => this.onCandidate(data))
@@ -28,7 +32,8 @@ function OMGRealTime(userName) {
 
     this.socket.on("reconnect", () => {
         if (this.autoRejoin && this.isJoined) {
-            this.join(this.roomName, this.joinName)
+            this.isRejoining = true
+            this.join(this.roomName, this.userName)
         }
     })
 }
@@ -71,7 +76,6 @@ OMGRealTime.prototype.join = function (roomName, userName) {
 }
 
 OMGRealTime.prototype.updateUserList = function (users) {
-    //connectedStatusEl.innerHTML = "connected"
     this.log("Updating user list.")
     for (var name in users) {
         if (name == this.userName) continue;
@@ -85,18 +89,22 @@ OMGRealTime.prototype.updateUserList = function (users) {
     }
     for (name in this.remoteUsers) {
         if (!users[name]) {
-            if (this.onRemoveUser) {
-                this.onRemoveUser(name, this.remoteUsers[name])
-            }
-            if (this.remoteUsers[name].peerConnection) {
-                this.remoteUsers[name].peerConnection.close()
-            }
-            delete this.remoteUsers[name]
         }
     }
-    if (Object.keys(this.remoteUsers).length === 0) {
-        //userListEl.innerHTML = "no users yet"
+}
+
+OMGRealTime.prototype.onUserLeft = function (users) {
+    if (this.onRemoveUser) {
+        this.onRemoveUser(name, this.remoteUsers[name])
     }
+    if (this.remoteUsers[name].peerConnection) {
+        this.remoteUsers[name].peerConnection.close()
+    }
+    delete this.remoteUsers[name]
+}
+
+OMGRealTime.prototype.onUserDisconnected = function (name) {
+    this.remoteUsers[name].disconnected = true
 }
 
 OMGRealTime.prototype.setupNewUser = function (name, data) {
@@ -377,6 +385,11 @@ OMGRealTime.prototype.closeConnections = function () {
         catch (e) {console.warn(e)}
     }
 }
+
+OMGRealTime.prototype.leave = function () {
+    this.socket.emit("leave", this.userName)
+}
+
 
 
 //[1] https://ourcodeworld.com/articles/read/1175/how-to-create-and-configure-your-own-stun-turn-server-with-coturn-in-ubuntu-18-04

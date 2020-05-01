@@ -65,11 +65,18 @@ io.on("connection", socket => {
     })
 
 
+    socket.on("leave", () => {
+        if (name) {
+            delete room.users[name]
+        }
+        io.in(roomName).emit("userLeft", name);
+    });
+
     socket.on("disconnect", () => {
         if (name) {
             delete room.users[name]
         }
-        io.in(roomName).emit("update-user-list", room.users);
+        io.in(roomName).emit("userDisconnected", name);
     });
 
     socket.on("call-user", data => {
