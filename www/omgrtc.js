@@ -17,6 +17,9 @@ function OMGRealTime(userName) {
     this.socket.on("userLeft", name => this.onUserLeft(name))
     this.socket.on("userDisconnected", name => this.onUserDisconnected(name))
 
+    // todo remove this
+    this.socket.on("userReconnected", name => this.onUserReconnected(name))
+
     this.socket.on("incoming-call", async data => this.onIncomingCall(data))
     this.socket.on("answer-made", data => this.onAnswerMade(data))
     this.socket.on("candidate", data => this.onCandidate(data))
@@ -60,6 +63,12 @@ OMGRealTime.prototype.getUserMedia = function (callback) {
         this.localStream = stream
         this.localVideo.srcObject = stream
         this.localVideo.muted = true
+        
+        this.localVideo.onplaying = () => {
+            if (this.localVideo.clientWidth < this.localVideo.clientHeight) {
+                this.localVideo.style.height  = this.localVideo.clientWidth / 1.333 + "px"
+            }
+        }
         this.localVideo.play()
 
         if (callback) callback(this.localVideo)
@@ -83,8 +92,14 @@ OMGRealTime.prototype.updateUserList = function (users) {
             this.setupNewUser(name, users[name])
         }
         else {
-            this.remoteUsers[name].id = users[name].id
             // if they have a new socket, 
+            this.remoteUsers[name].id = users[name].id
+            if (this.remoteUsers[name].disconnected) {
+                this.remoteUsers[name].disconnected = false
+                if (this.onuserreconnected) {
+                    this.onuserreconnected(name, this.remoteUsers[name])
+                }            
+            }
         }
     }
     for (name in this.remoteUsers) {
@@ -93,9 +108,9 @@ OMGRealTime.prototype.updateUserList = function (users) {
     }
 }
 
-OMGRealTime.prototype.onUserLeft = function (users) {
-    if (this.onRemoveUser) {
-        this.onRemoveUser(name, this.remoteUsers[name])
+OMGRealTime.prototype.onUserLeft = function (name) {
+    if (this.onuserleft) {
+        this.onuserleft(name, this.remoteUsers[name])
     }
     if (this.remoteUsers[name].peerConnection) {
         this.remoteUsers[name].peerConnection.close()
@@ -104,14 +119,20 @@ OMGRealTime.prototype.onUserLeft = function (users) {
 }
 
 OMGRealTime.prototype.onUserDisconnected = function (name) {
-    this.remoteUsers[name].disconnected = true
+    if (this.remoteUsers[name]) {
+        this.remoteUsers[name].disconnected = true
+        if (this.onuserdisconnected) {
+            this.onuserdisconnected(name, this.remoteUsers[name])
+        }
+    }
 }
+
 
 OMGRealTime.prototype.setupNewUser = function (name, data) {
     this.remoteUsers[name] = data
     this.remoteUsers[name].video = document.createElement("video")
     this.remoteUsers[name].video.controls = true
-    if (this.onNewUser) this.onNewUser(name, this.remoteUsers[name])
+    if (this.onnewuser) this.onnewuser(name, this.remoteUsers[name])
 }
 
 OMGRealTime.prototype.onIncomingCall = async function(data) {
@@ -262,6 +283,12 @@ OMGRealTime.prototype.createPeerConnection = function (user) {
 
     peerConnection.ontrack = function({ streams: [stream] }) {
         try {
+            user.video.onplaying = () => {
+                if (user.video.clientWidth < user.video.clientHeight) {
+                    user.video.style.height  = user.video.clientWidth / 1.333 + "px"
+                }
+            }    
+
             user.video.srcObject = stream;
             user.video.play()
         }
@@ -270,11 +297,28 @@ OMGRealTime.prototype.createPeerConnection = function (user) {
         }
     };
 
+    var hasConnected = false
+    peerConnection.onconnectionstatechange = e => {
+        this.log(peerConnection.connectionState)
+        if (peerConnection.connectionState === "disconnected") {
+            this.onUserDisconnected(user.name)
+        }
+        else if (peerConnection.connectionState === "connected") {
+            if (hasConnected) {
+                if (this.onuserreconnected) {
+                    this.onuserreconnected(user.name, user)
+                }            
+            }
+            hasConnected = true
+        }
+    }
+
     this.localStream.getTracks().forEach(track => peerConnection.addTrack(track, this.localStream));
     /*peerConnection.onremovetrack = handleRemoveTrackEvent;
     peerConnection.oniceconnectionstatechange = handleICEConnectionStateChangeEvent;
     peerConnection.onicegatheringstatechange = handleICEGatheringStateChangeEvent;
     peerConnection.onsignalingstatechange = handleSignalingStateChangeEvent;*/
+
 
     this.log("peer connection created")
     return peerConnection

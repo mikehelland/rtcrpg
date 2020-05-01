@@ -147,7 +147,7 @@
         }
 
         
-        rt.onNewUser = (name, user) => {
+        rt.onnewuser = (name, user) => {
             log(name + " joined")
             userEl = document.createElement("div")
             userEl.className = "user-panel"
@@ -161,14 +161,23 @@
             user.div = userEl
         }
         
-        rt.onRemoveUser = (name, user) => {
-            log(name + " disconnected")
+        rt.onuserleft = (name, user) => {
+            log(name + " left")
             userListEl.removeChild(user.div)
+        }
+
+        rt.onuserdisconnected = (name, user) => {
+            if (user.disconnected && user.peerConnection.connectionState !== "connected") {
+                user.div.style.display = "none"
+            }
+        }
+        rt.onuserreconnected = (name, user) => {
+            user.div.style.display = "block"
         }
         
         rt.ondisconnect = () => {
             //connectedStatusEl.innerHTML = "not connected"
-            log("disconnected")
+            console.log("disconnected")
             disconnectButton.innerHTML = "Disconnect."
             //disconnectButton.style.display = "none"
             //joinArea.style.display = "block"
