@@ -44,6 +44,10 @@ io.on("connection", socket => {
 
     socket.on("join", msg => {
 
+        if (!msg.name) {
+            return
+        }
+
         socket.join(msg.room)
 
         if (!rooms[msg.room]) {

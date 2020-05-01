@@ -2,8 +2,10 @@ function OMGRealTime(userName) {
     this.userName = userName || (Math.round(Math.random() * 100000) + "")
     this.remoteUsers = {}
 
-    //this.socket = io("https://powerful-retreat-40064.herokuapp.com/")
-    this.socket = io("")
+    this.autoRejoin = true
+
+    this.socket = io("https://powerful-retreat-40064.herokuapp.com/")
+    //this.socket = io("")
 
     this.socket.on("joined", users => {
         this.updateUserList(users)
@@ -23,6 +25,12 @@ function OMGRealTime(userName) {
     this.socket.on("disconnect", () => {
         if (this.ondisconnect) this.ondisconnect()
     });
+
+    this.socket.on("reconnect", () => {
+        if (this.autoRejoin && this.isJoined) {
+            this.join(this.roomName, this.joinName)
+        }
+    })
 }
 
 OMGRealTime.prototype.log = function (message) {
@@ -53,6 +61,8 @@ OMGRealTime.prototype.getUserMedia = function (callback) {
     })
 }
 OMGRealTime.prototype.join = function (roomName, userName) {
+    this.userName = userName
+    this.roomName = roomName
     this.log("Joining room.")
     this.socket.emit("join", {
         name: userName,
@@ -358,5 +368,15 @@ OMGRealTime.prototype.closeConnection = function (user) {
         user.peerConnection.close()
     }
 }
+
+OMGRealTime.prototype.closeConnections = function () {
+    for (var userName in this.remoteUsers) {
+        try {
+            this.remoteUsers[userName].peerConnection.close()
+        }
+        catch (e) {console.warn(e)}
+    }
+}
+
 
 //[1] https://ourcodeworld.com/articles/read/1175/how-to-create-and-configure-your-own-stun-turn-server-with-coturn-in-ubuntu-18-04

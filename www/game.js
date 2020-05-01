@@ -735,7 +735,7 @@ for (var i = 0; i < 25; i++) {
 ge.hero.spritesheetCoords = ge.img.getSpriteSheetCoords(ge.hero.characterI)
 
 //finally, get a map and go
-fetch("map1").then(result => {
+fetch("bob1").then(result => {
     return result.json() 
 }).then((data) => {
 

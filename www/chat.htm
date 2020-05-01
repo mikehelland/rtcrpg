@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta name="viewport" context="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
             body {
                 /*background: rgba(0, 0, 0, 0) linear-gradient(135deg, rgb(249, 241, 232) 0%, rgb(205, 214, 227) 100%) repeat scroll 0% 0%;*/
@@ -10,6 +10,7 @@
                 color:white;
                 box-sizing: border-box;
                 font-family: Arial, Helvetica, sans-serif;
+
             }
             video {
                 width: 100%;;
@@ -34,21 +35,44 @@
                 }
             }
 
-            #join-button {
-                display:block;
+            #join-area {
                 margin:auto;
-                font-size:32px;
-                width: 50%;
+                font-size:30px;
+                width: 60%;
                 left: 25%;
+            }
+
+            #user-name-input ,#join-button {
+                font-size:30px;
+                width:100%;
+                box-sizing: border-box;
             }
             #activity-log {
                 font-size: 12px;
                 font-family:'Courier New', Courier, monospace;
             }
+
+            #disconnect-button {
+                display:none;
+                margin:auto;
+                background-color: #404040;
+                color:white;
+                border: 1px solid white;
+                border-radius: 3px;
+                padding:5px;
+                cursor:pointer
+            }
         </style>
     </head>
     <body>
-        <span id="connected-status">not connected</span><br>
+        <div id="join-area">
+            <p>Name:</p> 
+            <p><input id="user-name-input"></p>
+            <button id="join-button">Join</button>    
+        </div>
+        <button id="disconnect-button">Disconnnect</button>    
+
+
         <div id="user-list">
             <div id="you" class="user-panel">
                 <div id="your-name"></div>
@@ -57,20 +81,20 @@
         </div>
         <div id="activity-log"></div>
 
-        <script src="/socket.io/socket.io.js"></script>
+        <script src="https://powerful-retreat-40064.herokuapp.com/socket.io/socket.io.js"></script>
         <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
         <script src="omgrtc.js"></script>
-        <button id="join-button">Join</button>
         <script>
-            
-        var userName = window.location.search.slice(1) || (Math.round(Math.random() * 100000) + "")
+
+        var userNameInput = document.getElementById("user-name-input")    
+        var userName = window.location.search.slice(1) 
         var roomName = "public"
         if (userName.indexOf("/") > -1) {
             roomName = userName.split("/")[0]
             userName = userName.split("/")[1]
         }
-        var connectedStatusEl = document.getElementById("connected-status")
-        document.getElementById("your-name").innerHTML = userName
+
+        userNameInput.value = userName
 
         var userListEl = document.getElementById('user-list')
 
@@ -79,30 +103,45 @@
 
         var activityLog = document.getElementById("activity-log")
         var log = text => {
-            //activityLog.innerHTML = text + "<br>" + activityLog.innerHTML
-            activityLog.innerHTML += text + "<br>"
+            activityLog.innerHTML = text + "<br>" + activityLog.innerHTML
+            //activityLog.innerHTML += text + "<br>"
         }
 
         rt.onlog = (text) => {
-            log(text)
+            //log(text)
         }
 
 
         var joinButton = document.getElementById("join-button")
+        var joinArea = document.getElementById("join-area")
         joinButton.onclick = () => {
+            userName = userNameInput.value || (Math.round(Math.random() * 100000) + "")
+
+            document.getElementById("your-name").innerHTML = userName
+
             rt.getUserMedia(video => {
                 you.appendChild(video)
                 rt.join(roomName, userName)
             })
-            joinButton.style.display = "none"
+            joinArea.style.display = "none"
+            disconnectButton.style.display = "block"
+        }
+
+        var disconnectButton = document.getElementById("disconnect-button")
+        disconnectButton.onclick = () => {
+            //rt.closeConnections()
+            //rt.stopMedia()
+            window.location = window.location
         }
 
 
         rt.onjoined = (users) => {
             console.log("onjoined!!!!!!")
-            connectedStatusEl.innerHTML = "connected"
+            disconnectButton.innerHTML = "Disconnect"
             for (var user in users) {
-                rt.callUser(user)
+                if (!users[user].peerConnection) {
+                    rt.callUser(user)
+                }
             }
         }
 
@@ -127,8 +166,11 @@
         }
         
         rt.ondisconnect = () => {
-            connectedStatusEl.innerHTML = "not connected"
-            this.log("disconnected")
+            //connectedStatusEl.innerHTML = "not connected"
+            log("disconnected")
+            disconnectButton.innerHTML = "Disconnect."
+            //disconnectButton.style.display = "none"
+            //joinArea.style.display = "block"
         };
 
 
