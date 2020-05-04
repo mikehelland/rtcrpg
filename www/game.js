@@ -105,10 +105,7 @@ ge.handleKeyForMenu = e => {
         ge.visibleMenus.splice(ge.visibleMenus.length - 1, 1)
     }
     if (e.key === ge.aButton) {
-        var actionResult = ge.handleAButton(menu)
-        if (typeof actionResult === "string") {
-            ge.showDialog(actionResult.split("\n"))
-        }
+        ge.handleMenuOption(menu.currentOption)
     }
 
     if (e.key === "ArrowDown") {
@@ -156,6 +153,74 @@ ge.processKeys = () => {
     }
 }
 
+
+
+ge.handleTouch = (x,y) => {
+    var xDiff = x - window.innerWidth / 2
+    var yDiff = y - window.innerHeight / 2
+
+
+    if (!ge.isTouchingCanvas) {
+        if (Math.abs(xDiff) < ge.tileWidth / 2 && Math.abs(yDiff) < ge.tileHeight / 2) {
+            ge.showPlayerMenu()
+            return
+        }
+        if (ge.visibleMenus.length > 0) {
+            ge.hideMenus()
+            return
+        }
+    }
+
+    ge.keysPressed = {}
+    if (Math.abs(xDiff) > Math.abs(yDiff)) {
+        ge.keysPressed[xDiff > 0 ? "ArrowRight" : "ArrowLeft"] = true
+    }
+    else {
+        ge.keysPressed[yDiff > 0 ? "ArrowDown" : "ArrowUp"] = true
+    }
+
+}
+ge.canvas.addEventListener("touchstart", e => {
+    e.preventDefault()
+    ge.handleTouch(e.touches[0].clientX, e.touches[0].clientY)
+    ge.isTouchingCanvas = true
+})
+ge.canvas.onmousedown = e => {
+    e.preventDefault()
+    ge.handleTouch(e.clientX, e.clientY) 
+    ge.isTouchingCanvas = true
+}
+
+ge.canvas.onmousemove = e => {
+    e.preventDefault()
+    if (!ge.isTouchingCanvas) {
+        return
+    }
+    ge.handleTouch(e.clientX, e.clientY) 
+}
+ge.canvas.addEventListener("touchmove", e => {
+    e.preventDefault()
+    if (!ge.isTouchingCanvas) {
+        return
+    }
+    ge.handleTouch(e.touches[0].clientX, e.touches[0].clientY)
+})
+
+ge.canvas.onmouseup = e => {
+    e.preventDefault()
+    ge.finishTouching()
+}
+ge.canvas.addEventListener("touchend", e =>{
+    e.preventDefault()
+    ge.finishTouching()
+})
+
+ge.finishTouching = () => {
+    ge.keysPressed = {}
+    ge.isTouchingCanvas = false 
+}
+
+
 ge.blockedTiles = "Ilwdp"
 ge.hero.move = (x, y) => {
     if (Date.now() - ge.hero.lastMove < ge.stepDuration) {
@@ -184,13 +249,22 @@ ge.hero.move = (x, y) => {
     }
     for (var i = 0; i < ge.npcs.length; i++) {
         if (ge.npcs[i].x === ge.hero.x + x && ge.npcs[i].y === ge.hero.y + y) {
+            // we're using the mouse or touch
+            if (ge.isTouchingCanvas) {
+                ge.finishTouching()
+                ge.talk()
+            }
             return updatePosition()
         }
     }
     for (i in ge.remoteUsers) {
         if (ge.remoteUsers[i].data &&
-            ge.remoteUsers[i].data.x === ge.hero.x + x && 
-            ge.remoteUsers[i].data.y === ge.hero.y + y) {
+                ge.remoteUsers[i].data.x === ge.hero.x + x && 
+                ge.remoteUsers[i].data.y === ge.hero.y + y) {
+            if (ge.isTouchingCanvas) {
+                ge.finishTouching()
+                ge.talk()
+            }
             return updatePosition()
         }
     }
@@ -216,8 +290,12 @@ ge.showMenu = (menu) => {
     var hasPrices = false
     menu.options.forEach((option) => {
         option.div = document.createElement("div")
+        option.div.className = "menu-option"
         option.div.innerHTML = "&nbsp;&nbsp;" + option.caption//&#8594;
         menu.div.appendChild(option.div)
+
+        option.div.onclick = e => ge.handleMenuOption(option)
+    
         if (option.caption.length > maxLength) maxLength = option.caption.length
         if (option.price) hasPrices = true
     })
@@ -245,21 +323,7 @@ ge.highlightMenuOption = (menu, optionI) => {
     menu.currentOption = menu.options[optionI]
     menu.currentOption.div.innerHTML = menu.currentOption.div.innerHTML.replace("&nbsp;", "&#9658;")
 }
-ge.handleAButton = (menu) => {
-    if (typeof menu.currentOption.action === "function") { //get rid of this
-        return menu.currentOption.action()
-    }
-    if (typeof menu.currentOption.action === "string" && 
-            typeof ge[menu.currentOption.action] === "function") { 
-        return ge[menu.currentOption.action](menu.currentOption)
-    }
-    if (menu.currentOption.action) {
-        return ge.handleAction(menu.currentOption.action)
-    }
-    if (menu.currentOption.priceList) {
-        ge.showPriceList(menu.currentOption.priceList)
-    }
-}
+
 ge.handleBButton = () => {
     if (ge.menus.player.showing) {
         ge.menus.player.div.style.display = "none"
@@ -267,13 +331,30 @@ ge.handleBButton = () => {
         ge.topMenu = null
     }
 }
-ge.handleAction = (action) => {
-    if (ge[action]) {
-        ge
+ge.handleMenuOption = option => {
+
+    if (option.priceList) {
+        ge.showPriceList(option.priceList)
+        return
     }
+    
+    var action = option.action
+    var result
     if (action.function) {
-        return ge[action.function](action)
+        result = ge[action.function](action)
     }
+    else if (typeof action === "function") { //get rid of this
+        result = action()
+    }
+    else if (typeof action === "string" && 
+            typeof ge[action] === "function") { 
+        result = ge[action](option)
+    }
+
+    if (typeof result === "string") {
+        ge.showDialog(result.split("\n"))
+    }
+
 }
 
 ge.frameCount = 0
@@ -554,6 +635,8 @@ ge.showDialog = (dialog) => {
     ge.visibleMenus.push(ge.dialogBox)
     ge.dialogBox.dialog = dialog
     ge.advanceDialog()
+
+    ge.dialogBox.div.onclick = () => ge.advanceDialog()
 }
 ge.advanceDialog = () => {
     if (!ge.dialogBox.dialog) {

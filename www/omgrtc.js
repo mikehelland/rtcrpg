@@ -66,7 +66,7 @@ OMGRealTime.prototype.getUserMedia = function (callback) {
         
         this.localVideo.onplaying = () => {
             if (this.localVideo.clientWidth < this.localVideo.clientHeight) {
-                this.localVideo.style.height  = this.localVideo.clientWidth / 1.333 + "px"
+                this.localVideo.style.height  = this.localVideo.clientWidth / (4/3) + "px"
             }
         }
         this.localVideo.play()
@@ -240,10 +240,10 @@ OMGRealTime.prototype.createPeerConnection = function (user) {
     var peerConnection = new RTCPeerConnection({
         iceServers: [     // Information about ICE servers - Use your own! 
             {
-                urls: "stun:stun.openmusic.gallery:3478"
+                urls: "stun:stun.openmedia.gallery:3478"
             },
             {
-                urls: "turn:turn.openmusic.gallery:3478",
+                urls: "turn:turn.openmedia.gallery:3478",
                 credential: "12345",
                 username: "omgrtc"
             }
@@ -285,7 +285,7 @@ OMGRealTime.prototype.createPeerConnection = function (user) {
         try {
             user.video.onplaying = () => {
                 if (user.video.clientWidth < user.video.clientHeight) {
-                    user.video.style.height  = user.video.clientWidth / 1.333 + "px"
+                    user.video.style.height  = user.video.clientWidth / (4/3) + "px"
                 }
             }    
 

@@ -2,6 +2,9 @@
 <html>
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="0" />
         <style>
             body {
                 /*background: rgba(0, 0, 0, 0) linear-gradient(135deg, rgb(249, 241, 232) 0%, rgb(205, 214, 227) 100%) repeat scroll 0% 0%;*/
@@ -50,17 +53,37 @@
             #activity-log {
                 font-size: 12px;
                 font-family:'Courier New', Courier, monospace;
+                display:none;
             }
 
             #disconnect-button {
                 display:none;
                 margin:auto;
+                margin-bottom: 12px;
+            }
+
+            #view-controls {
+                text-align: center;
+                margin:auto;
+                padding-top:18px;
+                display:none;                
+            }
+
+            select, button {
                 background-color: #404040;
                 color:white;
                 border: 1px solid white;
                 border-radius: 3px;
                 padding:5px;
                 cursor:pointer
+            }
+            #fullscreen-button {
+                width: 109px;
+            }
+            .user-name {
+                position:absolute;
+                background-color: #202020;
+                color:#c0c0c0;
             }
         </style>
     </head>
@@ -75,10 +98,21 @@
 
         <div id="user-list">
             <div id="you" class="user-panel">
-                <div id="your-name"></div>
+                <div id="your-name" class="user-name"></div>
             </div>
     
         </div>
+
+        <div id="view-controls">
+            <select id="view-select">
+                <option>Standard</option>
+                <option>Whiteboard</option>
+                <option>Game Show</option>
+                <option>Music Studio</option>
+            </select>    
+            <button id="fullscreen-button">Fullscreen</button>    
+        </div>
+
         <div id="activity-log"></div>
 
         <script src="https://powerful-retreat-40064.herokuapp.com/socket.io/socket.io.js"></script>
@@ -89,9 +123,9 @@
         var userNameInput = document.getElementById("user-name-input")    
         var userName = window.location.search.slice(1) 
         var roomName = "public"
-        if (userName.indexOf("/") > -1) {
-            roomName = userName.split("/")[0]
-            userName = userName.split("/")[1]
+        if (userName.indexOf(":") > -1) {
+            roomName = userName.split(":")[0]
+            userName = userName.split(":")[1]
         }
 
         userNameInput.value = userName
@@ -103,6 +137,7 @@
 
         var activityLog = document.getElementById("activity-log")
         var log = text => {
+            console.log(text)
             activityLog.innerHTML = text + "<br>" + activityLog.innerHTML
             //activityLog.innerHTML += text + "<br>"
         }
@@ -112,6 +147,7 @@
         }
 
 
+        var controls = document.getElementById("view-controls")
         var joinButton = document.getElementById("join-button")
         var joinArea = document.getElementById("join-area")
         joinButton.onclick = () => {
@@ -124,6 +160,8 @@
                 rt.join(roomName, userName)
             })
             joinArea.style.display = "none"
+
+            controls.style.display = "block"
             disconnectButton.style.display = "block"
         }
 
@@ -183,6 +221,16 @@
             //joinArea.style.display = "block"
         };
 
+        var fullscreen = false
+        document.getElementById("fullscreen-button").onclick = (e) => {
+            if (fullscreen) {
+                document.exitFullscreen();
+            }
+            else {
+                document.body.requestFullscreen();
+            }
+            fullscreen = !fullscreen
+        }
 
         </script>
     </body>
