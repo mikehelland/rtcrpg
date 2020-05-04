@@ -115,20 +115,17 @@ io.on("connection", socket => {
         });
     });
 
-    socket.on("textMessage", data => {
-        if (room.users[data.to]) {
-            io.to(room.users[data.to].id).emit("textMessage", {
-                from: name,
-                message: data.message
-            })
-        }
-    })
-
     socket.on("signaling", signal => {
+        if (!signal.from) {
+            signal.from = name
+        }
         try {
-            if (room.users[signal.to]) {
+            if (signal.to && room.users[signal.to]) {
                 io.to(room.users[signal.to].id).emit("signaling", signal)
-            }    
+            }
+            else if (signal.room) {
+                socket.to(roomName).emit("signaling", signal)
+            }
         }
         catch (e) {}
     })

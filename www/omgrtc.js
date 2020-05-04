@@ -17,9 +17,6 @@ function OMGRealTime(userName) {
     this.socket.on("userLeft", name => this.onUserLeft(name))
     this.socket.on("userDisconnected", name => this.onUserDisconnected(name))
 
-    // todo remove this
-    this.socket.on("userReconnected", name => this.onUserReconnected(name))
-
     this.socket.on("incoming-call", async data => this.onIncomingCall(data))
     this.socket.on("answer-made", data => this.onAnswerMade(data))
     this.socket.on("candidate", data => this.onCandidate(data))
@@ -27,7 +24,6 @@ function OMGRealTime(userName) {
     this.socket.on("signaling", data => this.onSignal(data))
 
     this.socket.on("updateRemoteUserData", msg => this.updateRemoteUserData(msg))
-    this.socket.on("textMessage", data => this.ontextmessage(data))
 
     this.socket.on("disconnect", () => {
         if (this.ondisconnect) this.ondisconnect()
@@ -342,13 +338,34 @@ OMGRealTime.prototype.updateRemoteUserData = function (msg) {
 }
 
 OMGRealTime.prototype.sendTextMessage = function (remoteUserName, message) {
-    this.socket.emit("textMessage", {
+    this.socket.emit("signaling", {
+        type: "textMessage",
         to: remoteUserName,
+        from: this.userName,
         message: message
     })
 }
 
+OMGRealTime.prototype.sendCommand = function (remoteUserName, command) {
+    this.socket.emit("signaling", {
+        type: "command",
+        to: remoteUserName,
+        from: this.userName,
+        command: command
+    })
+}
+
+OMGRealTime.prototype.sendCommandToRoom = function (command) {
+    this.socket.emit("signaling", {
+        type: "command",
+        from: this.userName,
+        command: command,
+        room: true
+    })
+}
+
 OMGRealTime.prototype.ontextmessage = function () {}
+OMGRealTime.prototype.oncommand = function () {}
 
 OMGRealTime.prototype.onSignal = function (signal) {
     this.log("signal " + signal.type)
@@ -357,6 +374,12 @@ OMGRealTime.prototype.onSignal = function (signal) {
     }
     else if (signal.type === "pickup") {
         this.onPickUp(signal)
+    }
+    else if (signal.type === "textMessage") {
+        this.ontextmessage(signal)
+    }
+    else if (signal.type === "command") {
+        this.oncommand(signal)
     }
 }
 

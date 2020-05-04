@@ -209,6 +209,7 @@
         <div id="activity-log"></div>
 
         <script src="https://powerful-retreat-40064.herokuapp.com/socket.io/socket.io.js"></script>
+        <!--<script src="socket.io/socket.io.js"></script>-->
         <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
         <script src="omgrtc.js"></script>
         <script>
@@ -367,7 +368,7 @@
             browser.div.style.display = "flex"
             browser.userList.appendChild(you)
             browser.iframe = browser.div.getElementsByTagName("iframe")[0]
-            browser.iframe.src = "https://mikehelland.com"
+            browser.iframe.src = "https://duckduckgo.com"
             for (var user in rt.remoteUsers) {
                 browser.userList.appendChild(rt.remoteUsers[user].div)
             }
@@ -375,12 +376,9 @@
         browser.input.onkeypress = e => {
             if (e.keyCode === 13) {
                 var videoId = browser.getId(browser.input.value)
-                if (videoId) {
-                    browser.iframe.src = "https:////www.youtube.com/embed/" + videoId
-                }
-                else {
-                    browser.iframe.src = browser.input.value
-                }
+                var url = videoId ? "https://www.youtube.com/embed/" + videoId : browser.input.value
+                browser.iframe.src = url
+                rt.sendCommandToRoom({navigateBrowserTo: url})
             }
         }
         browser.getId = (url) => {
@@ -401,15 +399,30 @@
         document.getElementById("view-select").onchange = e => {
             if (e.target.value === "Standard") {
                 setStandardView()
+                rt.sendCommandToRoom("setStandardView")
             }
             if (e.target.value === "Browser") {
                 setBrowserView()
+                rt.sendCommandToRoom("setBrowserView")
             }
             if (e.target.value === "Game Show") {
                 setGameShowView()
+                rt.sendCommandToRoom("setGameShowView")
             }
             if (e.target.value === "Whiteboard") {
                 setStandardView()
+                rt.sendCommandToRoom("setWhiteBoardView")
+            }
+        }
+
+        rt.oncommand = (data) => {
+            if (data.command === "setStandardView") setStandardView()
+            else if (data.command === "setBrowserView") setBrowserView()
+            else if (data.command === "setGameShowView") setGameShowView()
+            else if (data.command === "setWhiteboardView") setWhiteboardView()
+            else if (data.command.navigateBrowserTo) {
+                browser.iframe.src = data.command.navigateBrowserTo
+                browser.input.value = data.command.navigateBrowserTo
             }
         }
         </script>
