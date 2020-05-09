@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <style>
         body {
             margin:0px;
@@ -34,6 +39,7 @@
         #playerMenu {
             top:20px;
             left:20px;
+            z-index: 9;
         }
         #responseOptions {
             top:90px;
@@ -53,6 +59,7 @@
             width:50%;
             top:70%;
             bottom:1%;
+            z-index: 9;
         }
         #textMessageDialog {
             left:25%;
@@ -64,6 +71,7 @@
             padding:0px;
             display: none;
             flex-direction: column;
+            z-index: 9;
         }
         #textMessageOutput {
             box-sizing: border-box;
@@ -91,7 +99,21 @@
         .menu-option {
             cursor:pointer;
         }
+        #server-status {
+            position:absolute;
+            display: block;
+            right:2px;
+            top:2px;
+            background-color:#000000A0;
+            color:white;
+        }
     </style>
+    <script>
+    if (window.location.protocol === "http:" && window.location.port !== "3000") {
+        window.location = window.location.href.replace("http:", "https:")
+    }
+
+    </script>
 </head>
 <body>
 
@@ -99,6 +121,18 @@
 
     <canvas id="backgroundCanvas"></canvas>    
     <canvas id="mainCanvas"></canvas>
+    <div id="enter-your-name" class="menu">
+        Hi! What's you're name?
+        <br>
+        <input id="enter-your-name-input" placeholder="screen name">
+        <button id="enter-your-name-join">Join</button>
+        <br><br>
+        <input type="checkbox" id="auto-accept">Auto Accept Calls
+        <br>
+        <input type="checkbox" id="auto-connect">Auto Connect All
+    </div>
+    <div id="server-status">
+    </div>
     <div id="playerMenu" class="menu">
         <div>TALK</div>
     </div>
@@ -124,6 +158,7 @@
     <div id="askToTalk" class="menu">
         <div>Talk?</div>
     </div>
+    <script src="volume-monitor.js"></script>
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script src="https://powerful-retreat-40064.herokuapp.com/socket.io/socket.io.js"></script>
     <script src="omgrtc.js"></script>

@@ -1,10 +1,11 @@
-function OMGRealTime(userName) {
-    this.userName = userName || (Math.round(Math.random() * 100000) + "")
+function OMGRealTime(signalingServer) {
+    this.userName = Math.round(Math.random() * 100000) + ""
     this.remoteUsers = {}
 
     this.autoRejoin = true
 
     this.socket = io("https://powerful-retreat-40064.herokuapp.com/")
+    //this.socket = io(signalingServer || "https://openmedia.gallery/")
     //this.socket = io("")
 
     this.socket.on("joined", users => {
@@ -47,6 +48,11 @@ OMGRealTime.prototype.log = function (message) {
 OMGRealTime.prototype.getUserMedia = function (callback) {
     this.log("Getting camera and microphone")
 
+    if (this.localStream) {
+        if (callback) callback(this.localVideo)
+        return
+    }
+
     this.localVideo = document.createElement("video")
     this.localVideo.controls = true
 
@@ -64,10 +70,9 @@ OMGRealTime.prototype.getUserMedia = function (callback) {
             if (this.localVideo.clientWidth < this.localVideo.clientHeight) {
                 this.localVideo.style.height  = this.localVideo.clientWidth / (4/3) + "px"
             }
+            if (callback) callback(this.localVideo)
         }
         this.localVideo.play()
-
-        if (callback) callback(this.localVideo)
     })
 }
 OMGRealTime.prototype.join = function (roomName, userName) {
@@ -236,13 +241,22 @@ OMGRealTime.prototype.createPeerConnection = function (user) {
     var peerConnection = new RTCPeerConnection({
         iceServers: [     // Information about ICE servers - Use your own! 
             {
-                urls: "stun:stun.openmedia.gallery:3478"
+                urls: ["stun:stun.openmedia.gallery:3478"]
             },
             {
-                urls: "turn:turn.openmedia.gallery:3478",
+                urls: ["turn:turn.openmedia.gallery:3478"],
                 credential: "12345",
                 username: "omgrtc"
-            }
+            },
+            /* using more than two stun/turn servers slows down discovery?
+            {
+                urls: ["stun:stun.openmusic.gallery:3478"]
+            },
+            {
+                urls: ["turn:turn.openmusic.gallery:3478"],
+                credential: "12345",
+                username: "omgrtc"
+            }*/
         ]
     });
 
