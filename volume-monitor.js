@@ -12,6 +12,7 @@ var VolumeMonitor = function (audioNode, div, context) {
       //this.channelPeaks[i] = 0.0;
     }
     
+    this.step = 0
 };
 
 VolumeMonitor.prototype.remove = function () {
@@ -39,8 +40,17 @@ VolumeMonitor.prototype.updateMeter = function () {
     this._loop_power = this.sampleBuffer[this._loop_i] ** 2;
     this.peakInstantaneousPower = Math.max(this._loop_power, this.peakInstantaneousPower);
   }
+
+  this.volume = this.peakInstantaneousPower
+  return
   this.peakInstantaneousPowerDecibels = 10 * Math.log10(this.peakInstantaneousPower);
-  
+
+  this.step++
+  if (this.step === 10) {
+    console.log(this.peakInstantaneousPower, this.peakInstantaneousPowerDecibels)
+    this.step = 0
+  }
+
   if (this.peakInstantaneousPowerDecibels === -Infinity) {
     this.volume = 0;
   } else {

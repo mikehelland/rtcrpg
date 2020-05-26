@@ -1,21 +1,11 @@
 //game engine
 var ge = {}
-ge.userName = window.location.search.slice(1) || (Math.round(Math.random() * 100000) + "")
-
-try { // real time communication
-    ge.rtc = new OMGRealTime("https://openmedia.gallery/")
-    ge.remoteUsers = ge.rtc.remoteUsers
-    ge.rtc.acceptAllCalls = true
-}
-catch (e) {
-    console.log("did not create rtc", e)
-    ge.remoteUsers = {}
-}
 
 ge.stepDuration = 200
 ge.aButton = " "
 ge.bButton = "ArrowLeft"
 
+ge.background = document.getElementById("background")
 ge.backgroundCanvas = document.getElementById("backgroundCanvas")
 ge.backgroundContext = ge.backgroundCanvas.getContext("2d")
 
@@ -25,6 +15,8 @@ ge.canvas.style.height = window.innerHeight + "px"
 ge.canvas.width = ge.canvas.clientWidth
 ge.canvas.height = ge.canvas.clientHeight
 ge.context = ge.canvas.getContext("2d")
+
+ge.originalTitle = document.title
 
 ge.img = {
     characters: document.getElementById("characters-spritesheet"),
@@ -70,17 +62,6 @@ ge.hero = {
 }
 
 
-// get the audio started
-/*ge.audioContext = new AudioContext()
-ge.heroAudioMeterDiv = document.createElement("div")
-ge.heroAudioMeterDiv.className = "hero-audio-meter"
-document.body.appendChild(ge.heroAudioMeterDiv)
-navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
-    ge.heroAudioSource = ge.audioContext.createMediaStreamSource(stream)
-    ge.heroVolumeMonitor = new VolumeMonitor(ge.heroAudioSource, ge.heroAudioMeterDiv, ge.audioContext)
-})*/
-
-
 ge.keysPressed = {}
 ge.visibleMenus = []
 
@@ -89,12 +70,13 @@ document.onkeydown = e => {
         ge.audioContext.resume()
     }
 
-    if (e.keyCode === 27) {
+    if (e.keyCode === 27) { //escape
         ge.hideMenus()
-        if (ge.stopVideoCalls) {
+        if (ge.isShowingVideoChat) {
             ge.stopVideoCalls()
-            ge.stopVideoCalls = null
+            ge.isShowingVideoChat = false
         }
+        ge.canvas.focus()
     }
     if (e.target.tagName.toLowerCase() === "input") {
         return
@@ -173,9 +155,12 @@ ge.processKeys = () => {
 
 
 ge.handleTouch = (x,y) => {
-    var xDiff = x - window.innerWidth / 2
-    var yDiff = y - window.innerHeight / 2
 
+    var xDiff = x - ge.canvas.width / 2
+    var yDiff = y - ge.canvas.height / 2
+
+    ge.lastX = x + " / " + ge.canvas.height
+    ge.lastY = y + " / " + ge.canvas.width
 
     if (!ge.isTouchingCanvas) {
         if (Math.abs(xDiff) < ge.tileWidth / 2 && Math.abs(yDiff) < ge.tileHeight / 2) {
@@ -207,6 +192,7 @@ ge.canvas.addEventListener("touchstart", e => {
 })
 ge.canvas.onmousedown = e => {
     e.preventDefault()
+    ge.canvas.focus()
     if (ge.audioContext && ge.audioContext.state === 'suspended') {
         ge.audioContext.resume()
     }
@@ -265,14 +251,23 @@ ge.hero.move = (x, y) => {
 
     // check to see if you can move to that position
     var target = ge.map[ge.hero.y + y]
-    if (!target) return updatePosition()
+    if (!target) {
+        ge.finishTouching()
+        ge.leaveMap()
+        return updatePosition()
+    }
     target = target[ge.hero.x + x]
+    if (!target) {
+        ge.finishTouching()
+        ge.leaveMap()
+        return updatePosition()
+    }
     if (target === "p") {
         ge.finishTouching()
         ge.videoCallGroup((ge.hero.x + x) + "x" + (ge.hero.y + y))
         return updatePosition()
     }
-    if (!target || ge.blockedTiles.indexOf(target) > -1) {
+    if (ge.blockedTiles.indexOf(target) > -1) {
         return updatePosition()
     }
     for (var i = 0; i < ge.npcs.length; i++) {
@@ -301,9 +296,9 @@ ge.hero.move = (x, y) => {
     ge.hero.tile = target
     ge.hero.x += x
     ge.hero.y += y
-
+    
     ge.hero.lastMove = Date.now()
-
+    
     updatePosition()
 }
 
@@ -414,12 +409,12 @@ ge.render = () => {
     ge.stepPercent = 0
     if (Date.now() - ge.hero.lastMove < ge.stepDuration) {
         ge.stepPercent = 1 - (Date.now() - ge.hero.lastMove) / ge.stepDuration
-        ge.backgroundCanvas.style.left = ge.tileWidth * (ge.hero.x - ge.hero.facingX * ge.stepPercent) * -1 + ge.middleTileX + "px"
-        ge.backgroundCanvas.style.top = ge.tileHeight * (ge.hero.y - ge.hero.facingY * ge.stepPercent) * -1 + ge.middleTileY  + "px"
+        ge.background.style.left = ge.tileWidth * (ge.hero.x - ge.hero.facingX * ge.stepPercent) * -1 + ge.middleTileX + "px"
+        ge.background.style.top = ge.tileHeight * (ge.hero.y - ge.hero.facingY * ge.stepPercent) * -1 + ge.middleTileY  + "px"
     }
     else {
-        ge.backgroundCanvas.style.left = ge.tileWidth * ge.hero.x * -1 + ge.middleTileX + "px"
-        ge.backgroundCanvas.style.top = ge.tileHeight * ge.hero.y * -1 + ge.middleTileY  + "px"
+        ge.background.style.left = ge.tileWidth * ge.hero.x * -1 + ge.middleTileX + "px"
+        ge.background.style.top = ge.tileHeight * ge.hero.y * -1 + ge.middleTileY  + "px"
     }
 
 
@@ -428,20 +423,43 @@ ge.render = () => {
 }
 ge.drawScene = () => {
 
-
-    for (var y = 0; y < ge.map.length; y++) {
-        for (var x = 0; x < ge.map[y].length; x++) {
-            if (ge.map[y][x] && ge.img.tiles[ge.map[y][x]]) {
+    ge.backgroundContext.lineWidth = 4
+    var colorI = 0
+    ge.portalColors = ["red", "blue", "green", "yellow", "purple"]
+    ge.portals = {}
+    for (var y = 0; y < ge.mapData.height; y++) {
+        for (var x = 0; x < ge.mapData.width; x++) {
+            if (ge.map[y] && ge.map[y][x] && ge.img.tiles[ge.map[y][x]]) {
                 ge.backgroundContext.drawImage(ge.img.tiles[ge.map[y][x]],
                     x * ge.tileWidth - 0.25, 
                     y * ge.tileHeight - 0.25,
                     ge.tileWidth + 0.5, ge.tileHeight + 0.5)
+
+                if (ge.map[y][x] === "p") {
+                    var portal = undefined
+                    if (ge.portals[x + "x" + (y - 1)]) {
+                        portal = ge.portals[x + "x" + (y - 1)]
+                    }
+                    else if (ge.portals[(x - 1) + "x" + y]) {
+                        portal = ge.portals[(x - 1) + "x" + y]
+                    }
+                    ge.portals[x + "x" + y] = portal || {name: x + "x" + y, color: ge.portalColors[colorI++%ge.portalColors.length]}
+                    ge.backgroundContext.strokeStyle = ge.portals[x + "x" + y].color
+                    ge.backgroundContext.strokeRect(
+                        x * ge.tileWidth - 0.25, 
+                        y * ge.tileHeight - 0.25,
+                        ge.tileWidth + 0.5, ge.tileHeight + 0.5)
+                }
+    
             }
         }
     }
 }
 
 ge.drawCharacters = () => {
+    
+    ge.context.lineWidth = 2
+
     // the character
     ge.context.drawImage(ge.img.characters,
         ge.hero.spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
@@ -457,11 +475,21 @@ ge.drawCharacters = () => {
             ge.offsetLeft + ge.middleTileX, 
             ge.offsetTop + ge.middleTileY + ge.tileHeight,
             ge.tileWidth, 14)
+
+        if (ge.hero.chatPortal) {
+            ge.context.strokeStyle = ge.portals[ge.hero.chatPortal].color
+            ge.context.strokeRect(
+                ge.offsetLeft + ge.middleTileX, 
+                ge.offsetTop + ge.middleTileY + ge.tileHeight,
+                ge.tileWidth, 14)
+            }
     
         ge.context.fillStyle = "white"
         ge.context.fillText(ge.userName,
             3 + ge.offsetLeft + ge.middleTileX, 
             12 + ge.offsetTop + ge.middleTileY + ge.tileHeight)    
+
+        
     }
 
     for (var i = 0; i < ge.npcs.length; i++) {
@@ -500,6 +528,16 @@ ge.drawCharacters = () => {
             ge.context.fillText(user.name,
                 3 + ge.offsetLeft + (user.data.x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX, 
                 12 + ge.offsetTop + (user.data.y - ge.hero.y + 1 + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY)
+
+            if (user.data.chatPortal) {
+                ge.context.strokeStyle = ge.portals[user.data.chatPortal].color
+                ge.context.strokeRect(
+                    ge.offsetLeft + (user.data.x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX, 
+                    ge.offsetTop + (user.data.y - ge.hero.y + 1 + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY,
+                    ge.tileWidth, 14)
+                }
+            
+        
         }
     }
 }
@@ -538,8 +576,8 @@ ge.videoCallUser = (options) => {
     })
 }
 
-ge.videoCallGroup = (group) => {
-    ge.hero.chatPortal = group
+ge.videoCallGroup = (tile) => {
+    ge.hero.chatPortal = ge.portals[tile].name
     ge.rtc.acceptAllCalls = true
     ge.rtc.getUserMedia(video => {
         video.className = "menu"
@@ -548,12 +586,13 @@ ge.videoCallGroup = (group) => {
         video.style.width = "25%"
         document.body.appendChild(video)
         video.style.bottom = video.clientHeight + "px"
+        ge.isShowingVideoChat = true
         
 
         for (var user in ge.rtc.remoteUsers) {
             console.log("callgroup2")
     
-            if (ge.rtc.remoteUsers[user].data.chatPortal === group &&
+            if (ge.rtc.remoteUsers[user].data.chatPortal === ge.hero.chatPortal &&
                 !ge.rtc.remoteUsers[user].disconnected) {
                     ge.videoCallUser({name: user})
                 }
@@ -822,10 +861,8 @@ ge.showVideoCallDialog = (user) => {
     ge.rtc.localVideo.style.display = "block"
     ge.rtc.localVideo.style.width = "25%"
     ge.rtc.localVideo.style.left = "0"
-    //ge.rtc.localVideo.style.bottom = "33%"
     document.body.appendChild(ge.rtc.localVideo)
     ge.rtc.localVideo.style.bottom = ge.rtc.localVideo.clientHeight + "px"
-    //ge.rtc.localVideo.style.bottom = ge.rtc.localVideo.clientHeight + 16 + "px"
     
     var i = ge.remoteVideos.indexOf(user)
     if (i === -1) {
@@ -840,17 +877,18 @@ ge.showVideoCallDialog = (user) => {
     user.video.style.bottom = "0px"
     document.body.appendChild(user.video)
 
-    ge.stopVideoCalls = () => {
-        document.body.removeChild(ge.rtc.localVideo)
-        ge.remoteVideos.forEach(user => {
-            document.body.removeChild(user.video)
-            ge.rtc.stopMedia()
-            ge.rtc.closeConnection(user)    
-        })
-        ge.remoteVideos = []
-    }
+    ge.isShowingVideoChat = true
 }
 
+ge.stopVideoCalls = () => {
+    document.body.removeChild(ge.rtc.localVideo)
+    ge.rtc.stopMedia()
+    ge.remoteVideos.forEach(user => {
+        document.body.removeChild(user.video)
+        ge.rtc.closeConnection(user)    
+    })
+    ge.remoteVideos = []
+}
 
 
 
@@ -916,7 +954,7 @@ for (var i = 0; i < 25; i++) {
 ge.hero.spritesheetCoords = ge.img.getSpriteSheetCoords(ge.hero.characterI)
 
 
-ge.startTheShow = (params) => {
+ge.startTheShow = (params, sendToRoom) => {
     if (params.performer === ge.userName) {
         return
     }
@@ -927,44 +965,73 @@ ge.startTheShow = (params) => {
         return (match && match[2].length === 11) ? match[2] : null;
     }
 
+    ge.htmlElements[params.iframe].div.style.display = "block"
     //todo hang up phone calls?
     var videoId = getYouTubeID(params.src)
     var url = videoId ? "https://www.youtube.com/embed/" + videoId : params.src
 
-    ge.showTime = Date.now()
-    if (!ge.showTimeVideo) {
-        ge.showTimeVideo = document.createElement("iframe")
-        ge.showTimeVideo.autoPlay = true
-        ge.showTimeVideo.style.position = "absolute"
-        ge.showTimeVideo.style.width = "560px"
-        ge.showTimeVideo.style.height = "315px"
-        ge.showTimeVideo.style.left = window.innerWidth / 2 - 280 + "px"
-        ge.showTimeVideo.style.top = "0"
-        document.body.appendChild(ge.showTimeVideo)    
+    if (ge.htmlElements[params.iframe]) {
+        try {
+            ge.htmlElements[params.iframe].prevSrc = ge.htmlElements[params.iframe].child.src
+            ge.htmlElements[params.iframe].child.src = url
+        } catch (e) {console.log(e)}
     }
-    ge.showTimeVideo.src = url
-    //ge.showTimeVideo.play()
+
+    if (sendToRoom) {
+        params.action = "startTheShow"
+        ge.rtc.sendCommandToRoom(params)
+
+        ge.rtc.updateRoomData(params)
+    }
+    ge.turnOnVisualApplause()
 }
 
-ge.endTheShow = (params) => {
-    document.body.removeChild(ge.showTimeVideo)
-    ge.showTimeVideo.src = ""
+ge.endTheShow = (params, sendToRoom) => {
+    try {
+        if (params.src === "") {
+            ge.htmlElements[params.iframe].div.style.display = "none"
+        }
+        else {
+            ge.htmlElements[params.iframe].child.src = params.src || ge.htmlElements[params.iframe].prevSrc
+        }
+    } catch (e) {console.log(e)}
+    if (sendToRoom) {
+        params.action = "endTheShow"
+        ge.rtc.sendCommandToRoom(params)
+
+        ge.rtc.updateRoomData(params)
+    }
+    ge.turnOffVisualApplause()
 }
 
 
-
-ge.startRTC = () => {
+ge.chatServer = ""
+ge.startRTC = (userName) => {
+    try { // real time communication
+        ge.rtc = new OMGRealTime(ge.chatServer)
+        ge.remoteUsers = ge.rtc.remoteUsers
+        ge.rtc.acceptAllCalls = true
+    }
+    catch (e) {
+        console.log("did not create rtc", e)
+        ge.remoteUsers = {}
+    }
+    
     if (ge.rtc) {
-        ge.rtc.join("map1", ge.userName)
+        ge.online = true
+        ge.userName = userName || ge.rtc.userName
+
+        ge.rtc.join(ge.roomName, ge.userName)
         ge.rtc.onjoined = () => {
             ge.rtc.updateLocalUserData(ge.hero)
+            ge.rtc.onnewuser()
         }
         ge.rtc.onincomingcall = (userName, callback) => {
             ge.showDialog([
                 {question: "Accept a call from " + userName, options: [
                     {caption: "Yes", action: () => {
                         ge.hideMenus()
-                        if (callback) callback
+                        if (callback) callback()
                     }},
                     {caption: "Nope", action: "hideMenus"}
                 ]}
@@ -977,7 +1044,19 @@ ge.startRTC = () => {
             console.log("tm", data)
             ge.showTextMessage(data)
         }
-
+        ge.rtc.onuservideodisconnected = (name, user) => {
+            console.log("disconnecnting user video")
+            if (user.disconnected && user.peerConnection.connectionState !== "connected") {
+                user.video.style.display = "none"
+                if (ge.remoteVideos.indexOf(user) > -1) {
+                    ge.remoteVideos.splice(ge.remoteVideos.indexOf(user), 1)
+                }
+            }
+        }
+        ge.rtc.onuserreconnected = (name, user) => {
+            user.video.style.display = "block"
+        }
+        
         ge.rtc.oncommand = message => {
             if (message.command.action === "startTheShow") {
                 ge.startTheShow(message.command)
@@ -998,25 +1077,59 @@ ge.startRTC = () => {
                     count++
                 }
             }
-            ge.serverStatus.innerHTML = count + " users"
+            ge.serverStatus.innerHTML = document.title = count + "@" + ge.originalTitle
         }
         ge.rtc.onuserdisconnected = ge.rtc.onnewuser
         ge.rtc.onuserreconnected = ge.rtc.onnewuser
         ge.rtc.onuserleft = ge.rtc.onnewuser
-        var reset = false
-        /*setInterval(() => {
-            if (ge.hero.volume > 0.2 || reset) {
-                ge.rtc.updateLocalUserData(ge.hero)
-                reset = ge.hero.volume > 0.2
-            }
-        }, 100)*/
     }
 
 }
 
+ge.addHTML = html => {
+    var div = document.createElement("div")
+    div.innerHTML = html.innerHTML
+    div.style.position = "absolute"
+    div.style.left = html.x * ge.tileWidth + "px"
+    div.style.top = html.y * ge.tileHeight + "px"
+    div.style.width = html.width * ge.tileWidth + "px"
+    div.style.height = html.height * ge.tileHeight + "px"
+    div.style.zIndex = 5
+    try {
+        div.children[0].style.height = "100%"
+        div.children[0].style.width = "100%"    
+    }
+    catch (e) {}
+    ge.background.appendChild(div)
+    ge.htmlElements[html.name] = {div: div, html: html, child: div.children[0]}
+}
+
+ge.turnOnVisualApplause = () => {
+    // get the audio started
+    ge.audioContext = new AudioContext()
+    ge.heroAudioMeterDiv = document.createElement("div")
+    ge.heroAudioMeterDiv.className = "hero-audio-meter"
+    document.body.appendChild(ge.heroAudioMeterDiv)
+    navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+        ge.heroAudioSource = ge.audioContext.createMediaStreamSource(stream)
+        ge.heroVolumeMonitor = new VolumeMonitor(ge.heroAudioSource, ge.heroAudioMeterDiv, ge.audioContext)
+    })
+    var reset = false
+    ge.handleApplauseMeter = setInterval(() => {
+        if (ge.hero.volume > 0.2 || reset) {
+            ge.rtc.updateLocalUserData(ge.hero)
+            reset = ge.hero.volume > 0.2
+        }
+    }, 500)
+}
+
+ge.turnOffVisualApplause = () => {
+    ge.heroVolumeMonitor = null // disconnect?
+    clearInterval(ge.handleApplauseMeter)
+}
 
 // if we don't have a user name, ask
-if (!window.location.search.substring(1)) {
+ge.startup = () => {
     var nameMenu = document.getElementById("enter-your-name")
     nameMenu.style.display = "block"
     var nameInput = document.getElementById("enter-your-name-input")
@@ -1024,13 +1137,23 @@ if (!window.location.search.substring(1)) {
     var joinButton = document.getElementById("enter-your-name-join")
     joinButton.onclick = e => {
         if (nameInput.value.length > 0) {
-            ge.online = true
-            ge.userName = nameInput.value
-            ge.startRTC()
-            ge.rtc.acceptAllCalls = document.getElementById("auto-accept").checked
-            ge.rtc.autoConnectAll = document.getElementById("auto-connect").checked
-            nameMenu.style.display = "none"    
+            ge.startRTC(nameInput.value)
+            //ge.rtc.acceptAllCalls = document.getElementById("auto-accept").checked
+            //ge.rtc.autoConnectAll = document.getElementById("auto-connect").checked
+            nameMenu.style.display = "none"
+
+            if (ge.onstart) {
+                ge.onstart()
+            }
         }
+    }
+    document.getElementById("enter-your-name-join-anon").onclick = e => {
+        ge.startRTC()
+        nameMenu.style.display = "none"    
+    }
+    document.getElementById("enter-your-name-offline").onclick = e => {
+        nameMenu.style.display = "none"    
+        ge.userName = nameInput.value
     }
     nameInput.onkeypress = e => {
         if (e.charCode === 13) {
@@ -1038,40 +1161,44 @@ if (!window.location.search.substring(1)) {
         }
     }
 }
-else {
-    ge.userName = window.location.search.substring(1)
-    ge.startRTC()
+ge.startup()
 
+ge.leaveMap = () => {
+    if (ge.mapData.parentMap) {
+        fetch(ge.mapData.parentMap.url).then(data => data.json()).then(json => {
+            ge.loadMap(json, ge.mapData.parentMap.url)
+        })
+    }
 }
 
-
 //finally, get a map and go
-fetch("bob1.json").then(result => {
-    return result.json() 
-}).then((data) => {
-
+ge.loadMap = (data, mapName) => {
+    ge.roomName = mapName
     Object.keys(data.tileSet.tileCodes).forEach(key => {
         var img = document.createElement("img")
-        img.src = "img/" + data.tileSet.tileCodes[key]
+        //img.src = "img/" + data.tileSet.tileCodes[key]
+        img.src = (data.tileSet.prefix + "") + data.tileSet.tileCodes[key] + (data.tileSet.postfix || "")
         ge.img.tiles[key] = img
         img.onload = ()=>{ge.drawnBackground = false}
     })
 
-    console.log(ge.tileWidth, ge.tileHeight)
-    ge.backgroundCanvas.width = data.mapLines[0].length * ge.tileWidth
-    ge.backgroundCanvas.height = data.mapLines.length * ge.tileHeight
-    ge.backgroundCanvas.style.width = ge.backgroundCanvas.width + "px"
-    ge.backgroundCanvas.style.height = ge.backgroundCanvas.height + "px"
+    ge.backgroundCanvas.width = data.width * ge.tileWidth
+    ge.backgroundCanvas.height = data.height * ge.tileHeight
+    ge.background.style.width = ge.backgroundCanvas.width + "px"
+    ge.background.style.height = ge.backgroundCanvas.height + "px"
     
-
-    
+    ge.mapData = data
     ge.map = data.mapLines;
     ge.npcs = data.npcs || []
     ge.npcs.forEach(npc => npc.spritesheetCoords = ge.img.getSpriteSheetCoords(npc.characterI))
     ge.hero.x = data.startX
     ge.hero.y = data.startY
     ge.hero.facing = 0
-
-
+    
+    ge.htmlElements = {}
+    if (ge.mapData.html) {    
+        ge.mapData.html.forEach(html => ge.addHTML(html))
+    }
+    
     ge.mainLoop()
-})
+}

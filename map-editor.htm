@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin:0px;
+            padding:0px;
+        }
+        #back-canvas, #front-canvas {
+            position:absolute;
+            height:100%;
+            width:100%;
+            left:79px;
+            top:35px;
+        }
+        #characters-spritesheet {
+            display:none;
+        }
+        #tools {
+            padding:2px;
+            position:fixed;
+            top:35px;
+            left:0px;
+            width:75px;
+            background-color: #999999;
+            height:100%;
+        }
+        #tools select {
+            width:74px;
+        }
+        #tools img {
+            margin: 2px;
+            width:32px;
+            height:32px;
+        }
+        #tools img.selected {
+            margin: 0px;
+            border: 2px solid white;
+            width:32px;
+            height:32px;
+        }
+
+        #npc-details, #html-details {
+            padding:2px;
+            position:fixed;
+            top:35px;
+            right:0px;
+            width:150px;
+            background-color: #999999;
+            height:100%;
+            display:none;
+        }
+
+        #main-menu {
+            padding:2px;
+            position:fixed;
+            top:0px;
+            left:0px;
+            width:100%;
+            background-color: #999999;
+        }
+        .dialog {
+            background-color: white;
+            border: 1px solid #808080;
+            border-radius: 3px;
+            display: none;
+            padding: 8px;
+        }
+        #map-width-input, #map-height-input {
+            width: 30px;
+        }
+
+        #tile-highlight {
+            pointer-events: none;
+            border: 2px solid red;
+            position:absolute;
+            display: none;
+        }
+
+        .npc-tool-item {
+            border: 1px solid #00000000;
+            text-align: center;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 2px 0px;
+        }
+        .npc-tool-item:hover {
+            border: 1px solid black;
+        }
+
+        #tools button {
+            width:74px;
+        }
+        #character-list {
+            display:none;
+        }
+
+        #npc-dialog-input {
+            height:200px;
+        }
+        #npc-details-canvas {
+            width: 32px;
+            height:32px;
+
+        }
+    </style>
+</head>
+<body>
+    
+    <canvas id="back-canvas"></canvas>
+    <canvas id="front-canvas"></canvas>
+    
+    <div id="main-menu">
+        Map Name: <input id="map-name"> Size: <input id="map-width-input">&times;<input id="map-height-input">
+        <button id="save-button">Save</button>
+
+    </div>
+
+    <div id="tools">
+        
+        <select id="tool-box-select">
+            <option>Tiles</option>
+            <option>NPCs</option>
+            <option>HTML</option>
+        </select>
+        <hr>
+        <div id="tile-list">          
+        </div>
+        <div id="character-list">
+            <button id="add-npc-button">+Add</button>
+            <hr>
+        </div>
+        <div id="html-list">
+            <button id="add-html-button">+Add</button>
+            <hr>
+        </div>
+    </div>
+
+    <div id="npc-details">
+        <canvas id="npc-details-canvas"></canvas>
+        <input id="npc-details-name"></input>
+        <hr>
+        Dialog:
+        <div id="npc-details-dialog"></div>
+        <!--<button id="npc-details-dialog-add-button">Add Dialog</button>-->
+        <textarea id="npc-dialog-input"></textarea>
+    </div>
+
+    <div id="html-details">
+        <input id="html-details-name"></input>
+        <hr>
+        innerHTML:
+        <textarea id="html-input"></textarea>
+    </div>
+
+    <div class="dialog" id="overwrite-or-new">
+        Do you want to overwrite or create a new copy?
+        <hr>
+        <button id="overwrite-button">Overwrite</button>
+        <br><br>
+        <button id="new-copy-button">New Copy</button>
+    </div>
+
+    <div id="tile-highlight"></div>
+    <script src="/js/omgservice.js"></script>
+    <script src="map-editor.js"></script>
+    <script>
+
+        var blankMap = {
+        "name": "",
+        "width": 30,
+        "height": 30,
+        "startX": 1,
+        "startY": 1,
+        "tileSet": {
+                    "name": "",
+                    "url": "/data/9"
+                },
+        "npcs": [],
+        "mapLines": []
+        }
+ 
+        var widthInput = document.getElementById('map-width-input')
+        var heightInput = document.getElementById('map-height-input')
+        var tilesizeInput = document.getElementById('map-tile-size-input')
+
+        var canvas = document.getElementById("back-canvas")
+        var canvas2 = document.getElementById("front-canvas")
+
+        var editor = new OMGMapEditor(canvas, canvas2)
+
+        var params = omg.util.getPageParams()
+        if (params.id) {
+            omg.server.getId(params.id, data => {
+                editor.load(data)
+            })
+        }
+        else {
+            editor.load(blankMap)
+        }
+
+        setTimeout(function () {
+            editor.draw()
+        }, 2000)
+        
+    
+    </script>
+
+
+    
+    <img id="characters-spritesheet" src="img/characters_alpha.gif">
+    
+    
+</body>
+</html>

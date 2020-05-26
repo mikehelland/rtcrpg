@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="stylesheet" href="css/main.css" type="text/css" />
+
+        <style>
+            .url-input {width: 300px;}
+            audio {position:relative; top: 8px;}
+            .item {padding: 8px;}
+            #approve-button, #disapprove-button, #edit-button, #delete-button {visibility: hidden};
+        </style>
+
+    </head>
+    <body>
+
+        <header>
+            <a class="main-page-link" href="/">
+                <span class="main-title-open">Open</span><span class="main-title-media">Media</span><span class="main-title-gallery">.Gallery</span>
+            </a>
+
+            <div class="title-bar-user-controls"></div>
+        </header>
+
+        <div class="main-body">
+
+            <h1>Tile Set: <span id="set-name"></span></h1>
+
+            <hr>
+
+            <div id="item-list" class="search-info">
+            </div>
+
+            <hr>
+
+            <a href="editor.htm">
+                <button class="main-create-something" id="create-another-button">
+                    Create A New Set</button>
+            </a>
+
+
+            <button id="approve-button">
+                Approve</button>
+            <button id="disapprove-button">
+                Disapprove</button>
+            <button id="edit-button">
+                Edit</button>
+            <button id="delete-button">
+                Delete</button>
+
+        </div>
+
+        <script src="/js/usercontrols.js"></script>
+        <script src="/js/omgservice.js"></script>
+        <script>
+
+
+var setName = document.getElementById("set-name");
+var itemList = document.getElementById("item-list");
+
+var params = omg.util.getPageParams();
+if (!params.id) {
+    setName.innerText = "(Invalid ID)";
+} else {
+
+    var setupAdminButtons = function (response) {
+        
+        var deleteButton = document.getElementById("delete-button");
+        deleteButton.onclick = function () {
+            omg.server.deleteId(params.id, function () {
+                window.history.back();
+            });
+        };
+        deleteButton.style.visibility = "visible";
+        var editButton = document.getElementById("edit-button");
+        editButton.onclick = function () {
+            window.location = "editor.htm?id=" + params.id;
+        };
+        editButton.style.visibility = "visible";
+        if (!response.approved) {
+            var approveButton = document.getElementById("approve-button");
+            approveButton.onclick = function () {
+                response.approved = true;
+                omg.server.post(response, function () {
+                    window.location = window.location;
+                })
+            };
+            approveButton.style.visibility = "visible";
+        }
+        else {
+            var disapproveButton = document.getElementById("disapprove-button");
+            disapproveButton.onclick = function () {
+                response.approved = false;
+                omg.server.post(response, function () {
+                    window.location = window.location;
+                })
+            };
+            disapproveButton.style.visibility = "visible";
+        }
+    };
+    
+    omg.server.getId(params.id, function (response) {
+        setName.innerText = response.name;
+        var prefix = response.prefix || "";
+        var postfix = response.postfix || "";
+        var newDiv;
+        for (var code in response.tileCodes) {
+            newDiv = document.createElement("div");
+            newDiv.className = "item";
+            var data = response.tileCodes[code];
+            newDiv.innerHTML = "<img src='" + prefix + data + postfix +
+                    "'>" + " - " + code +
+                    " - <a href='" + prefix + data + postfix +
+                    "'>" + data + "</a>";
+            itemList.appendChild(newDiv);
+        }
+
+        setupUserControls(
+            document.getElementsByClassName("title-bar-user-controls")[0],
+            function () {
+                if (!params.mini && typeof omg !== "undefined" && omg.user && omg.user.admin) {
+                    setupAdminButtons(response);
+                }
+            }
+        );
+    });
+}
+        </script>
+
+    </body>
+</html>

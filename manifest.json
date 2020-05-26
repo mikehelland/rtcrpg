@@ -1,0 +1,10 @@
+{
+    "activities": [
+		{"name": "Map", "url": "map.htm", "views": ["MAP"]},
+		{"name": "Map Editor", "url": "map-editor.htm", "edits": ["MAP"]},
+		{"name": "TileSet", "url": "tileset.htm", "views": ["TILESET"]},
+		{"name": "TileSet Editor", "url": "tileset-editor.htm", "edits": ["TILESET"]},
+		{"name": "Embedded Map Viewer", "url": "map-embed.js", "embeds": ["MAP"]},
+		{"name": "Embedded TileSet Viewer", "url": "tileset-embed.js", "embeds": ["TILESET"]}
+	]
+}

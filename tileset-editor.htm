@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="stylesheet" href="css/main.css" type="text/css" />
+
+        <style>
+            .url-input {width: 300px;}
+            /*button {width: 100%; height: 40px; background-color: blue;}*/
+            textarea {width: 400px; height: 100px;}
+
+            #drop-zone {
+                border:2px dashed #808080;
+                padding: 30px;
+                margin: 20px;
+                text-align: center;
+            }
+            .drop-zone-hover {
+                background-color:#DDDDFF;
+                border:2px dotted #808080 !important;
+            }
+
+            .search-thing-menu {
+                cursor: pointer;
+                margin:4px;
+                display:inline-block;
+                float:right;
+            }
+
+            .search-thing-menu:hover {
+                border-radius: 2px;
+                border: 1px solid #808080;
+                margin:3px;
+            }
+
+        </style>
+
+    </head>
+    <body>
+
+        <header>
+            <a class="main-page-link" href="/">
+                <span class="main-title-open">Open</span><span class="main-title-media">Music</span><span class="main-title-gallery">.Gallery</span>
+            </a>
+            <div class="title-bar-user-controls"></div>
+        </header>
+
+        <div class="main-body">
+
+            <h1>Add/Edit a Tile Set</h1>
+
+            <div id="drop-zone">
+                    Drop Files Here To Upload
+            </div>    
+
+
+            Tile Set Name: 
+            <br>
+            <input id="set-name">
+
+            <br>
+            URL Prefix <input id="url-prefix">
+            URL Postfix <input id="url-postfix">
+
+            <hr>
+            <div id="inputs">
+            </div>
+
+            <a href="#" id="add-item">Add</a>
+            <hr>
+
+            <button class="main-create-something" id="submit-button">Submit</button>
+
+        </div>
+
+        <script src="/js/usercontrols.js"></script>
+
+        <script src="/js/omgservice.js"></script>
+        <script>
+
+var inputsDiv = document.getElementById("inputs")
+var inputs = {name: document.getElementById("set-name"),
+    data: [],
+    prefix: document.getElementById("url-prefix"),
+    postfix: document.getElementById("url-postfix")
+};
+var set = {}
+set.type = "TILESET"
+set.omgVersion = 1
+var autoPrefix
+var params = omg.util.getPageParams();
+
+var setupPage = () => {
+    if (params.id) {
+        autoPrefix = "/uploads/" + omg.user.id + "/" + params.id + "/"
+        omg.server.getId(params.id, function (response) {
+
+            setInputs(response)
+
+            var newDiv;
+            set = response
+        });
+    }
+}
+
+var setInputs = (data) => {
+    inputs.name.value = data.name
+    inputs.prefix.value = data.prefix
+    inputs.postfix.value = data.postfix
+
+    setList(data)
+}
+
+var setList = (data) => {
+    inputsDiv.innerHTML = ""
+    inputs.data = []
+
+    for (var code in data.tileCodes) {
+        makeListItem(code, data.tileCodes[code])
+    }
+}
+
+var makeListItem = (code, data) => {
+    console.log(code, data)
+    var div = document.createElement("div")
+    div.innerHTML = "Item " + (inputs.data.length + 1) + " Code: "
+    var nameInput = document.createElement("input")
+    nameInput.value = code
+    div.appendChild(nameInput)
+    var caption = document.createElement("span")
+    caption.innerHTML = "URL: "
+    div.appendChild(caption)
+    var urlInput = document.createElement("input")
+    urlInput.value = data
+    div.appendChild(urlInput)
+    inputsDiv.appendChild(div)
+    var statusDiv = document.createElement("span")
+    div.appendChild(statusDiv)
+
+    urlInput.addEventListener("paste", function (e) {
+        if (nameInput.value.length == 0) {
+
+            var filename;
+            filename = e.clipboardData.getData("Text");
+
+             nameInput.value = makeSoundName(filename) //todo
+             data.name = nameInput.value
+        }
+    }, false);
+    //urlInput.onchange = ()=>data.url = urlInput.value
+    //nameInput.onchange = ()=>data.name = nameInput.value
+
+    var el = document.createElement("div")
+    el.innerHTML = "&times;"
+    el.className = "search-thing-menu"
+    div.appendChild(el)
+    el.onclick = (e) => {
+        e.stopPropagation()
+        remove(data)
+    }
+
+    el = document.createElement("div")
+    el.innerHTML = "&darr;"
+    el.className = "search-thing-menu"
+    div.appendChild(el)
+    el.onclick = (e) => {
+        e.stopPropagation()
+        moveDown(data)
+    }
+
+    el = document.createElement("div")
+    el.innerHTML = "&uarr;"
+    el.className = "search-thing-menu"
+    div.appendChild(el)
+    el.onclick = (e) => {
+        e.stopPropagation()
+        moveUp(data)
+    }
+
+    inputs.data.push({nameInput: nameInput, urlInput, urlInput})
+    return statusDiv
+}
+
+document.getElementById("add-item").onclick = ()=>{
+    makeListItem("", "")
+}
+
+var makeSoundName = (filename) => {
+    return filename.split("/").pop().split(".")[0].replace("_", " ").replace("-", " ")
+}
+
+var dropZone = document.getElementById("drop-zone")
+dropZone.ondragover = (e) => {
+    e.preventDefault()
+    dropZone.className = "drop-zone-hover"
+}
+dropZone.ondragleave = (e) => {
+    e.preventDefault()
+    dropZone.className = ""
+}
+dropZone.ondrop = (e) => {
+    e.preventDefault()
+    var handleDroppedItems = (items) => {
+        for (var i = 0; i < e.dataTransfer.items.length; i++) {
+            if (e.dataTransfer.items[i].kind === "file" && 
+                    e.dataTransfer.items[i].type.startsWith("image/")) {
+                handleDroppedItem(e.dataTransfer.items[i])
+            }
+        }
+    }
+    dropZone.className = ""
+
+    var handleDroppedItem = (item) => {
+        var file = item.getAsFile()
+        var sound = {url: file.name, name: makeSoundName(file.name)}
+        if (inputs.prefix.value !== autoPrefix) {
+            sound.url = autoPrefix + sound.url
+        }
+        var statusDiv = makeListItem("", sound.url)
+        statusDiv.innerHTML = "Uploading..."
+        
+        var fd = new FormData();
+        fd.append('setId', set.id);
+        fd.append('file', file);
+        fd.append('filename', file.name);
+        
+        omg.server.postHTTP("/upload", fd, (res)=>{
+            statusDiv.innerHTML = res.success ? 
+                "<font color='green'>Uploaded</font>" : ("<font color='red'>Error</font> " + res.error)
+        });
+    }
+
+    if (e.dataTransfer.items) {
+        if (set.id) {
+            handleDroppedItems(e.dataTransfer.items)
+        }
+        else {
+            submit((res) => {
+                autoPrefix = "/uploads/" + omg.user.id + "/" + set.id + "/"
+                if (!inputs.prefix.value) {
+                    inputs.prefix.value = autoPrefix
+                    set.prefix = autoPrefix
+                }
+                handleDroppedItems(e.dataTransfer.items)
+            })
+        }
+    }
+}
+
+document.getElementById("submit-button").onclick = function () {
+    console.log("1", set.id)
+    if (!inputs.name.value || inputs.data.length == 0) {
+        alert("set needs a name, and a sound with a caption and url.")
+        return
+    }
+
+    submit((res)=>{
+        console.log("2", set.id)
+        if (res.id > 0) {
+            window.location = "viewer.htm?id=" + res.id;
+        }
+    })
+}
+
+var submit = (cb) => {
+
+    set.name = document.getElementById("set-name").value
+    set.prefix = document.getElementById("url-prefix").value
+    set.postfix = document.getElementById("url-postfix").value
+
+    set.tileCodes = {}
+    inputs.data.forEach(item => {
+        set.tileCodes[item.nameInput.value] = item.urlInput.value
+    })
+
+    omg.server.post(set, function (response) {
+        if (response.id) {
+            set.id = response.id
+        }
+        if (cb) {
+            cb(response)
+        }
+    });
+};
+
+var moveUp = function (item) {
+
+    var i = set.data.indexOf(item) 
+    if (i < 1) {
+        return
+    }
+
+    set.data.splice(i, 1)
+    set.data.splice(i - 1, 0, item)
+
+    setList(set)
+}
+
+var moveDown = function (item) {
+
+    var i = set.data.indexOf(item) 
+    if (i > -1 && i > set.data.length - 1) {
+        return
+    }
+
+    set.data.splice(i, 1)
+    set.data.splice(i + 1, 0, item)
+
+    setList(set)
+}
+
+var remove = function (item) {
+
+    var i = set.data.indexOf(item) 
+    if (i == -1) {
+        return
+    }
+
+    set.data.splice(i, 1)
+
+    setList(set)
+}
+        </script>
+        <script>
+            var userControls = document.getElementsByClassName("title-bar-user-controls")[0]
+            setupUserControls(userControls, setupPage, () => {
+                document.getElementsByClassName("main-body")[0].innerHTML = 
+                    "<h3>To Add / Edit a sound set please " + userControls.innerHTML + "</h3>"
+            });
+        </script>
+    
+    </body>
+</html>
