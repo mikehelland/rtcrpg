@@ -138,12 +138,12 @@ OMGMapEditor.prototype.setupControls = function () {
     document.getElementById("new-copy-button").onclick = e => {
         delete this.map.id
         omg.server.post(this.map, res => {
-            window.location = "viewer.htm?id=" + res.id
+            window.location = "map.htm?id=" + res.id
         })
     }
     document.getElementById("overwrite-button").onclick = e => {
         omg.server.post(this.map, res => {
-            window.location = "viewer.htm?id=" + res.id
+            window.location = "map.htm?id=" + res.id
         })
     }
     omg.server.getHTTP("/user", user => this.user = user)

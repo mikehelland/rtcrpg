@@ -1164,9 +1164,18 @@ ge.startup = () => {
 ge.startup()
 
 ge.leaveMap = () => {
+
     if (ge.mapData.parentMap) {
+
+        ge.rtc.leave()
+
+        for (var el in ge.htmlElements) {
+            //todo document.body.removeChild(el) or whatever
+        }
+    
         fetch(ge.mapData.parentMap.url).then(data => data.json()).then(json => {
             ge.loadMap(json, ge.mapData.parentMap.url)
+            ge.rtc.join(ge.roomName, ge.userName)
         })
     }
 }
@@ -1195,10 +1204,14 @@ ge.loadMap = (data, mapName) => {
     ge.hero.y = data.startY
     ge.hero.facing = 0
     
+    //todo unload previous map html elements?
     ge.htmlElements = {}
     if (ge.mapData.html) {    
         ge.mapData.html.forEach(html => ge.addHTML(html))
     }
     
-    ge.mainLoop()
+    if (!ge.running) {
+        ge.mainLoop()
+        ge.running = true
+    }
 }
