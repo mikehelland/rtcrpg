@@ -19,6 +19,7 @@ function OMGMapEditor (canvas, frontCanvas) {
 
 OMGMapEditor.prototype.loadTileSet = function (tileSet) {
     
+    this.map.tileSet = tileSet
     Object.keys(tileSet.tileCodes).forEach(key => {
         var img = document.createElement("img")
         img.src = (tileSet.prefix + "") + tileSet.tileCodes[key] + (tileSet.postfix || "")
@@ -43,7 +44,15 @@ OMGMapEditor.prototype.load = function (map) {
     this.widthInput.value = map.width
     this.heightInput.value = map.height
 
-    this.loadTileSet(map.tileSet)
+    if (map.tileSet) {
+        this.loadTileSet(map.tileSet)
+    }
+    else {
+        if (this.tileSets) {
+            this.loadTileSet(this.tileSets[0])
+        }
+    }
+    
     this.loadNPCs()
     this.loadHTML()
 
@@ -127,12 +136,15 @@ OMGMapEditor.prototype.setupControls = function () {
     this.widthInput.onkeydown = e => this.sizeInputKeyPress(e)
     this.heightInput.onkeydown = e => this.sizeInputKeyPress(e)
     this.toolBoxSelect = document.getElementById("tool-box-select")
-    this.toolBoxSelect.onchange = e => this.selectToolBox(e)
     this.tileListDiv = document.getElementById("tile-list")
     this.characterListDiv = document.getElementById("character-list")
     this.htmlListDiv = document.getElementById("html-list")
     this.tileHighlightDiv = document.getElementById("tile-highlight")
 
+    this.toolBoxSelect.onchange = e => this.selectToolBox(e)
+    this.toolBoxSelect.value = "Tiles"
+    this.selectToolBox({target: {value: "Tiles"}})
+    
     document.getElementById("save-button").onclick = () => this.save()
 
     document.getElementById("new-copy-button").onclick = e => {
@@ -147,6 +159,30 @@ OMGMapEditor.prototype.setupControls = function () {
         })
     }
     omg.server.getHTTP("/user", user => this.user = user)
+
+    this.tileSetSelect = document.getElementById("tile-set-select")
+    omg.server.getHTTP("/data/?type=TILESET", results => {
+        this.tileSets = results
+        results.forEach(result => {
+            result.url = window.location.origin + "/data/" + result.id
+            newOption = document.createElement('option')
+            this.tileSetSelect.appendChild(newOption)
+            newOption.innerHTML = result.name
+        })
+        if (this.map && !this.map.tileSet) {//we've already loaded a map, but it's an empty tileset
+            this.loadTileSet(this.tileSets[0])
+        }
+    })
+
+    this.tileSetSelect.onchange = e => {
+        for (let i = 0; i < this.tileSets.length; i++) {
+            if (this.tileSets[i].name === this.tileSetSelect.value) {
+                this.map.tileSet = this.tileSets[i]
+                this.loadTileSet(this.tileSets[i])
+                return
+            }
+        }
+    }
     
     this.setupNPCControls()
     this.setupHTMLControls()
@@ -201,7 +237,7 @@ OMGMapEditor.prototype.save = function () {
     }
 
     omg.server.post(this.map, res => {
-        window.location = "viewer.htm?id=" + res.id
+        window.location = "map.htm?id=" + res.id
     })
 }
 

@@ -33,7 +33,7 @@
 
             <hr>
 
-            <a href="editor.htm">
+            <a href="tileset-editor.htm">
                 <button class="main-create-something" id="create-another-button">
                     Create A New Set</button>
             </a>
@@ -74,7 +74,7 @@ if (!params.id) {
         deleteButton.style.visibility = "visible";
         var editButton = document.getElementById("edit-button");
         editButton.onclick = function () {
-            window.location = "editor.htm?id=" + params.id;
+            window.location = "tileset-editor.htm?id=" + params.id;
         };
         editButton.style.visibility = "visible";
         if (!response.approved) {

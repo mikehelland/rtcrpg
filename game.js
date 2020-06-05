@@ -230,9 +230,10 @@ ge.finishTouching = () => {
 }
 
 
-ge.blockedTiles = "Ilwdp"
+ge.blockedTiles = "IlwdpX"
 ge.hero.move = (x, y) => {
-    if (Date.now() - ge.hero.lastMove < ge.stepDuration) {
+    if (Date.now() - ge.hero.lastMove < ge.stepDuration ||
+            Date.now() - ge.hero.lastBump < ge.stepDuration) {
         return 
     }
 
@@ -244,6 +245,7 @@ ge.hero.move = (x, y) => {
     if (x === -1) ge.hero.facing = 3
 
     var updatePosition = () => {
+        ge.hero.lastBump = Date.now()
         if (ge.rtc) {
             ge.rtc.updateLocalUserData(ge.hero)
         }
@@ -265,6 +267,11 @@ ge.hero.move = (x, y) => {
     if (target === "p") {
         ge.finishTouching()
         ge.videoCallGroup((ge.hero.x + x) + "x" + (ge.hero.y + y))
+        return updatePosition()
+    }
+    if (target === "X") {
+        ge.finishTouching()
+        ge.enterBuilding(ge.hero.x + x, ge.hero.y + y)
         return updatePosition()
     }
     if (ge.blockedTiles.indexOf(target) > -1) {
@@ -1164,32 +1171,121 @@ ge.startup = () => {
 ge.startup()
 
 ge.leaveMap = () => {
+    
+    if (ge.mapData.parentMap && !ge.leavingMap) {
 
-    if (ge.mapData.parentMap) {
-
-        ge.rtc.leave()
+        ge.hero.chatPortal = undefined
+        ge.leavingMap = true
+        ge.background.style.opacity = 0.5
+        var prevMap = ge.roomName
+        console.log("leaving room")
 
         for (var el in ge.htmlElements) {
-            //todo document.body.removeChild(el) or whatever
+            console.log(ge.htmlElements[el])
+            try {
+                ge.background.removeChild(ge.htmlElements[el].div)
+            } catch (e) {console.log(e)}
         }
     
         fetch(ge.mapData.parentMap.url).then(data => data.json()).then(json => {
+            ge.rtc.leave()
             ge.loadMap(json, ge.mapData.parentMap.url)
+
+            //start position in upper map based on it's entrances and which way we're facing
+            var good = false
+            for (var i = 0; i < ge.mapData.childMaps.length; i++) {
+                for (var j = 0; j < ge.mapData.childMaps[i].entrances.length; j++) {
+                    if (prevMap === ge.mapData.childMaps[i].url &&
+                            ge.mapData.childMaps[i].entrances[j].exitFacing === ge.hero.facing) {
+                        
+                        ge.hero.x = ge.mapData.childMaps[i].entrances[j].x + ge.hero.facingX
+                        ge.hero.y = ge.mapData.childMaps[i].entrances[j].y + ge.hero.facingY
+                        good = true
+                        break
+                    }
+                }
+                if (good) {
+                    break
+                }
+            }
+            if (!good) {
+                ge.hero.x = ge.mapData.startX
+                ge.hero.y = ge.mapData.startY
+            }
             ge.rtc.join(ge.roomName, ge.userName)
+            ge.leavingMap = false
+            ge.background.style.opacity = 1
+    
         })
     }
 }
 
+ge.enterBuilding = (x,y) => {
+    if (ge.mapData.childMaps && !ge.enteringBuilding) {
+        for (var i = 0; i < ge.mapData.childMaps.length; i++) {
+            for (var j = 0; j < ge.mapData.childMaps[i].entrances.length; j++) {
+                if (ge.mapData.childMaps[i].entrances[j].x === x && 
+                    ge.mapData.childMaps[i].entrances[j].y === y) {
+                    ge.enteringBuilding = true
+                    ge.background.style.opacity = 0.5
+                    fetch(ge.mapData.childMaps[i].url).then(data => data.json()).then(json => {
+                        var data = json
+                        ge.rtc.leave()
+
+                        ge.loadMap(json, ge.mapData.childMaps[i].url)
+
+                        //start position
+                        if (ge.hero.facing === 0) {
+                            ge.hero.x = Math.floor(data.width / 2)
+                            ge.hero.y = 0
+                        }
+                        else if (ge.hero.facing === 1) {
+                            ge.hero.x = Math.floor(data.width / 2)
+                            ge.hero.y = data.height - 1
+                        }
+                        else if (ge.hero.facing === 2) {
+                            ge.hero.x = 0
+                            ge.hero.y = Math.floor(data.height / 2)
+                        }
+                        else if (ge.hero.facing === 3) {
+                            ge.hero.x = data.width - 1
+                            ge.hero.y = Math.floor(data.height / 2)
+                        }
+                
+                        ge.rtc.join(ge.roomName, ge.userName)
+                        ge.enteringBuilding = false
+                        ge.background.style.opacity = 1
+                    })
+                            
+                    return true
+                }
+            }
+        }
+    }
+}
+
+ge.tileSets = {}
+
 //finally, get a map and go
 ge.loadMap = (data, mapName) => {
     ge.roomName = mapName
-    Object.keys(data.tileSet.tileCodes).forEach(key => {
-        var img = document.createElement("img")
-        //img.src = "img/" + data.tileSet.tileCodes[key]
-        img.src = (data.tileSet.prefix + "") + data.tileSet.tileCodes[key] + (data.tileSet.postfix || "")
-        ge.img.tiles[key] = img
-        img.onload = ()=>{ge.drawnBackground = false}
-    })
+
+    if (ge.tileSets[data.tileSet.url]) {
+        ge.img.tiles = ge.tileSets[data.tileSet.url]
+        ge.drawnBackground = false
+    }
+    else {
+        ge.img.tiles = {}
+        Object.keys(data.tileSet.tileCodes).forEach(key => {
+            var img = document.createElement("img")
+            img.src = (data.tileSet.prefix + "") + data.tileSet.tileCodes[key] + (data.tileSet.postfix || "")
+            ge.img.tiles[key] = img
+            img.onload = ()=>{ge.drawnBackground = false}
+        })
+        if (data.tileSet.url) {
+            ge.tileSets[data.tileSet.url] = ge.img.tiles
+        }
+    }
 
     ge.backgroundCanvas.width = data.width * ge.tileWidth
     ge.backgroundCanvas.height = data.height * ge.tileHeight
@@ -1200,9 +1296,6 @@ ge.loadMap = (data, mapName) => {
     ge.map = data.mapLines;
     ge.npcs = data.npcs || []
     ge.npcs.forEach(npc => npc.spritesheetCoords = ge.img.getSpriteSheetCoords(npc.characterI))
-    ge.hero.x = data.startX
-    ge.hero.y = data.startY
-    ge.hero.facing = 0
     
     //todo unload previous map html elements?
     ge.htmlElements = {}
@@ -1213,5 +1306,9 @@ ge.loadMap = (data, mapName) => {
     if (!ge.running) {
         ge.mainLoop()
         ge.running = true
+
+        ge.hero.x = data.startX
+        ge.hero.y = data.startY
+        ge.hero.facing = 0    
     }
 }
