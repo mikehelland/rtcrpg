@@ -253,7 +253,7 @@ ge.hero.move = (x, y) => {
 
     // check to see if you can move to that position
     var target = ge.map[ge.hero.y + y]
-    if (!target) {
+    if (!target || ge.hero.y + y >= ge.mapData.height || ge.hero.x + x >= ge.mapData.width) {
         ge.finishTouching()
         ge.leaveMap()
         return updatePosition()
