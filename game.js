@@ -307,6 +307,9 @@ ge.hero.move = (x, y) => {
     ge.hero.lastMove = Date.now()
     
     updatePosition()
+    if (ge.onmove) {
+        ge.onmove()
+    }
 }
 
 
