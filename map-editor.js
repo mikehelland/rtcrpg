@@ -87,6 +87,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
             this.htmlBeingAdded = this.addHTML(e)
             this.mode = "HTML_STRETCH"
         }
+        if (this.mode === "NPC_SELECT") {
+            this.mode = "NPC_MOVE"
+        }
         this.isTouching = true    
     }
     canvas.onmousemove = (e) => {
@@ -98,6 +101,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         else if (this.mode.indexOf("_PLACE") > -1) {
             this.highlightTile(e)
         }
+        else if (this.mode.indexOf("_MOVE") > -1) {
+            this.highlightTile(e)
+        }
         else if (this.mode === "HTML_STRETCH") {
             this.stretchHTML(e)
         }
@@ -106,6 +112,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         console.log("mouseup")
         if (this.mode === "NPC_PLACE") {
             this.addNPC(e)
+        }
+        else if (this.mode === "NPC_MOVE") {
+            this.moveNPC(e)
         }
         else if (this.mode === "HTML_STRETCH") {
             //this.addHTML(e)
@@ -293,8 +302,8 @@ OMGMapEditor.prototype.highlightTile = function (e) {
     this.tileHighlightDiv.style.display = "block"
     this.tileHighlightDiv.style.width = this.tileSize + "px"
     this.tileHighlightDiv.style.height = this.tileSize + "px"
-    this.tileHighlightDiv.style.left = Math.floor(e.clientX / this.tileSize) * this.tileSize + "px"
-    this.tileHighlightDiv.style.top = Math.floor(e.clientY / this.tileSize) * this.tileSize + "px"
+    this.tileHighlightDiv.style.left = Math.floor(e.clientX / this.tileSize) * this.tileSize - 3 + "px"
+    this.tileHighlightDiv.style.top = Math.floor(e.clientY / this.tileSize) * this.tileSize + 1.5 + "px"
 }
 
 OMGMapEditor.prototype.addNPC = function (e) {
@@ -391,7 +400,7 @@ OMGMapEditor.prototype.setupNPCToolBoxDiv = function (npc) {
     var npcImg = document.createElement("img")
     var npcName = document.createElement("div")
     npcName.innerHTML = npc.name
-    npcDiv.appendChild(npcImg)
+    //npcDiv.appendChild(npcImg)
     npcDiv.appendChild(npcName)
     npcDiv.onclick = e => {
         this.showNPCDetails(npc, npcDiv)
@@ -477,5 +486,15 @@ OMGMapEditor.prototype.stretchHTML = function (e) {
     this.htmlBeingAdded.width = x - this.htmlBeingAdded.x
     this.htmlBeingAdded.height = y - this.htmlBeingAdded.y
 
+    this.drawNPCs()
+}
+
+OMGMapEditor.prototype.moveNPC = function (e) {
+    var x = Math.floor((e.clientX - this.canvas.offsetLeft) / this.tileSize)
+    var y = Math.floor((e.clientY - this.canvas.offsetTop) / this.tileSize)
+    this.selectedNPC.x = x
+    this.selectedNPC.y = y
+    this.mode = "NPC_SELECT" 
+    this.tileHighlightDiv.style.display = "none"
     this.drawNPCs()
 }
