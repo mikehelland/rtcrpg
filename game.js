@@ -1031,7 +1031,9 @@ ge.startRTC = (userName) => {
         ge.online = true
         ge.userName = userName || ge.rtc.userName
 
-        ge.rtc.join(ge.roomName, ge.userName)
+        ge.rtc.onready = () => {
+            ge.rtc.join(ge.roomName, ge.userName)
+        }
         ge.rtc.onjoined = () => {
             ge.rtc.updateLocalUserData(ge.hero)
             ge.rtc.onnewuser()
