@@ -1,4 +1,4 @@
-function OMGEmbeddedViewerMAP (data, div) {
+function OMGEmbeddedViewerMAP (viewer) {
     this.canvas = document.createElement("canvas")
     this.context = this.canvas.getContext("2d")
     this.tileSize = 16
@@ -7,15 +7,12 @@ function OMGEmbeddedViewerMAP (data, div) {
         tiles: {}
     }
     
-    console.log("map eembd")
     this.canvas.style.width = "100%"
     this.canvas.style.height = "100%"
-    div.appendChild(this.canvas)
-    console.log("draw1")
-    this.load(data)
-    console.log("draw2")
+    viewer.embedDiv.appendChild(this.canvas)
+    this.load(viewer.data)
     this.draw()
-    console.log("draw3")
+    
 }
 if (typeof omg === "object" && omg.types && omg.types["MAP"])
     omg.types["MAP"].embedClass = OMGEmbeddedViewerMAP
