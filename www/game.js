@@ -1032,7 +1032,7 @@ ge.startRTC = (userName) => {
         ge.userName = userName || ge.rtc.userName
 
         ge.rtc.onready = () => {
-            ge.rtc.join(ge.roomName, ge.userName)
+            ge.rtc.join(ge.roomName, ge.userName, ge.mapData)
         }
         ge.rtc.onjoined = () => {
             ge.rtc.updateLocalUserData(ge.hero)
