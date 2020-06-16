@@ -1080,7 +1080,7 @@ ge.startRTC = (userName) => {
 
         ge.serverStatus = document.getElementById("server-status")
         ge.rtc.ondisconnect = () => {
-            ge.serverStatus.innerHTML = "? users"
+            ge.serverStatus.innerHTML = document.title = "?@" + ge.originalTitle
         }
         ge.rtc.onnewuser = user => {
             var count = 1
