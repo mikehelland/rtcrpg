@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <link rel="stylesheet" type="text/css" href="dw.css"/>
+    <script>
+    if (window.location.protocol === "http:" && window.location.port !== "3000") {
+        window.location = window.location.href.replace("http:", "https:")
+    }
+
+    </script>
+</head>
+<body>
+
+    <!--<img id="characters-spritesheet" src="img/Dragtopus clone.png">-->
+    <img id="characters-spritesheet" src="img/book.png">
+
+    <div id="background">
+        <canvas id="backgroundCanvas"></canvas>    
+    </div>
+    <canvas tabindex="1" id="mainCanvas"></canvas>
+    <div id="enter-your-name" class="menu">
+        Hi! What's you're name?
+        <br>
+        <input id="enter-your-name-input" placeholder="screen name">
+        <button id="enter-your-name-join">Join</button>
+        <br><br>
+        <button id="enter-your-name-join-anon">Join Anonymously</button>
+        <button id="enter-your-name-offline">Play Offline</button>
+        <!--<input type="checkbox" id="auto-accept">Auto Accept Calls
+        <br>
+        <input type="checkbox" id="auto-connect">Auto Connect All-->
+    </div>
+    <div id="server-status">
+    </div>
+    <div id="playerMenu" class="menu">
+        <div>TALK</div>
+    </div>
+    <div id="coinCount" class="menu">
+        <div>$ 0</div>
+    </div>
+    <div id="dialogBox" class="menu">
+        <div>dialog</div>
+    </div>
+    <div id="textMessageDialog" class="menu">
+        <div id="textMessageOutput"></div>
+        <input id="textMessageInput" placeholder="[press enter to send]">
+    </div>
+    <div id="responseOptions" class="menu">
+        <div>opt</div>
+    </div>
+    <div id="priceList" class="menu">
+        <div>m   m</div>
+    </div>
+    <div id="gearList" class="menu">
+        <div>gear</div>
+    </div>
+    <div id="askToTalk" class="menu">
+        <div>Talk?</div>
+    </div>
+    <script src="volume-monitor.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="/js/omgrtc.js"></script>
+    <script src="/js/omgservice.js"></script>
+    <script src="game2.js"></script>
+    <script>
+    var params = omg.util.getPageParams()
+        if (params.id) {
+            omg.server.getId(params.id, data => {
+                ge.loadMap(data, location.href)
+            })
+        }
+    </script>
+</body>
+</html>
