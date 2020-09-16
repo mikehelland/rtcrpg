@@ -116,6 +116,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         else if (this.mode === "NPC_MOVE") {
             this.moveNPC(e)
         }
+        else if (this.mode === "HERO_MOVE") {
+            this.moveHero(e)
+        }
         else if (this.mode === "HTML_STRETCH") {
             //this.addHTML(e)
             this.mode = "HTML_SELECT"
@@ -269,7 +272,12 @@ OMGMapEditor.prototype.selectToolBox = function (e) {
         this.htmlListDiv.style.display = "block"
         this.mode = "HTML_SELECT"
     }
-    
+    else if (e.target.value === "Hero") {
+        this.tileListDiv.style.display = "none"
+        this.characterListDiv.style.display = "none"
+        this.htmlListDiv.style.display = "none"
+        this.mode = "HERO_MOVE"
+    }
     
 }
 
@@ -428,6 +436,13 @@ OMGMapEditor.prototype.drawNPCs = function () {
     this.frontCanvas.style.width = this.canvas.width + "px"
     this.frontCanvas.style.height = this.canvas.height + "px"
 
+    this.frontContext.fillStyle = "white"
+
+    this.frontContext.fillRect(
+        this.map.startX * this.tileSize,
+        this.map.startY * this.tileSize,
+        this.tileSize, this.tileSize)
+
     this.frontContext.strokeStyle = "red"
     if (this.htmlBeingAdded) {
         this.frontContext.strokeRect(this.htmlBeingAdded.x * this.tileSize,
@@ -495,6 +510,16 @@ OMGMapEditor.prototype.moveNPC = function (e) {
     this.selectedNPC.x = x
     this.selectedNPC.y = y
     this.mode = "NPC_SELECT" 
+    this.tileHighlightDiv.style.display = "none"
+    this.drawNPCs()
+}
+
+OMGMapEditor.prototype.moveHero = function (e) {
+    var x = Math.floor((e.clientX - this.canvas.offsetLeft) / this.tileSize)
+    var y = Math.floor((e.clientY - this.canvas.offsetTop) / this.tileSize)
+    this.map.startX = x
+    this.map.startY = y
+    this.mode = "HERO_MOVE" 
     this.tileHighlightDiv.style.display = "none"
     this.drawNPCs()
 }
