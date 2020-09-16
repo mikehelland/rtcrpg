@@ -470,7 +470,7 @@ ge.drawScene = () => {
     ge.portalColors = ["red", "blue", "green", "yellow", "purple"]
     ge.portals = {}
     for (var y = 0; y < ge.mapData.height; y++) {
-        for (var x = 0; x < ge.mapData.width; x++) {
+        for (var x = 0; x < ge.mapData.width * 2; x = x + 2) {
             if (ge.map[y] && ge.map[y][x] && ge.img.tiles[ge.map[y][x]]) {
                 ge.backgroundContext.drawImage(ge.img.tiles[ge.map[y][x]],
                     x * ge.tileWidth - 0.25, 

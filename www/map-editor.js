@@ -66,7 +66,8 @@ OMGMapEditor.prototype.draw = function () {
     this.canvas.style.width = canvas.width + "px"
     this.canvas.style.height = canvas.height + "px"
     
-    for (var y = 0; y < this.mapLines.length; y++) { 
+    var tileDataSize = this.map.tileDataSize || 1
+    for (var y = 0; y < this.mapLines.length * tileDataSize; y += tileDataSize) { 
         for (var x = 0; x < this.mapLines[y].length; x++) {
             if (this.mapLines[y][x] && this.img.tiles[this.mapLines[y][x]]) {
                 this.context.drawImage(this.img.tiles[this.mapLines[y][x]],
@@ -191,6 +192,7 @@ OMGMapEditor.prototype.setupControls = function () {
             if (this.tileSets[i].name === this.tileSetSelect.value) {
                 this.map.tileSet = this.tileSets[i]
                 this.loadTileSet(this.tileSets[i])
+                this.draw()
                 return
             }
         }
