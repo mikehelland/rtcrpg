@@ -190,6 +190,7 @@ OMGMapEditor.prototype.setupControls = function () {
     this.tileSetSelect.onchange = e => {
         for (let i = 0; i < this.tileSets.length; i++) {
             if (this.tileSets[i].name === this.tileSetSelect.value) {
+                this.tileListDiv.innerHTML = ""
                 this.map.tileSet = this.tileSets[i]
                 this.loadTileSet(this.tileSets[i])
                 this.draw()
