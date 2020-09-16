@@ -255,7 +255,7 @@ document.getElementById("submit-button").onclick = function () {
     }
 
     submit((res)=>{
-        console.log("2", set.id)
+        console.log("2", res)
         if (res.id > 0) {
             window.location = "tileset.htm?id=" + res.id;
         }
