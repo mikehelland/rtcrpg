@@ -465,18 +465,38 @@ ge.render = () => {
 }
 ge.drawScene = () => {
 
+    var tileCode
+
     ge.backgroundContext.lineWidth = 4
     var colorI = 0
     ge.portalColors = ["red", "blue", "green", "yellow", "purple"]
     ge.portals = {}
+
+    let currentRow
+    ge.mapTiles = []
+
     for (var y = 0; y < ge.mapData.height; y++) {
-        for (var x = 0; x < ge.mapData.width * 2; x = x + 2) {
-            if (ge.map[y] && ge.map[y][x] && ge.img.tiles[ge.map[y][x]]) {
-                ge.backgroundContext.drawImage(ge.img.tiles[ge.map[y][x]],
+        currentRow = []
+
+        ge.mapTiles.push(currentRow)
+        
+        for (var x = 0; x < ge.mapData.width; x++) {
+
+            if (!ge.map[y] || !ge.map[y][x]) {
+                continue
+            }
+
+            tileCode = ge.map[y].substr(x * ge.tileCharSize, ge.tileCharSize)
+            currentRow.push(tileCode)
+            console.log(tileCode)
+
+            if (tileCode && ge.img.tiles[tileCode]) {
+                ge.backgroundContext.drawImage(ge.img.tiles[tileCode],
                     x * ge.tileWidth - 0.25, 
                     y * ge.tileHeight - 0.25,
                     ge.tileWidth + 0.5, ge.tileHeight + 0.5)
 
+                //todo portal stuff from game.js... remove or update
                 if (ge.map[y][x] === "p") {
                     var portal = undefined
                     if (ge.portals[x + "x" + (y - 1)]) {
@@ -1340,7 +1360,9 @@ ge.loadMap = (data, mapName) => {
     ge.map = data.mapLines;
     ge.npcs = data.npcs || []
     ge.npcs.forEach(npc => npc.spritesheetCoords = ge.img.getSpriteSheetCoords(npc.characterI))
-    
+
+    ge.tileCharSize = ge.mapData.tileSet.tileCharSize || 1
+
     //todo unload previous map html elements?
     ge.htmlElements = {}
     if (ge.mapData.html) {    

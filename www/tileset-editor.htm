@@ -83,7 +83,8 @@ var inputsDiv = document.getElementById("inputs")
 var inputs = {name: document.getElementById("set-name"),
     data: [],
     prefix: document.getElementById("url-prefix"),
-    postfix: document.getElementById("url-postfix")
+    postfix: document.getElementById("url-postfix"),
+    tileCharSize: document.getElementById("tile-char-size")
 };
 var set = {}
 set.type = "TILESET"
@@ -108,6 +109,7 @@ var setInputs = (data) => {
     inputs.name.value = data.name
     inputs.prefix.value = data.prefix
     inputs.postfix.value = data.postfix
+    inputs.tileCharSize.value = data.tileCharSize || ""
 
     setList(data)
 }
@@ -268,6 +270,7 @@ var submit = (cb) => {
     set.name = document.getElementById("set-name").value
     set.prefix = document.getElementById("url-prefix").value
     set.postfix = document.getElementById("url-postfix").value
+    set.tileCharSize = parseInt(inputs.tileCharSize.value)
 
     set.tileCodes = {}
     inputs.data.forEach(item => {

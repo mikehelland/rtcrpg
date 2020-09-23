@@ -19,6 +19,8 @@ function OMGMapEditor (canvas, frontCanvas) {
 
 OMGMapEditor.prototype.loadTileSet = function (tileSet) {
     
+    this.tileCharSize = tileSet.tileCharSize || 1
+
     this.map.tileSet = tileSet
     Object.keys(tileSet.tileCodes).forEach(key => {
         var img = document.createElement("img")
@@ -65,15 +67,23 @@ OMGMapEditor.prototype.draw = function () {
     this.canvas.height = this.map.height * this.tileSize
     this.canvas.style.width = canvas.width + "px"
     this.canvas.style.height = canvas.height + "px"
-    
-    var tileDataSize = this.map.tileDataSize || 1
-    for (var y = 0; y < this.mapLines.length * tileDataSize; y += tileDataSize) { 
-        for (var x = 0; x < this.mapLines[y].length; x++) {
-            if (this.mapLines[y][x] && this.img.tiles[this.mapLines[y][x]]) {
-                this.context.drawImage(this.img.tiles[this.mapLines[y][x]],
-                    x * this.tileSize, 
-                    y * this.tileSize,
-                    this.tileSize, this.tileSize)
+
+    this.mapTiles = []
+
+    let tileCode, currentRow 
+    for (var y = 0; y < this.mapLines.length; y++) { 
+        currentRow = []
+        this.mapTiles.push(currentRow)
+        for (var x = 0; x < this.map.width; x++) {
+            if (this.mapLines[y][x]) {
+                tileCode = this.mapLines[y].substr(x * this.tileCharSize, this.tileCharSize)
+                currentRow.push(tileCode)
+                if (tileCode && this.img.tiles[tileCode]) {
+                    this.context.drawImage(this.img.tiles[tileCode],
+                        x * this.tileSize, 
+                        y * this.tileSize,
+                        this.tileSize, this.tileSize)
+                }
             }
         }    
     }
@@ -81,7 +91,7 @@ OMGMapEditor.prototype.draw = function () {
 
 OMGMapEditor.prototype.setupEvents = function (canvas) {
     canvas.onmousedown = (e) => {
-        if (this.mode === "TILE") {
+        if (this.mode === "TILE" && this.tileDrawMode === "Pencil") {
             this.tileEvent(e)
         }
         if (this.mode === "HTML_PLACE") {
@@ -94,7 +104,7 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         this.isTouching = true    
     }
     canvas.onmousemove = (e) => {
-        if (this.mode === "TILE") {
+        if (this.mode === "TILE" && this.tileDrawMode === "Pencil") {
             if (this.isTouching) {
                 this.tileEvent(e)
             }    
@@ -111,7 +121,12 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
     }
     canvas.onmouseup = (e) => {
         console.log("mouseup")
-        if (this.mode === "NPC_PLACE") {
+        if (this.mode === "TILE" && this.tileDrawMode === "Fill") {
+            if (this.isTouching) {
+                this.tileFill(e)
+            }    
+        }
+        else if (this.mode === "NPC_PLACE") {
             this.addNPC(e)
         }
         else if (this.mode === "NPC_MOVE") {
@@ -132,13 +147,40 @@ OMGMapEditor.prototype.tileEvent = function (e) {
     var x = Math.floor(e.layerX / this.tileSize)
     var y = Math.floor(e.layerY / this.tileSize)
     
-    if (this.selectedTile && this.mapLines[y] && this.mapLines[y][x]) {
-        this.mapLines[y] = this.mapLines[y].slice(0, x) + this.selectedTile + this.mapLines[y].slice(x + 1)
+    //if (this.selectedTile && this.mapLines[y] && this.mapLines[y][x]) {
+    if (this.selectedTile && this.mapTiles[y]) {
+        this.mapTiles[y][x] = this.selectedTile
+
+        //this.mapLines[y] = this.mapLines[y].slice(0, x) + this.selectedTile + this.mapLines[y].slice(x + 1)
         //this.draw()
-        this.context.drawImage(this.img.tiles[this.mapLines[y][x]],
+        this.context.drawImage(this.img.tiles[this.selectedTile],
             x * this.tileSize, 
             y * this.tileSize,
             this.tileSize, this.tileSize)
+    }
+}
+
+OMGMapEditor.prototype.tileFill = function (e) {
+    var x = Math.floor(e.layerX / this.tileSize)
+    var y = Math.floor(e.layerY / this.tileSize)
+    
+    let startTile = this.mapTiles[y][x]
+    console.log(startTile)
+
+    for (var iy = 0; iy < this.map.height; iy++) {
+        for (var ix = 0; ix < this.map.width; ix++) {
+            if (this.selectedTile && this.mapTiles[y]) {
+                console.log(this.selectedTile)
+                this.mapTiles[iy][ix] = this.selectedTile
+        
+                //this.mapLines[y] = this.mapLines[y].slice(0, x) + this.selectedTile + this.mapLines[y].slice(x + 1)
+                //this.draw()
+                this.context.drawImage(this.img.tiles[this.selectedTile],
+                    ix * this.tileSize, 
+                    iy * this.tileSize,
+                    this.tileSize, this.tileSize)
+            }
+        }
     }
 }
 
@@ -149,6 +191,7 @@ OMGMapEditor.prototype.setupControls = function () {
     this.widthInput.onkeydown = e => this.sizeInputKeyPress(e)
     this.heightInput.onkeydown = e => this.sizeInputKeyPress(e)
     this.toolBoxSelect = document.getElementById("tool-box-select")
+    this.tileModeDiv = document.getElementById("tile-mode")
     this.tileListDiv = document.getElementById("tile-list")
     this.characterListDiv = document.getElementById("character-list")
     this.htmlListDiv = document.getElementById("html-list")
@@ -163,12 +206,12 @@ OMGMapEditor.prototype.setupControls = function () {
     document.getElementById("new-copy-button").onclick = e => {
         delete this.map.id
         omg.server.post(this.map, res => {
-            window.location = "map.htm?id=" + res.id
+            window.location = "game.htm?id=" + res.id
         })
     }
     document.getElementById("overwrite-button").onclick = e => {
         omg.server.post(this.map, res => {
-            window.location = "map.htm?id=" + res.id
+            window.location = "game.htm?id=" + res.id
         })
     }
     omg.server.getHTTP("/user", user => this.user = user)
@@ -186,6 +229,12 @@ OMGMapEditor.prototype.setupControls = function () {
             this.loadTileSet(this.tileSets[0])
         }
     })
+
+    this.tileSelectMode = document.getElementById("tile-draw-mode")
+    this.tileSelectMode.onchange = e => {
+        this.tileDrawMode = this.tileSelectMode.value
+    }
+    this.tileDrawMode = this.tileSelectMode.value
 
     this.tileSetSelect.onchange = e => {
         for (let i = 0; i < this.tileSets.length; i++) {
@@ -241,6 +290,12 @@ OMGMapEditor.prototype.save = function () {
     this.map.type = "MAP"
     this.map.omgVersion = 1
 
+    this.map.mapLines = []
+    for (var iy = 0; iy < this.map.height; iy++) {
+        console.log(this.mapTiles[iy])
+        this.map.mapLines.push(this.mapTiles[iy].join(""))
+    }
+
     if (this.map.id) {
         if (this.user && this.map.user_id === this.user.id) {
             omg.ui.showDialog(document.getElementById("overwrite-or-new"))
@@ -252,31 +307,31 @@ OMGMapEditor.prototype.save = function () {
     }
 
     omg.server.post(this.map, res => {
-        window.location = "map.htm?id=" + res.id
+        window.location = "game.htm?id=" + res.id
     })
 }
 
 OMGMapEditor.prototype.selectToolBox = function (e) {
     if (e.target.value === "Tiles") {
-        this.tileListDiv.style.display = "block"
+        this.tileModeDiv.style.display = "block"
         this.characterListDiv.style.display = "none"
         this.htmlListDiv.style.display = "none"
         this.mode = "TILE"
     }
     else if (e.target.value === "NPCs") {
-        this.tileListDiv.style.display = "none"
+        this.tileModeDiv.style.display = "none"
         this.htmlListDiv.style.display = "none"
         this.characterListDiv.style.display = "block"
         this.mode = "NPC_SELECT"
     }
     else if (e.target.value === "HTML") {
-        this.tileListDiv.style.display = "none"
+        this.tileModeDiv.style.display = "none"
         this.characterListDiv.style.display = "none"
         this.htmlListDiv.style.display = "block"
         this.mode = "HTML_SELECT"
     }
     else if (e.target.value === "Hero") {
-        this.tileListDiv.style.display = "none"
+        this.tileModeDiv.style.display = "none"
         this.characterListDiv.style.display = "none"
         this.htmlListDiv.style.display = "none"
         this.mode = "HERO_MOVE"
