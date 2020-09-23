@@ -91,8 +91,8 @@ OMGMapEditor.prototype.draw = function () {
 
 OMGMapEditor.prototype.setupEvents = function (canvas) {
     canvas.onmousedown = (e) => {
-        if (this.mode === "TILE" && this.tileDrawMode === "Pencil") {
-            this.tileEvent(e)
+        if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
+            this.tileEvent(Math.floor(e.layerX / this.tileSize), Math.floor(e.layerY / this.tileSize))
         }
         if (this.mode === "HTML_PLACE") {
             this.htmlBeingAdded = this.addHTML(e)
@@ -104,9 +104,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         this.isTouching = true    
     }
     canvas.onmousemove = (e) => {
-        if (this.mode === "TILE" && this.tileDrawMode === "Pencil") {
+        if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
             if (this.isTouching) {
-                this.tileEvent(e)
+                this.tileEvent(Math.floor(e.layerX / this.tileSize), Math.floor(e.layerY / this.tileSize))
             }    
         }
         else if (this.mode.indexOf("_PLACE") > -1) {
@@ -143,9 +143,7 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
     }
 }
 
-OMGMapEditor.prototype.tileEvent = function (e) {
-    var x = Math.floor(e.layerX / this.tileSize)
-    var y = Math.floor(e.layerY / this.tileSize)
+OMGMapEditor.prototype.tileEvent = function (x, y, brushing) {
     
     //if (this.selectedTile && this.mapLines[y] && this.mapLines[y][x]) {
     if (this.selectedTile && this.mapTiles[y]) {
@@ -157,6 +155,17 @@ OMGMapEditor.prototype.tileEvent = function (e) {
             x * this.tileSize, 
             y * this.tileSize,
             this.tileSize, this.tileSize)
+    }
+
+    if (this.tileDrawMode === "Brush" && !brushing) {
+        this.tileEvent(x - 1, y - 1, true)
+        this.tileEvent(x - 1, y, true)
+        this.tileEvent(x - 1, y + 1, true)
+        this.tileEvent(x, y - 1, true)
+        this.tileEvent(x, y + 1, true)
+        this.tileEvent(x + 1, y - 1, true)
+        this.tileEvent(x + 1, y, true)
+        this.tileEvent(x + 1, y + 1, true)
     }
 }
 
