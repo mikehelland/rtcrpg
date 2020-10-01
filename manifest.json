@@ -4,10 +4,7 @@
 		{"name": "Map Editor", "url": "map-editor.htm", "edits": ["MAP"]},
 		{"name": "TileSet", "url": "tileset.htm", "views": ["TILESET"]},
 		{"name": "TileSet Editor", "url": "tileset-editor.htm", "edits": ["TILESET"]},
-		{"name": "Character", "url": "character.htm", "views": ["CHARACTER"]},
-		{"name": "Character Editor", "url": "character-editor.htm", "edits": ["CHARACTER"]},
 		{"name": "Embedded Map Viewer", "url": "map-embed.js", "embeds": ["MAP"]},
-		{"name": "Embedded TileSet Viewer", "url": "tileset-embed.js", "embeds": ["TILESET"]},
-		{"name": "Embedded Character Viewer", "url": "character-embed.js", "embeds": ["CHARACTER"]}
+		{"name": "Embedded TileSet Viewer", "url": "tileset-embed.js", "embeds": ["TILESET"]}
 	]
 }

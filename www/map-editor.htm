@@ -93,8 +93,20 @@
         #tools button {
             width:74px;
         }
-        #character-list {
+        #character-mode {
             display:none;
+        }
+        
+        #select-character-dialog {
+            display:none;
+            background-color: #EEEEEE;
+            color:black;
+            border:1px solid black;
+            max-width: 800px;
+        }
+
+        .select-character-dialog-item {
+            cursor: pointer;
         }
 
         #npc-dialog-input {
@@ -135,9 +147,10 @@
             <select id="tile-set-select"></select>
             <div id="tile-list"></div>
         </div>
-        <div id="character-list">
+        <div id="character-mode">
             <button id="add-npc-button">+Add</button>
             <hr>
+            <div id="character-list"></div>
         </div>
         <div id="html-list">
             <button id="add-html-button">+Add</button>
@@ -169,6 +182,13 @@
         <br><br>
         <button id="new-copy-button">New Copy</button>
     </div>
+
+    <div id="select-character-dialog">
+        <h3>Select a Character</h3>
+        <hr>
+        <div id="select-character-list"></div>
+    </div>
+
 
     <div id="tile-highlight"></div>
     <script src="/js/omgservice.js"></script>

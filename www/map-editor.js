@@ -110,7 +110,10 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
             if (this.isTouching) {
                 this.tileEvent(Math.floor(e.layerX / this.tileSize), Math.floor(e.layerY / this.tileSize))
-            }    
+            }
+            else {
+                this.tilePreview(Math.floor(e.layerX / this.tileSize), Math.floor(e.layerY / this.tileSize))
+            }
         }
         else if (this.mode.indexOf("_PLACE") > -1) {
             this.highlightTile(e)
@@ -172,6 +175,31 @@ OMGMapEditor.prototype.tileEvent = function (x, y, brushing) {
     }
 }
 
+OMGMapEditor.prototype.tilePreview = function (x, y, brushing) {
+
+    if (!brushing) {
+        this.drawNPCs()
+    }
+
+    if (this.selectedTile && this.mapTiles[y]) {
+        this.frontContext.drawImage(this.img.tiles[this.selectedTile],
+            x * this.tileSize, 
+            y * this.tileSize,
+            this.tileSize, this.tileSize)
+    }
+
+    if (this.tileDrawMode === "Brush" && !brushing) {
+        this.tilePreview(x - 1, y - 1, true)
+        this.tilePreview(x - 1, y, true)
+        this.tilePreview(x - 1, y + 1, true)
+        this.tilePreview(x, y - 1, true)
+        this.tilePreview(x, y + 1, true)
+        this.tilePreview(x + 1, y - 1, true)
+        this.tilePreview(x + 1, y, true)
+        this.tilePreview(x + 1, y + 1, true)
+    }
+}
+
 OMGMapEditor.prototype.tileFill = function (e) {
     var x = Math.floor(e.layerX / this.tileSize)
     var y = Math.floor(e.layerY / this.tileSize)
@@ -205,6 +233,7 @@ OMGMapEditor.prototype.setupControls = function () {
     this.toolBoxSelect = document.getElementById("tool-box-select")
     this.tileModeDiv = document.getElementById("tile-mode")
     this.tileListDiv = document.getElementById("tile-list")
+    this.characterModeDiv = document.getElementById("character-mode")
     this.characterListDiv = document.getElementById("character-list")
     this.htmlListDiv = document.getElementById("html-list")
     this.tileHighlightDiv = document.getElementById("tile-highlight")
@@ -241,6 +270,17 @@ OMGMapEditor.prototype.setupControls = function () {
             this.loadTileSet(this.tileSets[0])
         }
     })
+    omg.server.getHTTP("/data/?type=CHARACTER", results => {
+        results.forEach(result => {
+            var newEl = document.createElement("img") //"canvas")
+            newEl.className = "select-character-dialog-item"
+            this.selectCharacterList.appendChild(newEl)
+            newEl.src = result.src
+            newEl.onclick = e => {
+                this.placeNPC(result)
+            }
+        })
+    })
 
     this.tileSelectMode = document.getElementById("tile-draw-mode")
     this.tileSelectMode.onchange = e => {
@@ -262,6 +302,10 @@ OMGMapEditor.prototype.setupControls = function () {
     
     this.setupNPCControls()
     this.setupHTMLControls()
+
+    this.selectCharacterDialog = document.getElementById("select-character-dialog")
+    this.selectCharacterList = document.getElementById("select-character-list")
+
 }
 
 OMGMapEditor.prototype.sizeMap = function () {
@@ -325,25 +369,25 @@ OMGMapEditor.prototype.save = function () {
 OMGMapEditor.prototype.selectToolBox = function (e) {
     if (e.target.value === "Tiles") {
         this.tileModeDiv.style.display = "block"
-        this.characterListDiv.style.display = "none"
+        this.characterModeDiv.style.display = "none"
         this.htmlListDiv.style.display = "none"
         this.mode = "TILE"
     }
     else if (e.target.value === "NPCs") {
         this.tileModeDiv.style.display = "none"
         this.htmlListDiv.style.display = "none"
-        this.characterListDiv.style.display = "block"
+        this.characterModeDiv.style.display = "block"
         this.mode = "NPC_SELECT"
     }
     else if (e.target.value === "HTML") {
         this.tileModeDiv.style.display = "none"
-        this.characterListDiv.style.display = "none"
+        this.characterModeDiv.style.display = "none"
         this.htmlListDiv.style.display = "block"
         this.mode = "HTML_SELECT"
     }
     else if (e.target.value === "Hero") {
         this.tileModeDiv.style.display = "none"
-        this.characterListDiv.style.display = "none"
+        this.characterModeDiv.style.display = "none"
         this.htmlListDiv.style.display = "none"
         this.mode = "HERO_MOVE"
     }
@@ -354,8 +398,7 @@ OMGMapEditor.prototype.setupNPCControls = function () {
     this.tileHighlightDiv = document.getElementById("tile-highlight")
     this.addNPCButton = document.getElementById("add-npc-button")
     this.addNPCButton.onclick = e => {
-        e.target.innerHTML = "Place..."
-        this.mode = "NPC_PLACE"
+        this.closeSelectCharacerDialog = omg.ui.showDialog(this.selectCharacterDialog)
     }
     this.npcDetailsDiv = document.getElementById("npc-details")
     this.npcDetailsName = document.getElementById("npc-details-name")
@@ -388,7 +431,7 @@ OMGMapEditor.prototype.addNPC = function (e) {
     var y = Math.floor((e.clientY - this.canvas.offsetTop) / this.tileSize)
 
     var npc = {
-        "name": "name me",
+        "name": this.selectedSprite ? this.selectedSprite.name : "name me",
         "x": x,
         "y": y,
         "characterI": 15,
@@ -407,6 +450,16 @@ OMGMapEditor.prototype.addNPC = function (e) {
     this.addNPCButton.innerHTML = "+Add"
 
     this.drawNPCs()
+}
+
+OMGMapEditor.prototype.placeNPC = function (sprite) {
+    this.addNPCButton.innerHTML = "Place..."
+    this.mode = "NPC_PLACE"
+    this.selectedSprite = sprite
+
+    if (this.closeSelectCharacerDialog) {
+        this.closeSelectCharacerDialog()
+    }
 }
 
 OMGMapEditor.prototype.addHTML = function (e) {
