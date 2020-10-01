@@ -33,6 +33,18 @@
                 margin:3px;
             }
 
+            #url-section {
+                display: flex;
+                align-items: center;
+                margin-top: 15px;
+                    
+            }
+
+            #url-section input {
+                flex-grow: 1;
+                margin-left: 12px;
+            }
+
         </style>
 
     </head>
@@ -51,17 +63,19 @@
 
             Character Name: 
             <br>
-            <input id="data-name">
+            <input id="thing-name">
 
             <hr>
             width <input id="char-width">
             height <input id="char-height">
 
             <hr>
-            Image: <span id="image-file-name"></span>
-            <img id="image-img" src="">
+            Image: 
+            <div id="url-section">Url: <input placeholder="give a url or drop an image below" id="image-url"></div>
             <div id="drop-zone">
-                Drop Files Here To Upload
+                <div id="drop-caption">Drop Files Here To Upload</div>
+                <img id="image-img" src="">
+            
             </div>    
 
             <hr>
@@ -76,38 +90,49 @@
         <script>
 
 var inputsDiv = document.getElementById("inputs")
-var inputs = {name: document.getElementById("set-name"),
-    data: [],
-    prefix: document.getElementById("url-prefix"),
-    postfix: document.getElementById("url-postfix"),
-    tileCharSize: document.getElementById("tile-char-size")
+var inputs = {
+    name: document.getElementById("thing-name"),
+    images: [document.getElementById("image-url"),]
 };
-var set = {}
-set.type = "CHARACTER"
-set.omgVersion = 1
-var autoPrefix
+var thing = {}
+thing.type = "CHARACTER"
+thing.omgVersion = 1
+thing.images = [{}]
+
 var params = omg.util.getPageParams();
+
+var imageEl = document.getElementById("image-img")
+var dropCaption = document.getElementById("drop-caption")
+
+inputs.images[0].onkeypress = e => {
+    if (e.keyCode === 13) {
+        setImage(e.value)
+    }
+}
+
+var setImage = url => {
+    inputs.images[0].value = url
+    thing.images[0].url = url 
+    imageEl.src = url
+    dropCaption.style.display = "none"
+    
+}
 
 var setupPage = () => {
     if (params.id) {
-        autoPrefix = "/uploads/" + omg.user.id + "/" + params.id + "/"
         omg.server.getId(params.id, function (response) {
 
-            setInputs(response)
+            thingInputs(response)
 
             var newDiv;
-            set = response
+            thing = response
         });
     }
 }
 
-var setInputs = (data) => {
+var thingInputs = (data) => {
     inputs.name.value = data.name
-    inputs.prefix.value = data.prefix
-    inputs.postfix.value = data.postfix
-    inputs.tileCharSize.value = data.tileCharSize || ""
-
-    setList(data)
+    setImage(data.images[0].url)
 }
 
 var setList = (data) => {
@@ -207,35 +232,29 @@ dropZone.ondrop = (e) => {
 
     var handleDroppedItem = (item) => {
         var file = item.getAsFile()
-        var sound = {url: file.name, name: makeSoundName(file.name)}
-        if (inputs.prefix.value !== autoPrefix) {
-            sound.url = autoPrefix + sound.url
-        }
-        var statusDiv = makeListItem("", sound.url)
-        statusDiv.innerHTML = "Uploading..."
+        
+        //statusDiv.innerHTML = "Uploading..."
         
         var fd = new FormData();
-        fd.append('setId', set.id);
+        fd.append('setId', thing.id);
         fd.append('file', file);
         fd.append('filename', file.name);
         
         omg.server.postHTTP("/upload", fd, (res)=>{
-            statusDiv.innerHTML = res.success ? 
-                "<font color='green'>Uploaded</font>" : ("<font color='red'>Error</font> " + res.error)
+            url = window.location.origin + res.filename
+            setImage(url)
+            //statusDiv.innerHTML = res.success ? 
+            //    "<font color='green'>Uploaded</font>" : ("<font color='red'>Error</font> " + res.error)
         });
     }
 
     if (e.dataTransfer.items) {
-        if (set.id) {
+        if (thing.id) {
             handleDroppedItems(e.dataTransfer.items)
         }
         else {
             submit((res) => {
-                autoPrefix = "/uploads/" + omg.user.id + "/" + set.id + "/"
-                if (!inputs.prefix.value) {
-                    inputs.prefix.value = autoPrefix
-                    set.prefix = autoPrefix
-                }
+                thing.id = res.id
                 handleDroppedItems(e.dataTransfer.items)
             })
         }
@@ -243,35 +262,28 @@ dropZone.ondrop = (e) => {
 }
 
 document.getElementById("submit-button").onclick = function () {
-    console.log("1", set.id)
-    if (!inputs.name.value || inputs.data.length == 0) {
-        alert("set needs a name, and a sound with a caption and url.")
+    console.log("1", thing.id)
+    if (!inputs.name.value) {// || inputs.data.length == 0) {
+        alert("thing needs a name, and a sound with a caption and url.")
         return
     }
 
     submit((res)=>{
         console.log("2", res)
         if (res.id > 0) {
-            window.location = "tileset.htm?id=" + res.id;
+            window.location = "character.htm?id=" + res.id;
         }
     })
 }
 
 var submit = (cb) => {
 
-    set.name = document.getElementById("set-name").value
-    set.prefix = document.getElementById("url-prefix").value
-    set.postfix = document.getElementById("url-postfix").value
-    set.tileCharSize = parseInt(inputs.tileCharSize.value)
+    thing.name = document.getElementById("thing-name").value
+    thing.src = document.getElementById("image-img").src
 
-    set.tileCodes = {}
-    inputs.data.forEach(item => {
-        set.tileCodes[item.nameInput.value] = item.urlInput.value
-    })
-
-    omg.server.post(set, function (response) {
+    omg.server.post(thing, function (response) {
         if (response.id) {
-            set.id = response.id
+            thing.id = response.id
         }
         if (cb) {
             cb(response)
@@ -279,43 +291,6 @@ var submit = (cb) => {
     });
 };
 
-var moveUp = function (item) {
-
-    var i = set.data.indexOf(item) 
-    if (i < 1) {
-        return
-    }
-
-    set.data.splice(i, 1)
-    set.data.splice(i - 1, 0, item)
-
-    setList(set)
-}
-
-var moveDown = function (item) {
-
-    var i = set.data.indexOf(item) 
-    if (i > -1 && i > set.data.length - 1) {
-        return
-    }
-
-    set.data.splice(i, 1)
-    set.data.splice(i + 1, 0, item)
-
-    setList(set)
-}
-
-var remove = function (item) {
-
-    var i = set.data.indexOf(item) 
-    if (i == -1) {
-        return
-    }
-
-    set.data.splice(i, 1)
-
-    setList(set)
-}
 
 omg.server.getUser(user => {
     if (!user) {

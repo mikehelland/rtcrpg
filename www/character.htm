@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="stylesheet" href="/css/main.css" type="text/css" />
+
+        <style>
+            .url-input {width: 300px;}
+            audio {position:relative; top: 8px;}
+            .item {padding: 8px;}
+            #approve-button, #disapprove-button, #edit-button, #delete-button {visibility: hidden};
+        </style>
+
+    </head>
+    <body>
+
+        <header>
+            <a class="main-page-link" href="/">
+                <span class="main-title-open">Open</span><span class="main-title-media">Media</span><span class="main-title-gallery">.Gallery</span>
+            </a>
+
+            <div class="title-bar-user-controls"></div>
+        </header>
+
+        <div class="main-body">
+
+            <h1>Character: <span id="thing-name"></span></h1>
+
+            <hr>
+
+            <div id="thing-url"></div>
+            <img id="thing-img">
+
+            <div id="item-list" class="search-info">
+            </div>
+
+            <hr>
+
+            <a href="tileset-editor.htm">
+                <button class="main-create-something" id="create-another-button">
+                    Create A New Set</button>
+            </a>
+
+
+            <button id="approve-button">
+                Approve</button>
+            <button id="disapprove-button">
+                Disapprove</button>
+            <button id="edit-button">
+                Edit</button>
+            <button id="delete-button">
+                Delete</button>
+
+        </div>
+
+        <script src="/js/usercontrols.js"></script>
+        <script src="/js/omgservice.js"></script>
+        <script>
+
+
+var nameEl = document.getElementById("thing-name");
+var imgEl = document.getElementById("thing-img")
+var urlEl = document.getElementById("thing-url")
+var params = omg.util.getPageParams();
+if (!params.id) {
+    nameEl.innerText = "(Invalid ID)";
+} else {
+
+    var setupAdminButtons = function (response) {
+        
+        var deleteButton = document.getElementById("delete-button");
+        deleteButton.onclick = function () {
+            omg.server.deleteId(params.id, function () {
+                window.history.back();
+            });
+        };
+        deleteButton.style.visibility = "visible";
+        var editButton = document.getElementById("edit-button");
+        editButton.onclick = function () {
+            window.location = "tileset-editor.htm?id=" + params.id;
+        };
+        editButton.style.visibility = "visible";
+        if (!response.approved) {
+            var approveButton = document.getElementById("approve-button");
+            approveButton.onclick = function () {
+                response.approved = true;
+                omg.server.post(response, function () {
+                    window.location = window.location;
+                })
+            };
+            approveButton.style.visibility = "visible";
+        }
+        else {
+            var disapproveButton = document.getElementById("disapprove-button");
+            disapproveButton.onclick = function () {
+                response.approved = false;
+                omg.server.post(response, function () {
+                    window.location = window.location;
+                })
+            };
+            disapproveButton.style.visibility = "visible";
+        }
+    };
+    
+    omg.server.getId(params.id, function (response) {
+        
+        nameEl.innerHTML = response.name;
+        imgEl.src = response.images[0].url
+        urlEl.innerHTML = response.images[0].url
+        
+    });
+}
+        </script>
+
+    </body>
+</html>
