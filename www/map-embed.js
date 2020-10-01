@@ -28,6 +28,7 @@ OMGEmbeddedViewerMAP.prototype.loadTileSet = function (tileSet) {
         return
     }*/
 
+    this.tileCharSize = tileSet.tileCharSize || 1
     Object.keys(tileSet.tileCodes).forEach(key => {
         var img = document.createElement("img")
         img.src = (tileSet.prefix || "") + tileSet.tileCodes[key] + (tileSet.postfix || "")
@@ -70,13 +71,16 @@ OMGEmbeddedViewerMAP.prototype.draw = function () {
     //this.canvas.style.width = this.canvas.width + "px"
     //this.canvas.style.height = this.canvas.height + "px"
 
-    for (var y = 0; y < this.mapLines.length; y++) { 
-        for (var x = 0; x < this.mapLines[y].length; x++) {
-            if (this.mapLines[y][x] && this.img.tiles[this.mapLines[y][x]]) {
-                this.context.drawImage(this.img.tiles[this.mapLines[y][x]],
-                    x * this.tileSize, 
-                    y * this.tileSize,
-                    this.tileSize, this.tileSize)
+    for (var y = 0; y < this.height; y++) { 
+        for (var x = 0; x < this.width; x++) {
+            if (this.mapLines[y]) {
+                var tileCode = this.mapLines[y].substr(x * this.tileCharSize, this.tileCharSize)
+                if (this.img.tiles[tileCode]) {
+                    this.context.drawImage(this.img.tiles[tileCode],
+                        x * this.tileSize, 
+                        y * this.tileSize,
+                        this.tileSize, this.tileSize)
+                }
             }
         }    
     }

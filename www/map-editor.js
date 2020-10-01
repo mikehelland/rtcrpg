@@ -68,6 +68,9 @@ OMGMapEditor.prototype.draw = function () {
     this.canvas.style.width = canvas.width + "px"
     this.canvas.style.height = canvas.height + "px"
 
+    this.context.fillStyle = "black"
+    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
     this.mapTiles = []
 
     let tileCode, currentRow 
@@ -120,7 +123,7 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         }
     }
     canvas.onmouseup = (e) => {
-        console.log("mouseup")
+        
         if (this.mode === "TILE" && this.tileDrawMode === "Fill") {
             if (this.isTouching) {
                 this.tileFill(e)
@@ -301,7 +304,6 @@ OMGMapEditor.prototype.save = function () {
 
     this.map.mapLines = []
     for (var iy = 0; iy < this.map.height; iy++) {
-        console.log(this.mapTiles[iy])
         this.map.mapLines.push(this.mapTiles[iy].join(""))
     }
 

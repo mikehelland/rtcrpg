@@ -259,7 +259,7 @@ ge.hero.move = (x, y) => {
     var targety
     if (x === 0) {
 
-        targety = ge.map[ge.hero.y + y * (y > 0 ? ge.tilesPerCharacter : 1)]
+        targety = ge.mapTiles[ge.hero.y + y * (y > 0 ? ge.tilesPerCharacter : 1)]
             
         if (!targety || ge.hero.y + y >= ge.mapData.height || ge.hero.x + x >= ge.mapData.width) {
             ge.finishTouching()
@@ -269,7 +269,6 @@ ge.hero.move = (x, y) => {
         
         for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.tilesPerCharacter; ge.imoveHitTest++) {
             target = targety[ge.hero.x + ge.imoveHitTest]
-            
             if (ge.blockedTiles.indexOf(target) > -1) {
                 return updatePosition()
             }
@@ -278,9 +277,10 @@ ge.hero.move = (x, y) => {
     }
     else {
         for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.tilesPerCharacter; ge.imoveHitTest++) {
-            targety = ge.map[ge.hero.y + ge.imoveHitTest]
+            targety = ge.mapTiles[ge.hero.y + ge.imoveHitTest]
         
             target = targety[ge.hero.x +  x * (x > 0 ? ge.tilesPerCharacter : 1)]
+            
             if (!target || ge.hero.y + y >= ge.mapData.height || ge.hero.x + x >= ge.mapData.width) {
                 ge.finishTouching()
                 ge.leaveMap()
@@ -488,8 +488,7 @@ ge.drawScene = () => {
 
             tileCode = ge.map[y].substr(x * ge.tileCharSize, ge.tileCharSize)
             currentRow.push(tileCode)
-            console.log(tileCode)
-
+            
             if (tileCode && ge.img.tiles[tileCode]) {
                 ge.backgroundContext.drawImage(ge.img.tiles[tileCode],
                     x * ge.tileWidth - 0.25, 
