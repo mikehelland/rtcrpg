@@ -270,12 +270,15 @@ OMGMapEditor.prototype.setupControls = function () {
             this.loadTileSet(this.tileSets[0])
         }
     })
-    omg.server.getHTTP("/data/?type=CHARACTER", results => {
+    omg.server.getHTTP("/data/?type=SPRITE", results => {
         results.forEach(result => {
-            var newEl = document.createElement("img") //"canvas")
+            var newEl = document.createElement("canvas")
             newEl.className = "select-character-dialog-item"
             this.selectCharacterList.appendChild(newEl)
-            newEl.src = result.src
+            var spriter = new OMGSpriter(result, newEl)
+            spriter.setSheet()
+            spriter.draw()
+            
             newEl.onclick = e => {
                 this.placeNPC(result)
             }
@@ -434,7 +437,7 @@ OMGMapEditor.prototype.addNPC = function (e) {
         "name": this.selectedSprite ? this.selectedSprite.name : "name me",
         "x": x,
         "y": y,
-        "characterI": 15,
+        "sprite": this.selectedSprite,
         "dialog": [
           "Hi!"
         ]
