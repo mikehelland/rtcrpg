@@ -434,6 +434,7 @@ ge.render = () => {
     if (ge.frameCount === 10) {
         ge.animationFrame = !ge.animationFrame
         ge.frameCount = 0
+        if (ge.heroSpriter) ge.heroSpriter.next()
     }
     else {
         ge.frameCount++
@@ -522,13 +523,19 @@ ge.drawCharacters = () => {
     ge.context.lineWidth = 2
 
     // the character
-    ge.context.drawImage(ge.img.characters,
+    /*ge.context.drawImage(ge.img.characters,
         ge.hero.spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
         ge.hero.spritesheetCoords.y + ge.characterSourceSize * ge.hero.facing, ge.characterSourceSize, ge.characterSourceSize,
         //ge.hero.spritesheetCoords.y, ge.characterSourceSize, ge.characterSourceSize,
         ge.offsetLeft+ ge.middleTileX, 
         ge.offsetTop + ge.middleTileY - (ge.heroVolumeMonitor ? ge.heroVolumeMonitor.volume : 0) * ge.tileHeight,
         ge.characterSize, ge.characterSize)    
+    */
+
+    if (ge.heroSpriter) {
+        ge.heroSpriter.j = ge.hero.facing
+        ge.heroSpriter.draw()
+    }
 
     ge.context.strokeRect(
         ge.offsetLeft+ ge.middleTileX, 
@@ -1233,6 +1240,25 @@ ge.startup = () => {
             joinButton.onclick()
         }
     }
+
+    let characterSelect = document.getElementById("character-select")
+    fetch("/data/?type=SPRITE").then(res => res.json()).then(data => {
+        data.forEach(sprite => {
+            let canvas = document.createElement("canvas")
+            characterSelect.appendChild(canvas)
+            
+            let spriter = new OMGSpriter(sprite, canvas)
+            canvas.onclick = e => {
+                ge.heroSprite = sprite
+                ge.heroSpriter = new OMGSpriter(sprite, ge.canvas)
+                ge.heroSpriter.x = ge.offsetLeft+ ge.middleTileX
+                ge.heroSpriter.y = ge.offsetTop + ge.middleTileY
+                ge.heroSpriter.w = ge.characterSize
+                ge.heroSpriter.h = ge.characterSize
+            }
+            console.log(sprite)
+        })
+    }).catch(console.error)
 }
 ge.startup()
 

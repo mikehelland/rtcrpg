@@ -16,9 +16,6 @@
 </head>
 <body>
 
-    <!--<img id="characters-spritesheet" src="img/Dragtopus clone.png">-->
-    <img id="characters-spritesheet" src="img/book.png">
-
     <div id="background">
         <canvas id="backgroundCanvas"></canvas>    
     </div>
@@ -34,6 +31,8 @@
         <!--<input type="checkbox" id="auto-accept">Auto Accept Calls
         <br>
         <input type="checkbox" id="auto-connect">Auto Connect All-->
+        <hr>
+        <div id="character-select"></div>
     </div>
     <div id="server-status">
     </div>
@@ -67,6 +66,7 @@
     <script src="/js/omgrtc.js"></script>
     <script src="/js/omgservice.js"></script>
     <script src="game2.js"></script>
+    <script src="/apps/sprite/spriter.js"></script>
     <script>
     var params = omg.util.getPageParams()
         if (params.id) {
