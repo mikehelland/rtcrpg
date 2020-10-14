@@ -562,12 +562,15 @@ ge.drawCharacters = () => {
     for (var i = 0; i < ge.npcs.length; i++) {
         if (Math.abs(ge.npcs[i].x - ge.hero.x) <= ge.tileOffset * 2 &&
                 Math.abs(ge.npcs[i].y - ge.hero.y) <= ge.tileOffset * 2) {
-            ge.context.drawImage(ge.img.characters,
+            ge.context.drawImage(//ge.img.characters,
+                ge.loadedSheets[ge.npcs[i].currentSheet],
                 ge.npcs[i].spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
-                ge.npcs[i].spritesheetCoords.y + 50 * (ge.npcs[i].facing||0), 36, 36,
+                ge.npcs[i].spritesheetCoords.y + 50 * (ge.npcs[i].facing||0), 
+                ge.npcs[i].sprite.frameWidth, ge.npcs[i].sprite.frameHeight,
                 ge.offsetLeft + (ge.npcs[i].x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX, 
                 ge.offsetTop + (ge.npcs[i].y - ge.hero.y + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY,
-                ge.tileWidth, ge.tileHeight)        
+                //ge.npcs[i].sprite.frameWidth, ge.npcs[i].sprite.frameHeight)        
+                ge.characterSize, ge.characterSize)
         }
     }
 
@@ -1358,7 +1361,9 @@ ge.loadMap = (data, mapName) => {
     ge.mapData = data
     ge.map = data.mapLines;
     ge.npcs = data.npcs || []
-    ge.npcs.forEach(npc => npc.spritesheetCoords = ge.img.getSpriteSheetCoords(npc.characterI))
+    ge.npcs.forEach(npc => {
+        ge.loadNPC(npc)
+    })
 
     ge.tileCharSize = ge.mapData.tileSet.tileCharSize || 1
 
@@ -1376,4 +1381,25 @@ ge.loadMap = (data, mapName) => {
         ge.hero.y = data.startY
         ge.hero.facing = 0    
     }
+}
+
+ge.loadNPC = function (npc) {
+    if (!ge.loadedSheets) {
+        ge.loadedSheets = {}
+    }
+
+    for (let sheet in npc.sprite.sheets) {
+        if (!ge.loadedSheets[sheet]) {
+            let img = document.createElement("img")
+            img.src = npc.sprite.sheets[sheet]
+            ge.loadedSheets[sheet] = img
+        }
+
+        if (!npc.currentSheet) {
+            npc.currentSheet = sheet
+        }
+    }
+
+
+    npc.spritesheetCoords = ge.img.getSpriteSheetCoords(npc.characterI)
 }
