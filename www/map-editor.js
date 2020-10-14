@@ -120,6 +120,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
                 this.tilePreview(Math.floor(e.layerX / this.tileSize), Math.floor(e.layerY / this.tileSize))
             }
         }
+        else if (this.mode.indexOf("NPC_PLACE") > -1 || this.mode.indexOf("NPC_MOVE") > -1) {
+            this.drawSpritePreview(e)
+        }
         else if (this.mode.indexOf("_PLACE") > -1) {
             this.highlightTile(e)
         }
@@ -451,6 +454,14 @@ OMGMapEditor.prototype.addNPC = function (e) {
         ]
     }
 
+    let spriter = new OMGSpriter(npc.sprite, this.frontCanvas)
+    spriter.w = spriter.w * this.spriteScale
+    spriter.h = spriter.h * this.spriteScale
+
+    this.spriters.set(npc, spriter)
+    this.previewSpriter = null
+
+
     var div = this.setupNPCToolBoxDiv(npc)
     
     this.map.npcs.push(npc)
@@ -467,6 +478,10 @@ OMGMapEditor.prototype.placeNPC = function (sprite) {
     this.addNPCButton.innerHTML = "Place..."
     this.mode = "NPC_PLACE"
     this.selectedSprite = sprite
+    this.previewSpriter = new OMGSpriter(sprite, this.frontCanvas)
+    this.previewSpriter.w = this.previewSpriter.w * this.spriteScale
+    this.previewSpriter.h = this.previewSpriter.h * this.spriteScale
+
 
     if (this.closeSelectCharacerDialog) {
         this.closeSelectCharacerDialog()
@@ -615,6 +630,10 @@ OMGMapEditor.prototype.drawNPCs = function () {
         this._loop_draw_spriter.drawXY(this._loop_draw_npc.x * this.tileSize, this._loop_draw_npc.y * this.tileSize)        
     }
 
+    if (this.previewSpriter) {
+        this.previewSpriter.draw()
+    }
+
     
 }
 
@@ -677,4 +696,12 @@ OMGMapEditor.prototype.moveHero = function (e) {
     this.mode = "HERO_MOVE" 
     this.tileHighlightDiv.style.display = "none"
     this.drawNPCs()
+}
+
+OMGMapEditor.prototype.drawSpritePreview = function (e) {
+    if (this.previewSpriter) {
+        this.previewSpriter.x = Math.floor((e.clientX - this.canvas.offsetLeft) / this.tileSize) * this.tileSize
+        this.previewSpriter.y = Math.floor((e.clientY - this.canvas.offsetTop) / this.tileSize) * this.tileSize
+        this.drawNPCs() 
+    }
 }

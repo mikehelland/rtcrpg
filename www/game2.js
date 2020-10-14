@@ -431,16 +431,12 @@ ge.render = () => {
         ge.hero.volume = ge.heroVolumeMonitor.volume
     }
 
-    if (ge.frameCount === 10) {
-        ge.animationFrame = !ge.animationFrame
-        ge.frameCount = 0
-        if (ge.heroSpriter) ge.heroSpriter.next()
-    }
-    else {
-        ge.frameCount++
+    if (Date.now() - ge.frameCount > 250) {
+        ge.frameCount = Date.now()
+        ge.nextFrame = true
     }
 
-    if (ge.frameCount > 0 && Date.now() - ge.hero.lastMove > ge.stepDuration) {
+    if (!ge.nextFrame && Date.now() - ge.hero.lastMove > ge.stepDuration) {
         return
     }
 
@@ -463,6 +459,7 @@ ge.render = () => {
 
     ge.canvas.width = ge.canvas.width
     ge.drawCharacters()
+    ge.nextFrame = false
 }
 ge.drawScene = () => {
 
@@ -524,6 +521,9 @@ ge.drawCharacters = () => {
 
     if (ge.heroSpriter) {
         ge.heroSpriter.j = ge.hero.facing
+        if (ge.nextFrame) {
+            ge.heroSpriter.next()
+        }
         ge.heroSpriter.draw()
     }
 
@@ -559,7 +559,11 @@ ge.drawCharacters = () => {
     for (var sprite of ge.activeSprites) {
         if (Math.abs(sprite.npc.x - ge.hero.x) <= ge.tileOffset * 2 &&
                     Math.abs(sprite.npc.y - ge.hero.y) <= ge.tileOffset * 2) {
-        
+
+            if (ge.nextFrame) {
+                sprite.spriter.next()
+            }
+            
             sprite.spriter.x = ge.offsetLeft + (sprite.npc.x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX
             sprite.spriter.y = ge.offsetTop + (sprite.npc.y - ge.hero.y + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY
         
@@ -567,8 +571,8 @@ ge.drawCharacters = () => {
         }
     }
 
-    
-    for (var userName in ge.remoteUsers) {
+    // should be part of the active sprites
+    /*for (var userName in ge.remoteUsers) {
         var user = ge.remoteUsers[userName]
         if (!user.disconnected && user.data &&
                 Math.abs(user.data.x - ge.hero.x) <= ge.tileOffset * 2 &&
@@ -602,7 +606,7 @@ ge.drawCharacters = () => {
             
         
         }
-    }
+    }*/
 }
 
 ge.talk = () => {
