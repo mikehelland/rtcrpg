@@ -522,16 +522,6 @@ ge.drawCharacters = () => {
     
     ge.context.lineWidth = 2
 
-    // the character
-    /*ge.context.drawImage(ge.img.characters,
-        ge.hero.spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
-        ge.hero.spritesheetCoords.y + ge.characterSourceSize * ge.hero.facing, ge.characterSourceSize, ge.characterSourceSize,
-        //ge.hero.spritesheetCoords.y, ge.characterSourceSize, ge.characterSourceSize,
-        ge.offsetLeft+ ge.middleTileX, 
-        ge.offsetTop + ge.middleTileY - (ge.heroVolumeMonitor ? ge.heroVolumeMonitor.volume : 0) * ge.tileHeight,
-        ge.characterSize, ge.characterSize)    
-    */
-
     if (ge.heroSpriter) {
         ge.heroSpriter.j = ge.hero.facing
         ge.heroSpriter.draw()
@@ -1245,6 +1235,9 @@ ge.startup = () => {
     fetch("/data/?type=SPRITE").then(res => res.json()).then(data => {
         data.forEach(sprite => {
             let canvas = document.createElement("canvas")
+            canvas.className = "character-select-img"
+            canvas.height = sprite.frameHeight
+            canvas.width = sprite.frameWidth
             characterSelect.appendChild(canvas)
             
             let spriter = new OMGSpriter(sprite, canvas)
@@ -1256,7 +1249,6 @@ ge.startup = () => {
                 ge.heroSpriter.w = ge.characterSize
                 ge.heroSpriter.h = ge.characterSize
             }
-            console.log(sprite)
         })
     }).catch(console.error)
 }

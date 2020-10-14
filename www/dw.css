@@ -105,3 +105,9 @@ img {
 #enter-your-name {
     z-index: 20;
 }
+
+.character-select-img {
+    width: 128px;
+    height: 128px;
+    display: block;
+}
