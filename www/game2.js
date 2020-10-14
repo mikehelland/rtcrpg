@@ -556,18 +556,14 @@ ge.drawCharacters = () => {
         
     }
 
-    for (var i = 0; i < ge.npcs.length; i++) {
-        if (Math.abs(ge.npcs[i].x - ge.hero.x) <= ge.tileOffset * 2 &&
-                Math.abs(ge.npcs[i].y - ge.hero.y) <= ge.tileOffset * 2) {
-            ge.context.drawImage(//ge.img.characters,
-                ge.loadedSheets[ge.npcs[i].currentSheet],
-                ge.npcs[i].spritesheetCoords.x + (ge.animationFrame ? ge.img.frameDiff : 0), 
-                ge.npcs[i].spritesheetCoords.y + 50 * (ge.npcs[i].facing||0), 
-                ge.npcs[i].sprite.frameWidth, ge.npcs[i].sprite.frameHeight,
-                ge.offsetLeft + (ge.npcs[i].x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX, 
-                ge.offsetTop + (ge.npcs[i].y - ge.hero.y + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY,
-                //ge.npcs[i].sprite.frameWidth, ge.npcs[i].sprite.frameHeight)        
-                ge.characterSize, ge.characterSize)
+    for (var sprite of ge.activeSprites) {
+        if (Math.abs(sprite.npc.x - ge.hero.x) <= ge.tileOffset * 2 &&
+                    Math.abs(sprite.npc.y - ge.hero.y) <= ge.tileOffset * 2) {
+        
+            sprite.spriter.x = ge.offsetLeft + (sprite.npc.x - ge.hero.x + ge.hero.facingX * ge.stepPercent) * ge.tileWidth + ge.middleTileX
+            sprite.spriter.y = ge.offsetTop + (sprite.npc.y - ge.hero.y + ge.hero.facingY * ge.stepPercent) * ge.tileHeight + ge.middleTileY
+        
+            sprite.spriter.draw()
         }
     }
 
@@ -1375,13 +1371,17 @@ ge.loadMap = (data, mapName) => {
     ge.backgroundCanvas.height = data.height * ge.tileHeight
     ge.background.style.width = ge.backgroundCanvas.width + "px"
     ge.background.style.height = ge.backgroundCanvas.height + "px"
+
     
+    ge.activeSprites = []
+
     ge.mapData = data
     ge.map = data.mapLines;
     ge.npcs = data.npcs || []
     ge.npcs.forEach(npc => {
         ge.loadNPC(npc)
     })
+
 
     ge.tileCharSize = ge.mapData.tileSet.tileCharSize || 1
 
@@ -1402,22 +1402,12 @@ ge.loadMap = (data, mapName) => {
 }
 
 ge.loadNPC = function (npc) {
-    if (!ge.loadedSheets) {
-        ge.loadedSheets = {}
-    }
-
-    for (let sheet in npc.sprite.sheets) {
-        if (!ge.loadedSheets[sheet]) {
-            let img = document.createElement("img")
-            img.src = npc.sprite.sheets[sheet]
-            ge.loadedSheets[sheet] = img
-        }
-
-        if (!npc.currentSheet) {
-            npc.currentSheet = sheet
-        }
-    }
-
+    
+    var spriter = new OMGSpriter(npc.sprite, ge.canvas)
+    spriter.w = ge.characterSize
+    spriter.h = ge.characterSize
+    ge.activeSprites.push({npc, spriter})
+    
 
     npc.spritesheetCoords = ge.img.getSpriteSheetCoords(npc.characterI)
 }
