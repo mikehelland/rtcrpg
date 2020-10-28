@@ -255,50 +255,54 @@ ge.hero.move = (x, y) => {
     }
 
     // check to see if you can move to that position
+    var targets = []
     var target
     var targety
     if (x === 0) {
-
         targety = ge.mapTiles[ge.hero.y + y * (y > 0 ? ge.tilesPerCharacter : 1)]
-            
+        if (targety) {
+            for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.tilesPerCharacter; ge.imoveHitTest++) {
+                targets.push({
+                    tile: targety[ge.hero.x + ge.imoveHitTest],
+                    x: ge.hero.x + ge.imoveHitTest,
+                    y: ge.hero.y + y * (y > 0 ? ge.tilesPerCharacter : 1)
+                })
+            }
+        }
+    }
+    else {
+        for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.tilesPerCharacter; ge.imoveHitTest++) {
+            targety = ge.mapTiles[ge.hero.y + ge.imoveHitTest]
+            target = targety[ge.hero.x +  x * (x > 0 ? ge.tilesPerCharacter : 1)]
+            if (target) {
+                targets.push({tile: target,
+                    x: ge.hero.x +  x * (x > 0 ? ge.tilesPerCharacter : 1),
+                    y: ge.hero.y + ge.imoveHitTest
+                })
+            }
+        }
+    }
+
+    /*
+    if (ge.blockedTiles.indexOf(target) > -1) {
+        return updatePosition()
+    }
+    
         if (!targety || ge.hero.y + y >= ge.mapData.height || ge.hero.x + x >= ge.mapData.width) {
             ge.finishTouching()
             ge.leaveMap()
             return updatePosition()
         }
-        
-        for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.tilesPerCharacter; ge.imoveHitTest++) {
-            target = targety[ge.hero.x + ge.imoveHitTest]
-            if (ge.blockedTiles.indexOf(target) > -1) {
-                return updatePosition()
-            }
-                    
-        }    
-    }
-    else {
-        for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.tilesPerCharacter; ge.imoveHitTest++) {
-            targety = ge.mapTiles[ge.hero.y + ge.imoveHitTest]
-        
-            target = targety[ge.hero.x +  x * (x > 0 ? ge.tilesPerCharacter : 1)]
-            
-            if (!target || ge.hero.y + y >= ge.mapData.height || ge.hero.x + x >= ge.mapData.width) {
-                ge.finishTouching()
-                ge.leaveMap()
-                return updatePosition()
-            }
-
-            if (ge.blockedTiles.indexOf(target) > -1) {
-                return updatePosition()
-            }
-            
-        }
-    }
     
-    if (!target) {
+        */
+
+    if (targets.length == 0) {
         ge.finishTouching()
         ge.leaveMap()
         return updatePosition()
     }
+
+    /*
     if (target === "p") {
         ge.finishTouching()
         ge.videoCallGroup((ge.hero.x + x) + "x" + (ge.hero.y + y))
@@ -309,16 +313,46 @@ ge.hero.move = (x, y) => {
         ge.enterBuilding(ge.hero.x + x, ge.hero.y + y)
         return updatePosition()
     }
+    */
+   
+    let hitChar = false
     for (var i = 0; i < ge.npcs.length; i++) {
-        if (ge.npcs[i].x === ge.hero.x + x && ge.npcs[i].y === ge.hero.y + y) {
-            // we're using the mouse or touch
-            if (ge.isTouchingCanvas) {
-                ge.finishTouching()
-                ge.talk()
+        if (y > 0) {
+            if (ge.hero.y + y + ge.tilesPerCharacter - 1 === ge.npcs[i].y && 
+                    ge.hero.x + ge.tilesPerCharacter - 1 >= ge.npcs[i].x && ge.hero.x <= ge.npcs[i].x + ge.tilesPerCharacter - 1) {
+                hitChar = ge.npcs[i]
             }
-            return updatePosition()
         }
+        else if (y < 0) {
+            if (ge.hero.y + y === ge.npcs[i].y + ge.tilesPerCharacter - 1 && 
+                    ge.hero.x + ge.tilesPerCharacter - 1 >= ge.npcs[i].x && ge.hero.x <= ge.npcs[i].x + ge.tilesPerCharacter - 1) {
+                hitChar = ge.npcs[i]
+            }
+        }
+        else if (x > 0) {
+            if (ge.hero.x + x + ge.tilesPerCharacter - 1 === ge.npcs[i].x && 
+                    ge.hero.y + ge.tilesPerCharacter - 1 >= ge.npcs[i].y && ge.hero.y <= ge.npcs[i].y + ge.tilesPerCharacter - 1) {
+                hitChar = ge.npcs[i]
+            }
+        }
+        else if (x < 0) {
+            if (ge.hero.x + x === ge.npcs[i].x + ge.tilesPerCharacter - 1 && 
+                    ge.hero.y + ge.tilesPerCharacter - 1 >= ge.npcs[i].y && ge.hero.y <= ge.npcs[i].y + ge.tilesPerCharacter - 1) {
+                hitChar = ge.npcs[i]
+            }
+        }        
+
     }
+                
+    if (hitChar) {
+        // we're using the mouse or touch
+        if (ge.isTouchingCanvas) {
+            ge.finishTouching()
+            ge.talk()
+        }
+        return updatePosition()
+    }
+
     for (i in ge.remoteUsers) {
         if (!ge.remoteUsers[i].disconnected &&
                 ge.remoteUsers[i].data &&
@@ -560,7 +594,7 @@ ge.drawCharacters = () => {
         if (Math.abs(sprite.npc.x - ge.hero.x) <= ge.tileOffset * 2 &&
                     Math.abs(sprite.npc.y - ge.hero.y) <= ge.tileOffset * 2) {
 
-            if (ge.nextFrame) {
+            if (sprite.npc.animating && ge.nextFrame) {
                 sprite.spriter.next()
             }
             
@@ -619,6 +653,15 @@ ge.talk = () => {
         //this is an npc
         character.facing = ge.hero.facing % 2 === 0 ? ge.hero.facing + 1 : ge.hero.facing - 1
         ge.showDialog(character.dialog)
+
+        character.animating = !character.animating
+        
+        if (character.musicPart && ge.musicPlayer) {
+            ge.musicPlayer.mutePart(character.musicPart, !character.musicPart.data.audioParams.mute)
+            if (!ge.musicPlayer.playing) {
+                ge.musicPlayer.play()
+            }
+        }
         return
     }
     
@@ -1233,6 +1276,7 @@ ge.startup = () => {
 
     let characterSelect = document.getElementById("character-select")
     fetch("/data/?type=SPRITE").then(res => res.json()).then(data => {
+        let first = true
         data.forEach(sprite => {
             let canvas = document.createElement("canvas")
             canvas.className = "character-select-img"
@@ -1248,6 +1292,11 @@ ge.startup = () => {
                 ge.heroSpriter.y = ge.offsetTop + ge.middleTileY
                 ge.heroSpriter.w = ge.characterSize
                 ge.heroSpriter.h = ge.characterSize
+            }
+
+            if (first) {
+                canvas.onclick()
+                first = false
             }
         })
     }).catch(console.error)
@@ -1412,6 +1461,33 @@ ge.loadNPC = function (npc) {
     spriter.h = ge.characterSize
     ge.activeSprites.push({npc, spriter})
     
+    if (npc.soundURL) {
+        fetch(npc.soundURL).then(res => res.json()).then(data => {
+            ge.loadNPCMusic(npc, data)
+        }).catch(e => console.error(e))
+    }
 
     npc.spritesheetCoords = ge.img.getSpriteSheetCoords(npc.characterI)
+}
+
+ge.loadNPCMusic = function (npc, musicData) {
+    if (!ge.musicPlayer) {
+        ge.makeMusicPlayer()
+    }
+
+    if (musicData.type === "PART") {
+        npc.musicPart = ge.musicSection.addPart(musicData)
+        ge.musicPlayer.loadPart(npc.musicPart)
+
+        ge.musicPlayer.mutePart(npc.musicPart, true)
+    }
+}
+
+ge.makeMusicPlayer = function () {
+
+    ge.musicPlayer = new OMusicPlayer()
+    var section = new OMGSection()
+    ge.musicSection = section
+    ge.musicPlayer.prepareSong(section.song)
+
 }

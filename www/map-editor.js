@@ -416,6 +416,7 @@ OMGMapEditor.prototype.setupNPCControls = function () {
     }
     this.npcDetailsDiv = document.getElementById("npc-details")
     this.npcDetailsName = document.getElementById("npc-details-name")
+    this.npcDetailsSound = document.getElementById("npc-details-sound")
     this.npcDetailsDialog = document.getElementById("npc-dialog-input")
     this.npcDetailsCanvas = document.getElementById("npc-details-canvas")
 }
@@ -515,10 +516,16 @@ OMGMapEditor.prototype.addHTML = function (e) {
 OMGMapEditor.prototype.showNPCDetails = function (npc, npcDiv) {
     this.npcDetailsDiv.style.display = "block"
     this.npcDetailsName.value = npc.name
+    this.npcDetailsSound.value = npc.soundURL || ""
     this.npcDetailsName.onkeypress = e => {
         if (e.key === "Enter") {
             npc.name = this.npcDetailsName.value
             npcDiv.getElementsByTagName("div")[0].innerHTML = npc.name
+        }
+    }
+    this.npcDetailsSound.onkeypress = e => {
+        if (e.key === "Enter") {
+            npc.soundURL = this.npcDetailsSound.value
         }
     }
 
