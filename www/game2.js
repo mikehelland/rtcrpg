@@ -343,7 +343,8 @@ ge.hero.move = (x, y) => {
         }        
 
     }
-                
+        
+    ge.lastHitChar = hitChar
     if (hitChar) {
         // we're using the mouse or touch
         if (ge.isTouchingCanvas) {
@@ -644,7 +645,7 @@ ge.drawCharacters = () => {
 }
 
 ge.talk = () => {
-    var character = ge.getCharacter()
+    var character = ge.lastHitChar || ge.getCharacter()
     if (!character) {
         ge.showDialog(["There is no one to talk to."])
         return
