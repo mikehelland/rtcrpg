@@ -419,6 +419,7 @@ OMGMapEditor.prototype.setupNPCControls = function () {
     this.npcDetailsSound = document.getElementById("npc-details-sound")
     this.npcDetailsDialog = document.getElementById("npc-dialog-input")
     this.npcDetailsCanvas = document.getElementById("npc-details-canvas")
+    this.npcDetailsDelete = document.getElementById("npc-details-delete")
 }
 
 OMGMapEditor.prototype.setupHTMLControls = function () {
@@ -532,6 +533,14 @@ OMGMapEditor.prototype.showNPCDetails = function (npc, npcDiv) {
     this.npcDetailsDialog.value = npc.dialog.join("\n")
     this.npcDetailsDialog.onkeyup = e => {
         npc.dialog = this.npcDetailsDialog.value.split("\n")
+    }
+
+    this.npcDetailsDelete.onclick = e => {
+        let i = this.map.npcs.indexOf(npc)
+        this.map.npcs.splice(i, 1)
+        this.drawNPCs()
+
+        npcDiv.parentElement.removeChild(npcDiv)
     }
 
     this.selectedNPC = npc
