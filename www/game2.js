@@ -318,26 +318,26 @@ ge.hero.move = (x, y) => {
     let hitChar = false
     for (var i = 0; i < ge.npcs.length; i++) {
         if (y > 0) {
-            if (ge.hero.y + y + ge.tilesPerCharacter - 1 === ge.npcs[i].y && 
-                    ge.hero.x + ge.tilesPerCharacter - 1 >= ge.npcs[i].x && ge.hero.x <= ge.npcs[i].x + ge.tilesPerCharacter - 1) {
+            if (ge.hero.y + y + ge.heroHeight - 1 === ge.npcs[i].y && 
+                    ge.hero.x + ge.heroWidth - 1 >= ge.npcs[i].x && ge.hero.x <= ge.npcs[i].x + ge.npcs[i].width - 1) {
                 hitChar = ge.npcs[i]
             }
         }
         else if (y < 0) {
-            if (ge.hero.y + y === ge.npcs[i].y + ge.tilesPerCharacter - 1 && 
-                    ge.hero.x + ge.tilesPerCharacter - 1 >= ge.npcs[i].x && ge.hero.x <= ge.npcs[i].x + ge.tilesPerCharacter - 1) {
+            if (ge.hero.y + y === ge.npcs[i].y + ge.npcs[i].height - 1 && 
+                    ge.hero.x + ge.heroWidth - 1 >= ge.npcs[i].x && ge.hero.x <= ge.npcs[i].x + ge.npcs[i].width - 1) {
                 hitChar = ge.npcs[i]
             }
         }
         else if (x > 0) {
-            if (ge.hero.x + x + ge.tilesPerCharacter - 1 === ge.npcs[i].x && 
-                    ge.hero.y + ge.tilesPerCharacter - 1 >= ge.npcs[i].y && ge.hero.y <= ge.npcs[i].y + ge.tilesPerCharacter - 1) {
+            if (ge.hero.x + x + ge.heroWidth - 1 === ge.npcs[i].x && 
+                    ge.hero.y + ge.heroHeight - 1 >= ge.npcs[i].y && ge.hero.y <= ge.npcs[i].y + ge.npcs[i].height - 1) {
                 hitChar = ge.npcs[i]
             }
         }
         else if (x < 0) {
-            if (ge.hero.x + x === ge.npcs[i].x + ge.tilesPerCharacter - 1 && 
-                    ge.hero.y + ge.tilesPerCharacter - 1 >= ge.npcs[i].y && ge.hero.y <= ge.npcs[i].y + ge.tilesPerCharacter - 1) {
+            if (ge.hero.x + x === ge.npcs[i].x + ge.npcs[i].width - 1 && 
+                    ge.hero.y + ge.heroHeight - 1 >= ge.npcs[i].y && ge.hero.y <= ge.npcs[i].y + ge.npcs[i].height - 1) {
                 hitChar = ge.npcs[i]
             }
         }        
@@ -565,7 +565,7 @@ ge.drawCharacters = () => {
     ge.context.strokeRect(
         ge.offsetLeft+ ge.middleTileX, 
         ge.offsetTop + ge.middleTileY,
-        ge.characterSize, ge.characterSize)
+        ge.heroWidth * ge.tileSize, ge.heroHeight * ge.tileSize)
 
     // the characters label
     if (ge.online) {
@@ -1291,8 +1291,11 @@ ge.startup = () => {
                 ge.heroSpriter = new OMGSpriter(sprite, ge.canvas)
                 ge.heroSpriter.x = ge.offsetLeft+ ge.middleTileX
                 ge.heroSpriter.y = ge.offsetTop + ge.middleTileY
-                ge.heroSpriter.w = ge.characterSize
-                ge.heroSpriter.h = ge.characterSize
+
+                ge.heroWidth = sprite.frameWidth / 32
+                ge.heroHeight = sprite.frameHeight / 32
+                ge.heroSpriter.w = ge.heroWidth * ge.tileSize
+                ge.heroSpriter.h = ge.heroHeight * ge.tileSize
             }
 
             if (first) {
@@ -1457,9 +1460,12 @@ ge.loadMap = (data, mapName) => {
 
 ge.loadNPC = function (npc) {
     
+    npc.width = npc.sprite.frameWidth / 32
+    npc.height = npc.sprite.frameHeight / 32
+
     var spriter = new OMGSpriter(npc.sprite, ge.canvas)
-    spriter.w = ge.characterSize
-    spriter.h = ge.characterSize
+    spriter.w = npc.width * ge.tileSize
+    spriter.h = npc.height * ge.tileSize
     ge.activeSprites.push({npc, spriter})
     
     if (npc.soundURL) {
