@@ -219,7 +219,7 @@ dropZone.ondrop = (e) => {
         if (inputs.prefix.value !== autoPrefix) {
             sound.url = autoPrefix + sound.url
         }
-        var statusDiv = makeListItem("", sound.url)
+        var statusDiv = makeListItem(sound.name, sound.url)
         statusDiv.innerHTML = "Uploading..."
         
         var fd = new FormData();
@@ -238,8 +238,11 @@ dropZone.ondrop = (e) => {
             handleDroppedItems(e.dataTransfer.items)
         }
         else {
+            set.draft = true
             submit((res) => {
-                autoPrefix = "/uploads/" + omg.user.id + "/" + set.id + "/"
+                set.user_id = res.user_id
+                set.username = res.username
+                autoPrefix = window.location.origin + "/uploads/" + omg.user.id + "/" + set.id + "/"
                 if (!inputs.prefix.value) {
                     inputs.prefix.value = autoPrefix
                     set.prefix = autoPrefix
@@ -256,6 +259,8 @@ document.getElementById("submit-button").onclick = function () {
         alert("set needs a name, and a sound with a caption and url.")
         return
     }
+
+    delete set.draft
 
     submit((res)=>{
         console.log("2", res)
