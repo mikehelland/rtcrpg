@@ -14,8 +14,6 @@ function OMGEmbeddedViewerMAP (viewer) {
     this.draw()
     
 }
-if (typeof omg === "object" && omg.types && omg.types["MAP"])
-    omg.types["MAP"].embedClass = OMGEmbeddedViewerMAP
 
 OMGEmbeddedViewerMAP.prototype.loadTileSet = function (tileSet) {
 

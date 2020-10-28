@@ -9,5 +9,3 @@ function OMGEmbeddedViewerTILESET(viewer) {
         viewer.embedDiv.appendChild(newDiv);
     }
 }
-if (typeof omg === "object" && omg.types && omg.types["TILESET"])
-    omg.types["TILESET"].embedClass = OMGEmbeddedViewerTILESET
