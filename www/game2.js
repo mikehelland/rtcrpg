@@ -259,24 +259,24 @@ ge.hero.move = (x, y) => {
     var target
     var targety
     if (x === 0) {
-        targety = ge.mapTiles[ge.hero.y + y * (y > 0 ? ge.tilesPerCharacter : 1)]
+        targety = ge.mapTiles[ge.hero.y + y * (y > 0 ? ge.heroHeight : 1)]
         if (targety) {
-            for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.tilesPerCharacter; ge.imoveHitTest++) {
+            for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.heroWidth; ge.imoveHitTest++) {
                 targets.push({
                     tile: targety[ge.hero.x + ge.imoveHitTest],
                     x: ge.hero.x + ge.imoveHitTest,
-                    y: ge.hero.y + y * (y > 0 ? ge.tilesPerCharacter : 1)
+                    y: ge.hero.y + y * (y > 0 ? ge.heroHeight : 1)
                 })
             }
         }
     }
     else {
-        for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.tilesPerCharacter; ge.imoveHitTest++) {
+        for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.heroHeight; ge.imoveHitTest++) {
             targety = ge.mapTiles[ge.hero.y + ge.imoveHitTest]
-            target = targety[ge.hero.x +  x * (x > 0 ? ge.tilesPerCharacter : 1)]
+            target = targety[ge.hero.x +  x * (x > 0 ? ge.heroWidth : 1)]
             if (target) {
                 targets.push({tile: target,
-                    x: ge.hero.x +  x * (x > 0 ? ge.tilesPerCharacter : 1),
+                    x: ge.hero.x +  x * (x > 0 ? ge.heroWidth : 1),
                     y: ge.hero.y + ge.imoveHitTest
                 })
             }
@@ -572,21 +572,21 @@ ge.drawCharacters = () => {
         ge.context.fillStyle = "black"
         ge.context.fillRect(
             ge.offsetLeft + ge.middleTileX, 
-            ge.offsetTop + ge.middleTileY + ge.characterSize,
+            ge.offsetTop + ge.middleTileY + ge.heroHeight * ge.tileSize,
             ge.tileWidth, 14)
 
         if (ge.hero.chatPortal) {
             ge.context.strokeStyle = ge.portals[ge.hero.chatPortal].color
             ge.context.strokeRect(
                 ge.offsetLeft + ge.middleTileX, 
-                ge.offsetTop + ge.middleTileY + ge.characterSize,
+                ge.offsetTop + ge.middleTileY + ge.heroHeight * ge.tileSize,
                 ge.tileWidth, 14)
             }
     
         ge.context.fillStyle = "white"
         ge.context.fillText(ge.userName,
             3 + ge.offsetLeft + ge.middleTileX, 
-            12 + ge.offsetTop + ge.middleTileY + ge.characterSize)    
+            12 + ge.offsetTop + ge.middleTileY + ge.heroHeight * ge.tileSize)    
 
         
     }
