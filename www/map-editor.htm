@@ -42,7 +42,7 @@
             height:32px;
         }
 
-        #npc-details, #html-details {
+        #npc-details, #html-details, #music-details-select, #music-details-editor {
             padding:2px;
             position:fixed;
             top:35px;
@@ -51,6 +51,19 @@
             background-color: #999999;
             height:100%;
             display:none;
+        }
+
+        #music-details-select, #music-details-editor {
+            width: 400px;
+            bottom: 0;
+            height: initial;
+        }
+
+        #music-details-select > iframe, #music-details-editor > iframe {
+            width: 100%;
+            bottom: 0;
+            border: none;
+            height: 100%;
         }
 
         #main-menu {
@@ -69,7 +82,7 @@
             padding: 8px;
         }
         #map-width-input, #map-height-input {
-            width: 30px;
+            width: 50px;
         }
 
         #tile-highlight {
@@ -93,7 +106,7 @@
         #tools button {
             width:74px;
         }
-        #character-mode {
+        #character-mode, #html-list, #music-mode {
             display:none;
         }
         
@@ -125,7 +138,7 @@
     <canvas id="front-canvas"></canvas>
     
     <div id="main-menu">
-        Map Name: <input id="map-name"> Size: <input id="map-width-input">&times;<input id="map-height-input">
+        Map Name: <input id="map-name"> Size: <input type="number" id="map-width-input">&times;<input type="number" id="map-height-input">
         <button id="save-button">Save</button>
 
     </div>
@@ -137,12 +150,14 @@
             <option>NPCs</option>
             <option>Hero</option>
             <option>HTML</option>
+            <option>Music</option>
         </select>
         <hr>
         <div id="tile-mode">          
             <select id="tile-draw-mode">
                 <option>Pencil</option>
                 <option>Brush</option>
+                <option>Fill</option>
             </select>
             <select id="tile-set-select"></select>
             <div id="tile-list"></div>
@@ -154,6 +169,14 @@
         </div>
         <div id="html-list">
             <button id="add-html-button">+Add</button>
+            <hr>
+        </div>
+        <div id="music-mode">
+            Music:
+            <div id="music-name">(None)</div>
+            <button id="music-select-button">Select</button>
+            <button id="music-play-button">Play</button>
+            <button id="music-editor-button">Editor</button>
             <hr>
         </div>
     </div>
@@ -179,6 +202,9 @@
         <textarea id="html-input"></textarea>
     </div>
 
+    <div id="music-details-select"></div>
+    <div id="music-details-editor"></div>
+    
     <div class="dialog" id="overwrite-or-new">
         Do you want to overwrite or create a new copy?
         <hr>
