@@ -1,14 +1,79 @@
-function OMGRPGMap() {
+function OMGRPGMap(data, canvas) {
+    this.tileSize = 32
+    this.data = data || {}
+    this.canvas = canvas 
+    this.ctx = this.canvas.getContext("2d")
+
+    this.img = {}
+    this.tileSplitChar = "·"
+
+    this.loadTileSet(data.tileSet)
+
+    this.tiles = []
+    for (var x = 0; x < this.data.width; x++) {
+        this.tiles[x] = []
+
+        var ys = (this.data.yLines[x] || "").split(this.tileSplitChar)
+        for (var y = 0; y < this.data.height; y++) {
+            this.tiles[x][y] = {code: ys[y] || ""}
+        }
+    
+    }
+
+    this.canvas.width = this.data.width * this.tileSize
+    this.canvas.height = this.data.height * this.tileSize
+    
+}
+
+OMGRPGMap.prototype.loadTileSet = function (tileSet) {
+
+    //todo use omg object to cache tilesets? 
+    
+    this.img.tiles = {}
+
+    Object.keys(tileSet.tileCodes).forEach(key => {
+        var img = document.createElement("img")
+        img.src = (tileSet.prefix || "") + tileSet.tileCodes[key] + (tileSet.postfix || "")
+        img.onload = e => this.draw()
+        this.img.tiles[key] = img
+    })
+
+    
+}
+
+
+OMGRPGMap.prototype.draw = function () {
+    this.canvas.width = this.data.width * this.tileSize
+    this.canvas.height = this.data.height * this.tileSize
+    
+    this.ctx.fillStyle = "black"
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
+    for (var x = 0; x < this.data.width; x++) {
+        for (var y = 0; y < this.data.height; y++) { 
+            if (this.tiles[x] && this.tiles[x][y]) {
+                var tileCode = this.tiles[x][y].code
+                if (this.img.tiles[tileCode]) {
+                    this.ctx.drawImage(this.img.tiles[tileCode],
+                        x * this.tileSize, 
+                        y * this.tileSize,
+                        this.tileSize + 0.5, this.tileSize + 0.5)
+                }
+            }
+        }    
+    }
 
 }
 
-OMGRPGMap.prototype.load = function (data) {
-    this.data = data
+OMGRPGMap.prototype.updateYLines = function () {
 
-}
-
-
-OMGRPGMap.prototype.draw = function (data) {
-
-
+    this.data.yLines = []
+    for (var x = 0; x < this.data.width; x++) {
+        var yLine = []
+        for (var y = 0; y < this.data.height; y++) {
+            yLine.push(this.tiles[x][y].code)
+        }
+        this.data.yLines.push(yLine.join(this.tileSplitChar))
+    }
+    
 }

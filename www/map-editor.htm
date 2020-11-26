@@ -223,7 +223,7 @@
     <div id="tile-highlight"></div>
     <script src="/js/omgservice.js"></script>
     <script src="map-editor.js"></script>
-
+    <script src="rpgmap.js"></script>
     <script src="/apps/sprite/spriter.js"></script>
     
     <script>
@@ -235,7 +235,7 @@
         "startX": 1,
         "startY": 1,
         "npcs": [],
-        "mapLines": []
+        "yLines": []
         }
  
         var widthInput = document.getElementById('map-width-input')
@@ -256,10 +256,6 @@
         else {
             editor.load(blankMap)
         }
-
-        setTimeout(function () {
-            editor.draw()
-        }, 2000)
         
     
     </script>

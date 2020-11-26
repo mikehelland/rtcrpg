@@ -1,10 +1,10 @@
 {
     "activities": [
-		{"name": "Map", "url": "game.htm", "views": ["MAP"]},
-		{"name": "Map Editor", "url": "map-editor.htm", "edits": ["MAP"]},
+		{"name": "RPG Map", "url": "game.htm", "views": ["RPGMAP"]},
+		{"name": "RPG Map Editor", "url": "map-editor.htm", "edits": ["RPGMAP"]},
 		{"name": "TileSet", "url": "tileset.htm", "views": ["TILESET"]},
 		{"name": "TileSet Editor", "url": "tileset-editor.htm", "edits": ["TILESET"]},
-		{"name": "Embedded Map Viewer", "url": "map-embed.js", "className": "OMGEmbeddedViewerMAP", "embeds": ["MAP"]},
+		{"name": "Embedded RPG Map Viewer", "url": "map-embed.js", "className": "OMGEmbeddedViewerMAP", "embeds": ["RPGMAP"]},
 		{"name": "Embedded TileSet Viewer", "url": "tileset-embed.js", "className": "OMGEmbeddedViewerTILESET", "embeds": ["TILESET"]}
 	]
 }

@@ -31,14 +31,10 @@ else {
     ge.offsetTop = 0
 }
 
-ge.characterSourceSize = 128
-ge.tilesPerCharacter = 4
-ge.characterSize = ge.tileSize * ge.tilesPerCharacter
 
 ge.img = {
     characters: document.getElementById("characters-spritesheet"),
-    tiles: {},
-    frameDiff: ge.characterSourceSize
+    tiles: {}
 }
 
 ge.offsetLeft = 0
@@ -255,11 +251,12 @@ ge.hero.move = (x, y) => {
     }
 
     // check to see if you can move to that position
+
     var targets = []
     var target
     var targety
     if (x === 0) {
-        targety = ge.mapTiles[ge.hero.y + y * (y > 0 ? ge.heroHeight : 1)]
+        targety = ge.map.tiles[x][ge.hero.y + y * (y > 0 ? ge.heroHeight : 1)]
         if (targety) {
             for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.heroWidth; ge.imoveHitTest++) {
                 targets.push({
@@ -272,7 +269,7 @@ ge.hero.move = (x, y) => {
     }
     else {
         for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.heroHeight; ge.imoveHitTest++) {
-            targety = ge.mapTiles[ge.hero.y + ge.imoveHitTest]
+            targety = ge.map.tiles[ge.hero.y + ge.imoveHitTest]
             target = targety[ge.hero.x +  x * (x > 0 ? ge.heroWidth : 1)]
             if (target) {
                 targets.push({tile: target,
@@ -298,7 +295,6 @@ ge.hero.move = (x, y) => {
 
     if (targets.length == 0) {
         ge.finishTouching()
-        ge.leaveMap()
         return updatePosition()
     }
 
@@ -476,7 +472,7 @@ ge.render = () => {
     }
 
     if (!ge.drawnBackground) {
-        ge.drawScene()
+        ge.map.draw()
         ge.drawnBackground = true
     }
 
@@ -496,59 +492,7 @@ ge.render = () => {
     ge.drawCharacters()
     ge.nextFrame = false
 }
-ge.drawScene = () => {
 
-    var tileCode
-
-    ge.backgroundContext.lineWidth = 4
-    var colorI = 0
-    ge.portalColors = ["red", "blue", "green", "yellow", "purple"]
-    ge.portals = {}
-
-    let currentRow
-    ge.mapTiles = []
-
-    for (var y = 0; y < ge.mapData.height; y++) {
-        currentRow = []
-
-        ge.mapTiles.push(currentRow)
-        
-        for (var x = 0; x < ge.mapData.width; x++) {
-
-            if (!ge.map[y] || !ge.map[y][x]) {
-                continue
-            }
-
-            tileCode = ge.map[y].substr(x * ge.tileCharSize, ge.tileCharSize)
-            currentRow.push(tileCode)
-            
-            if (tileCode && ge.img.tiles[tileCode]) {
-                ge.backgroundContext.drawImage(ge.img.tiles[tileCode],
-                    x * ge.tileWidth - 0.25, 
-                    y * ge.tileHeight - 0.25,
-                    ge.tileWidth + 0.5, ge.tileHeight + 0.5)
-
-                //todo portal stuff from game.js... remove or update
-                if (ge.map[y][x] === "p") {
-                    var portal = undefined
-                    if (ge.portals[x + "x" + (y - 1)]) {
-                        portal = ge.portals[x + "x" + (y - 1)]
-                    }
-                    else if (ge.portals[(x - 1) + "x" + y]) {
-                        portal = ge.portals[(x - 1) + "x" + y]
-                    }
-                    ge.portals[x + "x" + y] = portal || {name: x + "x" + y, color: ge.portalColors[colorI++%ge.portalColors.length]}
-                    ge.backgroundContext.strokeStyle = ge.portals[x + "x" + y].color
-                    ge.backgroundContext.strokeRect(
-                        x * ge.tileWidth - 0.25, 
-                        y * ge.tileHeight - 0.25,
-                        ge.tileWidth + 0.5, ge.tileHeight + 0.5)
-                }
-    
-            }
-        }
-    }
-}
 
 ge.drawCharacters = () => {
     
@@ -1307,146 +1251,32 @@ ge.startup = () => {
 }
 ge.startup()
 
-ge.leaveMap = () => {
-    
-    if (ge.mapData.parentMap && !ge.leavingMap) {
 
-        ge.hero.chatPortal = undefined
-        ge.leavingMap = true
-        ge.background.style.opacity = 0.5
-        var prevMap = ge.roomName
-        console.log("leaving room")
-
-        for (var el in ge.htmlElements) {
-            console.log(ge.htmlElements[el])
-            try {
-                ge.background.removeChild(ge.htmlElements[el].div)
-            } catch (e) {console.log(e)}
-        }
-    
-        fetch(ge.mapData.parentMap.url).then(data => data.json()).then(json => {
-            ge.rtc.leave()
-            ge.loadMap(json, ge.mapData.parentMap.url)
-
-            //start position in upper map based on it's entrances and which way we're facing
-            var good = false
-            for (var i = 0; i < ge.mapData.childMaps.length; i++) {
-                for (var j = 0; j < ge.mapData.childMaps[i].entrances.length; j++) {
-                    if (prevMap === ge.mapData.childMaps[i].url &&
-                            ge.mapData.childMaps[i].entrances[j].exitFacing === ge.hero.facing) {
-                        
-                        ge.hero.x = ge.mapData.childMaps[i].entrances[j].x + ge.hero.facingX
-                        ge.hero.y = ge.mapData.childMaps[i].entrances[j].y + ge.hero.facingY
-                        good = true
-                        break
-                    }
-                }
-                if (good) {
-                    break
-                }
-            }
-            if (!good) {
-                ge.hero.x = ge.mapData.startX
-                ge.hero.y = ge.mapData.startY
-            }
-            ge.rtc.join(ge.roomName, ge.userName)
-            ge.leavingMap = false
-            ge.background.style.opacity = 1
-    
-        })
-    }
-}
-
-ge.enterBuilding = (x,y) => {
-    if (ge.mapData.childMaps && !ge.enteringBuilding) {
-        for (var i = 0; i < ge.mapData.childMaps.length; i++) {
-            for (var j = 0; j < ge.mapData.childMaps[i].entrances.length; j++) {
-                if (ge.mapData.childMaps[i].entrances[j].x === x && 
-                    ge.mapData.childMaps[i].entrances[j].y === y) {
-                    ge.enteringBuilding = true
-                    ge.background.style.opacity = 0.5
-                    fetch(ge.mapData.childMaps[i].url).then(data => data.json()).then(json => {
-                        var data = json
-                        ge.rtc.leave()
-
-                        ge.loadMap(json, ge.mapData.childMaps[i].url)
-
-                        //start position
-                        if (ge.hero.facing === 0) {
-                            ge.hero.x = Math.floor(data.width / 2)
-                            ge.hero.y = 0
-                        }
-                        else if (ge.hero.facing === 1) {
-                            ge.hero.x = Math.floor(data.width / 2)
-                            ge.hero.y = data.height - 1
-                        }
-                        else if (ge.hero.facing === 2) {
-                            ge.hero.x = 0
-                            ge.hero.y = Math.floor(data.height / 2)
-                        }
-                        else if (ge.hero.facing === 3) {
-                            ge.hero.x = data.width - 1
-                            ge.hero.y = Math.floor(data.height / 2)
-                        }
-                
-                        ge.rtc.join(ge.roomName, ge.userName)
-                        ge.enteringBuilding = false
-                        ge.background.style.opacity = 1
-                    })
-                            
-                    return true
-                }
-            }
-        }
-    }
-}
-
-ge.tileSets = {}
 
 //finally, get a map and go
 ge.loadMap = (data, mapName) => {
     ge.roomName = mapName
 
-    if (ge.tileSets[data.tileSet.url]) {
-        ge.img.tiles = ge.tileSets[data.tileSet.url]
-        ge.drawnBackground = false
-    }
-    else {
-        ge.img.tiles = {}
-        Object.keys(data.tileSet.tileCodes).forEach(key => {
-            var img = document.createElement("img")
-            img.src = (data.tileSet.prefix + "") + data.tileSet.tileCodes[key] + (data.tileSet.postfix || "")
-            ge.img.tiles[key] = img
-            img.onload = ()=>{ge.drawnBackground = false}
-        })
-        if (data.tileSet.url) {
-            ge.tileSets[data.tileSet.url] = ge.img.tiles
-        }
-    }
-
-    ge.backgroundCanvas.width = data.width * ge.tileWidth
-    ge.backgroundCanvas.height = data.height * ge.tileHeight
+    ge.map = new OMGRPGMap(data, ge.backgroundCanvas)
+    ge.map.tileSize = ge.tileSize
+    //debugger
     ge.background.style.width = ge.backgroundCanvas.width + "px"
     ge.background.style.height = ge.backgroundCanvas.height + "px"
 
     
     ge.activeSprites = []
 
-    ge.mapData = data
-    ge.map = data.mapLines;
     ge.npcs = data.npcs || []
     ge.npcs.forEach(npc => {
         ge.loadNPC(npc)
     })
 
 
-    ge.tileCharSize = ge.mapData.tileSet.tileCharSize || 1
-
     //todo unload previous map html elements?
     ge.htmlElements = {}
-    if (ge.mapData.html) {    
-        ge.mapData.html.forEach(html => ge.addHTML(html))
-    }
+    //if (ge.mapData.html) {    
+    //    ge.mapData.html.forEach(html => ge.addHTML(html))
+    //}
     
     if (!ge.running) {
         ge.mainLoop()

@@ -9,8 +9,7 @@ body {
 }
 #backgroundCanvas {
     position:absolute;
-    height:100%;
-    width:100%;
+
 }
 #mainCanvas {
     position:absolute;
