@@ -514,7 +514,7 @@ OMGMapEditor.prototype.addNPC = function (e) {
 
     var div = this.setupNPCToolBoxDiv(npc)
     
-    this.map.npcs.push(npc)
+    this.map.data.npcs.push(npc)
     this.showNPCDetails(npc, div)
     
     this.mode = "NPC_SELECT"
