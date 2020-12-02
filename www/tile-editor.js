@@ -178,7 +178,9 @@ OMGTileEditor.prototype.fill = function (x, y, color) {
 OMGTileEditor.prototype.checkFillTile = function (x, y, color, fillPixel, newTiles) {
     if (x >= 0 && x < this.sourceCanvas.width && y >= 0 && y < this.sourceCanvas.height) {
         var imgData = this.sourceCtx.getImageData(x, y, 1, 1).data
-        if (imgData[0] === fillPixel[0] && imgData[1] === fillPixel[1] && imgData[2] === fillPixel[2]) {
+        if (imgData[0] === fillPixel[0] && imgData[1] === fillPixel[1] && 
+                    imgData[2] === fillPixel[2] && imgData[3] === fillPixel[3]) {
+            console.log(imgData)
             newTiles.push([x, y])
             this.drawPixel(x, y, color)
         }
