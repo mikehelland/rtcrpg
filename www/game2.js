@@ -499,7 +499,7 @@ ge.drawCharacters = () => {
     ge.context.lineWidth = 2
 
     if (ge.heroSpriter) {
-        ge.heroSpriter.j = ge.hero.facing
+        ge.heroSpriter.setRow(ge.hero.facing)
         if (ge.nextFrame) {
             ge.heroSpriter.next()
         }
