@@ -65,10 +65,13 @@ OMGRPGMap.prototype.draw = function () {
             if (this.tiles[x] && this.tiles[x][y]) {
                 var tileCode = this.tiles[x][y].code
                 if (this.img.tiles[tileCode]) {
-                    this.ctx.drawImage(this.img.tiles[tileCode],
-                        x * this.tileSize, 
-                        y * this.tileSize,
-                        this.tileSize + 0.5, this.tileSize + 0.5)
+                    try {
+                        this.ctx.drawImage(this.img.tiles[tileCode],
+                            x * this.tileSize, 
+                            y * this.tileSize,
+                            this.tileSize + 0.5, this.tileSize + 0.5)
+                    }
+                    catch (e) {}
                 }
             }
         }    

@@ -480,7 +480,10 @@ OMGMapEditor.prototype.setupMusicControls = function () {
     this.musicEditorButton.onclick = e => {
         this.musicDetailsSelect.style.display = "none"
         this.musicDetailsEditor.style.display = "block"
-        this.setupMusicEditor(this.map.music.id)
+        if (!this.data.music) {
+            this.data.music = {}
+        }
+        this.setupMusicEditor(this.data.music.id)
     }
     
 }
@@ -786,7 +789,7 @@ OMGMapEditor.prototype.setupMusicSelect = function () {
         iframe.contentWindow.onclickcontent = viewer => {
             console.log(viewer) 
 
-            this.map.music = {id: viewer.data.id}
+            this.map.data.music = {id: viewer.data.id}
 
 
         }
@@ -796,17 +799,10 @@ OMGMapEditor.prototype.setupMusicSelect = function () {
 OMGMapEditor.prototype.setupMusicEditor = function (id) {
 
     var iframe = document.createElement("iframe")
-    iframe.src = "/apps/music/remixer/?id=" + id
+    iframe.src = "/apps/music/remixer/?id=" + (id || "")
     this.musicDetailsEditor.appendChild(iframe)
     
     iframe.onload = () => {
-        iframe.contentWindow.onclickcontent = viewer => {
-            console.log(viewer) 
-
-            this.map.music = {id: viewer.data.id}
-
-
-        }
     }
 }
 
