@@ -66,7 +66,10 @@ OMGMapEditor.prototype.loadTileSet = function (tileSet) {
 
 OMGMapEditor.prototype.loadTile = function (key, tileSet) {
     var img = document.createElement("img")
-    if (tileSet.tileCodes[key].startsWith("data:image/png")) {
+    if (!tileSet.tileCodes[key]) {
+        img.src = OMGTileEditor.prototype.blankTile
+    }
+    else if (tileSet.tileCodes[key].startsWith("data:image/png")) {
         img.src = tileSet.tileCodes[key]
     }
     else {
@@ -816,11 +819,12 @@ OMGMapEditor.prototype.setupTileEditor = function (tile, img) {
         var code = "n" + Math.trunc(Math.random() * 1000)
         this.data.tileSet.tileCodes[code] = ""
         var img = this.loadTile(code, this.data.tileSet)
+        img.onclick()
         this.showTileEditor(code, img)
     }
 
     this.tileDetails.div = document.getElementById("tile-editor-details")
-    this.tileDetailsName = document.getElementById("tile-details-name")
+    this.tileDetails.code = document.getElementById("tile-editor-code")
     this.tileDetailsSound = document.getElementById("tile-details-sound")
     this.tileDetailsDialog = document.getElementById("tile-dialog-input")
     this.tileDetailsDelete = document.getElementById("tile-details-delete")
@@ -832,6 +836,8 @@ OMGMapEditor.prototype.setupTileEditor = function (tile, img) {
 
 OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
     this.tileDetails.div.style.display = "block"
+
+    this.tileDetails.code.value = tile
 
     if (!this.tileDetails.editor) {
         this.tileDetails.editor = new OMGTileEditor(this.tileDetails.editorDiv)

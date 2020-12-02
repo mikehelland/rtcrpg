@@ -37,6 +37,8 @@ function OMGTileEditor(div) {
 OMGTileEditor.prototype.load = function (img, options) {
     //this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height)
 
+    this.canvas.width = this.canvas.width
+    
     var tempCanvas = document.createElement("canvas")
     var tctx = tempCanvas.getContext("2d")
     tempCanvas.width = this.width
@@ -180,9 +182,16 @@ OMGTileEditor.prototype.checkFillTile = function (x, y, color, fillPixel, newTil
         var imgData = this.sourceCtx.getImageData(x, y, 1, 1).data
         if (imgData[0] === fillPixel[0] && imgData[1] === fillPixel[1] && 
                     imgData[2] === fillPixel[2] && imgData[3] === fillPixel[3]) {
-            console.log(imgData)
             newTiles.push([x, y])
             this.drawPixel(x, y, color)
         }
     }
 }
+
+
+OMGTileEditor.prototype.blankTile = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAYAAADNkKWqAAABpElEQVR4nO3BAQ0AAADCoPdPbQ8HFAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+                                    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+                                    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+                                    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
+                                    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCn" +
+                                    "AUGaAAH3lkeeAAAAAElFTkSuQmCC"
