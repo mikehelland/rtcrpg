@@ -42,7 +42,7 @@
             height:32px;
         }
 
-        #npc-details, #html-details, #music-details-select, #music-details-editor {
+        #npc-details, #html-details, #music-details-select, #music-details-editor, #tile-editor-details {
             padding:2px;
             position:fixed;
             top:35px;
@@ -51,6 +51,18 @@
             background-color: #999999;
             height:100%;
             display:none;
+        }
+
+        #tile-editor-details {
+            width: 340px;
+        }
+
+        #tile-editor canvas {
+            border: 2px solid black;
+            width: 320px;
+            height: 320px;
+            margin:auto;
+            display: block;
         }
 
         #music-details-select, #music-details-editor {
@@ -161,6 +173,7 @@
             </select>
             <select id="tile-set-select"></select>
             <div id="tile-list"></div>
+            <button id="tile-list-new-button">New Tile</button>
         </div>
         <div id="character-mode">
             <button id="add-npc-button">+Add</button>
@@ -181,6 +194,11 @@
         </div>
     </div>
 
+    <div id="tile-editor-details">
+        <input id="tile-editor-code"></input>
+        <div id="tile-editor"></div>
+        <button id="tile-editor-save-button">Save</button>        
+    </div>
     <div id="npc-details">
         <canvas id="npc-details-canvas"></canvas>
         <input id="npc-details-name"></input>
@@ -225,6 +243,7 @@
     <script src="map-editor.js"></script>
     <script src="rpgmap.js"></script>
     <script src="/apps/sprite/spriter.js"></script>
+    <script src="tile-editor.js"></script>
     
     <script>
 

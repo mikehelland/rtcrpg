@@ -320,12 +320,12 @@ var moveDown = function (item) {
 
 var remove = function (item) {
 
-    var i = set.data.indexOf(item) 
+    var i = inputs.data.indexOf(item) 
     if (i == -1) {
         return
     }
 
-    set.data.splice(i, 1)
+    inputs.data.splice(i, 1)
 
     setList(set)
 }

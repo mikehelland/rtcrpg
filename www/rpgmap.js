@@ -1,10 +1,13 @@
-function OMGRPGMap(data, canvas) {
+function OMGRPGMap(data, canvas, options) {
+    
+    options = options || {}
+
     this.tileSize = 32
     this.data = data || {}
     this.canvas = canvas 
     this.ctx = this.canvas.getContext("2d")
 
-    this.img = {}
+    this.img = options.img || {}
     this.tileSplitChar = "·"
 
     this.loadTileSet(data.tileSet)
@@ -32,10 +35,18 @@ OMGRPGMap.prototype.loadTileSet = function (tileSet) {
     this.img.tiles = {}
 
     Object.keys(tileSet.tileCodes).forEach(key => {
-        var img = document.createElement("img")
-        img.src = (tileSet.prefix || "") + tileSet.tileCodes[key] + (tileSet.postfix || "")
+        if (!this.img.tiles[key]) {
+            this.img.tiles[key] = document.createElement("img")
+        }
+        var img = this.img.tiles[key]
+        if (tileSet.tileCodes[key].startsWith("data:image/")) {
+            img.src = tileSet.tileCodes[key]
+        }
+        else {
+            img.src = (tileSet.prefix || "") + tileSet.tileCodes[key] + (tileSet.postfix || "")
+        }
         img.onload = e => this.draw()
-        this.img.tiles[key] = img
+        
     })
 
     
