@@ -813,9 +813,10 @@ OMGMapEditor.prototype.setupTileEditor = function (tile, img) {
 
     this.tileDetails.addButton = document.getElementById("tile-list-new-button")
     this.tileDetails.addButton.onclick = e => {
-        this.data.tileSet.tileCodes["new"] = ""
-        var img = this.loadTile("new", this.data.tileSet)
-        this.showTileEditor("new", img)
+        var code = "n" + Math.trunc(Math.random() * 1000)
+        this.data.tileSet.tileCodes[code] = ""
+        var img = this.loadTile(code, this.data.tileSet)
+        this.showTileEditor(code, img)
     }
 
     this.tileDetails.div = document.getElementById("tile-editor-details")
