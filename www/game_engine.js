@@ -25,7 +25,7 @@ function OMGGameEngine(params) {
     this.physicsFrame = 0
 
     this.dmax = 8
-    this.gravity = 0.5
+    this.gravity = 0 //0.5
     this.targetTiles = []
 }
 
@@ -159,6 +159,14 @@ OMGGameEngine.prototype.setupInputs = function () {
         else if (e.key === "ArrowRight") {
             this.hero.wishX = 1
             this.hero.facing = 1
+        }
+        else if (e.key === "G") {
+            if (this.gravity) {
+                this.gravity = 0
+            }
+            else {
+                this.gravity = 0.5
+            }
         }
     
         this.keysPressed[e.key] = true
@@ -299,7 +307,9 @@ OMGGameEngine.prototype.physics = function () {
         this.hero.dy = Math.max(-2 * this.dmax, Math.min(2 * this.dmax, this.hero.dy + this.hero.wishY))
     }
     else {
-        this.hero.dy = Math.max(this.dmax, Math.min(this.dmax, this.hero.dy + this.hero.wishY))
+        console.log(this.hero.dy, this.hero.wishY)
+        //this.hero.dy = Math.max(this.dmax, Math.min(this.dmax, this.hero.dy + this.hero.wishY))
+        this.hero.dy = Math.max(-this.dmax, Math.min(this.dmax, this.hero.dy + this.hero.wishY))
     }
     this.hero.dx = Math.max(-this.dmax, Math.min(this.dmax, this.hero.dx + this.hero.wishX))    
     
