@@ -118,8 +118,14 @@ OMGTileEditor.prototype.setupControls = function () {
     this.colorPicker = document.createElement("input")
     this.colorPicker.type = "color"
 
+    this.flipButton = document.createElement("button")
+    this.flipButton.innerHTML = "FlipX"
+
     this.canvas.parentElement.appendChild(this.toolSelect)
     this.canvas.parentElement.appendChild(this.colorPicker)
+    this.canvas.parentElement.appendChild(this.flipButton)
+    
+    this.flipButton.onclick = e => this.flipX()
 }
 
 OMGTileEditor.prototype.drawPixel = function (x, y, color, brush) {
@@ -195,3 +201,20 @@ OMGTileEditor.prototype.blankTile = "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
                                     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
                                     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCn" +
                                     "AUGaAAH3lkeeAAAAAElFTkSuQmCC"
+
+OMGTileEditor.prototype.flipX = function () {
+
+    var imgData = this.sourceCtx.getImageData(0, 0, this.width, this.height)
+
+    var i = 0
+    for (var y = 0; y < this.height; y++) {
+        for (var x = this.width - 1; x >= 0; x--) {
+            this.ctx.fillStyle = "rgba(" + imgData.data[i++] + ", " + imgData.data[i++] + 
+                                 ", " + imgData.data[i++] + "," + imgData.data[i++] + ")"
+            this.ctx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize)
+            this.sourceCtx.fillStyle = this.ctx.fillStyle
+            this.sourceCtx.fillRect(x, y, 1, 1)
+        }
+    }
+
+}
