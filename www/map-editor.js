@@ -827,6 +827,11 @@ OMGMapEditor.prototype.setupTileEditor = function (tile, img) {
 
     this.tileDetails.editorDiv = document.getElementById("tile-editor")
     this.tileDetails.saveButton = document.getElementById("tile-editor-save-button")
+    this.tileDetails.hideButton = document.getElementById("tile-editor-hide-button")
+
+    this.tileDetails.hideButton.onclick = e => {
+        this.tileDetails.div.style.display = "none"
+    }
     
 }
 
