@@ -1,6 +1,6 @@
 {
     "activities": [
-		{"name": "RPG Map", "url": "game.htm", "views": ["RPGMAP"]},
+		{"name": "RPG Map", "url": "char.htm", "views": ["RPGMAP"]},
 		{"name": "RPG Map Editor", "url": "map-editor.htm", "edits": ["RPGMAP"]},
 		{"name": "TileSet", "url": "tileset.htm", "views": ["TILESET"]},
 		{"name": "TileSet Editor", "url": "tileset-editor.htm", "edits": ["TILESET"]},

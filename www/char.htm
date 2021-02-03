@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <link rel="stylesheet" type="text/css" href="dw.css"/>
+    <script>
+    if (window.location.protocol === "http:" && window.location.port !== "3000") {
+        window.location = window.location.href.replace("http:", "https:")
+    }
+
+    </script>
+</head>
+<body>
+
+    <div id="background">
+        <canvas id="backgroundCanvas"></canvas>    
+    </div>
+    <canvas tabindex="1" id="mainCanvas"></canvas>
+
+    <script src="/js/omgservice.js"></script>
+    <script src="game_engine.js"></script>
+    <script src="/apps/sprite/spriter.js"></script>
+    <script src="rpgmap.js"></script>
+    <script>
+        var ge
+        var params = omg.util.getPageParams()
+        if (params.id) {
+            omg.server.getId(params.id, data => {
+
+                ge = new OMGGameEngine()
+
+                ge.loadMap(data, location.href)
+
+                var charSprite = window.location.host.startsWith("localhost") ? "https://localhost:8081/data/545" : ""
+                console.log(charSprite)
+                fetch(charSprite).then(res => res.json()).then(data => {
+
+                    ge.loadHero(data)
+    
+                })
+                
+            })
+        }
+
+    </script>
+</body>
+</html>

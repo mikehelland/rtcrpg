@@ -293,9 +293,17 @@ ge.hero.move = (x, y) => {
     
         */
 
-    if (targets.length == 0) {
+    if (targets.length === 0) {
         ge.finishTouching()
         return updatePosition()
+    }
+    for (var i = 0; i < targets.length; i++) {
+        // um... store the block value when the map loads?
+        console.log(targets[i].tile)
+        //if (targets[i].tile.code.substr(0, 1) === targets[i].tile.code.substr(0, 1).toUpperCase()) {
+        //    ge.finishTouching()
+        //    return updatePosition()
+        //}
     }
 
     /*
