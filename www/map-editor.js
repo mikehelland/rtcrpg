@@ -395,7 +395,7 @@ OMGMapEditor.prototype.save = function () {
     }
 
     omg.server.post(this.data, res => {
-        window.location = "game.htm?id=" + res.id
+        window.location = this.gamePage + "?id=" + res.id
     })
 }
 
