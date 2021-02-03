@@ -77,6 +77,7 @@ OMGTileEditor.prototype.setupEvents = function (canvas) {
 
     canvas.onmouseleave = e => {
         this.onleave()
+        this.isTouching = false
     }
 }
 
@@ -180,7 +181,9 @@ OMGTileEditor.prototype.fill = function (x, y, color) {
 
         nextTiles = newTiles
     }
-
+    if (this.previewCallback) {
+        this.previewCallback(this.sourceCtx.canvas.toDataURL("image/png"))
+    }
 }
 
 OMGTileEditor.prototype.checkFillTile = function (x, y, color, fillPixel, newTiles) {
@@ -216,5 +219,7 @@ OMGTileEditor.prototype.flipX = function () {
             this.sourceCtx.fillRect(x, y, 1, 1)
         }
     }
-
+    if (this.previewCallback) {
+        this.previewCallback(this.sourceCtx.canvas.toDataURL("image/png"))
+    }
 }

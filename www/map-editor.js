@@ -811,11 +811,20 @@ OMGMapEditor.prototype.setupTileEditor = function (tile, img) {
     
     this.tileDetails = {}
 
+    this.tileDetails.copyButton = document.getElementById("tile-list-copy-button")
     this.tileDetails.addButton = document.getElementById("tile-list-new-button")
     this.tileDetails.addButton.onclick = e => {
         var code = "n" + Math.trunc(Math.random() * 1000)
         this.data.tileSet.tileCodes[code] = ""
         var img = this.loadTile(code, this.data.tileSet)
+        img.onclick()
+        this.showTileEditor(code, img)
+    }
+    this.tileDetails.copyButton.onclick = e => {
+        var code = "n" + Math.trunc(Math.random() * 1000)
+        this.data.tileSet.tileCodes[code] = this.img.tiles[this.selectedTile] //this.sourceCtx.canvas.toDataURL("image/png")
+        var img = this.loadTile(code, this.data.tileSet)
+        img.src = this.img.tiles[this.selectedTile].srcObj
         img.onclick()
         this.showTileEditor(code, img)
     }
