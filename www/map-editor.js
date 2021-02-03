@@ -864,8 +864,18 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
     })
 
     this.tileDetails.saveButton.onclick = e => {
-        console.log(tile)
-        this.data.tileSet.tileCodes[tile] = this.tileDetails.editor.getData()
+        if (tile !== this.tileDetails.code.value) {
+            for (var col of this.map.tiles) {
+                for (var row of col) {
+                    if (row.code === tile) {
+                        row.code = this.tileDetails.code.value
+                    }
+                }
+            }
+            delete this.data.tileSet.tileCodes[tile]
+            tile = this.tileDetails.code.value
+        }
+        this.data.tileSet.tileCodes[this.tileDetails.code.value] = this.tileDetails.editor.getData()
     }
 
 }
