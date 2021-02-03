@@ -15,6 +15,7 @@ function OMGMapEditor (canvas, frontCanvas) {
 
     this.spriters = new Map()
 
+    this.gamePage = "char.htm"
 
     this.setupEvents(canvas)
     this.setupControls()
@@ -281,12 +282,12 @@ OMGMapEditor.prototype.setupControls = function () {
     document.getElementById("new-copy-button").onclick = e => {
         delete this.data.id
         omg.server.post(this.data, res => {
-            window.location = "game.htm?id=" + res.id
+            window.location = this.gamePage + "?id=" + res.id
         })
     }
     document.getElementById("overwrite-button").onclick = e => {
         omg.server.post(this.data, res => {
-            window.location = "game.htm?id=" + res.id
+            window.location = this.gamePage + "?id=" + res.id
         })
     }
     omg.server.getHTTP("/user", user => this.user = user)
