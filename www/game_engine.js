@@ -307,8 +307,6 @@ OMGGameEngine.prototype.physics = function () {
         this.hero.dy = Math.max(-2 * this.dmax, Math.min(2 * this.dmax, this.hero.dy + this.hero.wishY))
     }
     else {
-        console.log(this.hero.dy, this.hero.wishY)
-        //this.hero.dy = Math.max(this.dmax, Math.min(this.dmax, this.hero.dy + this.hero.wishY))
         this.hero.dy = Math.max(-this.dmax, Math.min(this.dmax, this.hero.dy + this.hero.wishY))
     }
     this.hero.dx = Math.max(-this.dmax, Math.min(this.dmax, this.hero.dx + this.hero.wishX))    

@@ -65,8 +65,9 @@ OMGMapEditor.prototype.loadTileSet = function (tileSet) {
     })
 }
 
-OMGMapEditor.prototype.loadTile = function (key, tileSet) {
+OMGMapEditor.prototype.loadTile = function (key, tileSet, onload) {
     var img = document.createElement("img")
+    img.onload = onload
     if (!tileSet.tileCodes[key]) {
         img.src = OMGTileEditor.prototype.blankTile
     }
@@ -88,6 +89,9 @@ OMGMapEditor.prototype.loadTile = function (key, tileSet) {
         }
         img.ondblclick = e => {
             this.showTileEditor(key, img, tileSet)    
+        }
+        if (this.tileListDiv.childElementCount === 1) {
+            img.onclick()
         }
     }
     return img
@@ -370,7 +374,7 @@ OMGMapEditor.prototype.resizeMap = function () {
         }
         for (var y = 0; y < this.data.height; y++) {
             if (!this.map.tiles[x][y]) {
-                this.map.tiles[x][y] = {code: " "}
+                this.map.tiles[x][y] = {code: ""}
             }
         }
     }
@@ -853,17 +857,18 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
     if (!this.tileDetails.editor) {
         this.tileDetails.editor = new OMGTileEditor(this.tileDetails.editorDiv)
     }
-    
-    var imgData
     this.tileDetails.editor.load(img, {
         previewCallback: (data) => {
             img.src = data
             this.map.img.tiles[tile].src = data
-            this.map.draw()
+            this.map.img.tiles[tile].onload = () => {this.map.draw()}
         }
     })
 
     this.tileDetails.saveButton.onclick = e => {
+        this.data.tileSet.tileCodes[this.tileDetails.code.value] = this.tileDetails.editor.getData()
+
+        // they changed the name, so update the tiles
         if (tile !== this.tileDetails.code.value) {
             for (var col of this.map.tiles) {
                 for (var row of col) {
@@ -872,10 +877,18 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
                     }
                 }
             }
+
+            if (this.tileListDiv) {
+                this.tileListDiv.removeChild(img)
+            }
             delete this.data.tileSet.tileCodes[tile]
             tile = this.tileDetails.code.value
+            img = this.loadTile(tile, this.data.tileSet, () => {
+                img.onclick()
+                img.ondblclick()  
+            })
         }
-        this.data.tileSet.tileCodes[this.tileDetails.code.value] = this.tileDetails.editor.getData()
+        
     }
 
 }
