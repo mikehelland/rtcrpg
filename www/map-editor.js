@@ -822,9 +822,9 @@ OMGMapEditor.prototype.setupTileEditor = function (tile, img) {
     }
     this.tileDetails.copyButton.onclick = e => {
         var code = "n" + Math.trunc(Math.random() * 1000)
-        this.data.tileSet.tileCodes[code] = this.img.tiles[this.selectedTile] //this.sourceCtx.canvas.toDataURL("image/png")
+        this.data.tileSet.tileCodes[code] = "" //this.sourceCtx.canvas.toDataURL("image/png")
         var img = this.loadTile(code, this.data.tileSet)
-        img.src = this.img.tiles[this.selectedTile].srcObj
+        img.src = this.img.tiles[this.selectedTile].src
         img.onclick()
         this.showTileEditor(code, img)
     }
