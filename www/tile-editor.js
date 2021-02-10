@@ -1,4 +1,4 @@
-function OMGTileEditor(div) {
+function OMGTileEditor(div, palette) {
     
     this.div = div
 
@@ -19,23 +19,25 @@ function OMGTileEditor(div) {
     this.frontCanvas.style.position = "absolute"
     
     //this.frontCanvas.style.left = this.canvas.offsetLeft + 2 + "px"
-    this.frontCanvas.style.top = this.canvas.offsetTop + 2 + "px"
-    this.frontCanvas.width = this.canvas.width
-    this.frontCanvas.height = this.canvas.height
-    this.frontCanvas.style.width = this.canvas.clientWidth  + "px"
-    this.frontCanvas.style.height = this.canvas.clientHeight + "px"    
     
     div.appendChild(this.frontCanvas)
+
+    this.palette = palette
 
     this.setupEvents(this.frontCanvas)
     this.setupControls()
 
     this.frontCtx.fillStyle = "red"
     
-    
 }
 
 OMGTileEditor.prototype.load = function (img, options) {
+    this.frontCanvas.style.top = this.canvas.offsetTop + 2 + "px"
+    this.frontCanvas.width = this.canvas.width
+    this.frontCanvas.height = this.canvas.height
+    this.frontCanvas.style.width = this.canvas.clientWidth  + "px"
+    this.frontCanvas.style.height = this.canvas.clientHeight + "px"    
+    
     //this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height)
     this.undoStack = []
     this.canvas.width = this.canvas.width
@@ -54,6 +56,9 @@ OMGTileEditor.prototype.load = function (img, options) {
     this.sourceCanvas = tempCanvas
     this.previewCallback = options.previewCallback
     this.saveCallback = options.saveCallback
+
+
+    this.loadPalette()
 }
 
 OMGTileEditor.prototype.loadImgData = function (imgData, updateSource) {
@@ -132,6 +137,15 @@ OMGTileEditor.prototype.setupControls = function () {
 
     this.colorPicker = document.createElement("input")
     this.colorPicker.type = "color"
+    this.colorPicker.onchange = e => {
+        if (!this.palette) {
+            this.palette = []
+        }
+        if (this.palette.indexOf(this.colorPicker.value) === -1) {
+            this.palette.push(this.colorPicker.value)
+        }
+        this.makePalette(this.colorPicker.value)
+    }
 
     this.flipButton = document.createElement("button")
     this.flipButton.innerHTML = "FlipX"
@@ -248,4 +262,27 @@ OMGTileEditor.prototype.flipX = function () {
     if (this.previewCallback) {
         this.previewCallback(this.sourceCtx.canvas.toDataURL("image/png"))
     }
+}
+
+OMGTileEditor.prototype.loadPalette = function () {
+    if (this.palette) {
+        if (!this.palettePicker) {
+            this.palettePicker = document.createElement("div")
+            this.div.appendChild(this.palettePicker)
+        }
+        this.palettePicker.innerHTML = ""
+        this.palette.forEach(color => {
+            this.makePalette(color)
+        })
+    }
+}
+
+OMGTileEditor.prototype.makePalette = function (color) {
+    var div = document.createElement("div")
+    div.className = "color-palette-picker"
+    div.style.backgroundColor = color
+    div.onclick = e => {
+        this.colorPicker.value = color
+    }
+    this.palettePicker.appendChild(div)
 }

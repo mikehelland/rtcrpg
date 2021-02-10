@@ -34,6 +34,9 @@ OMGMapEditor.prototype.load = function (data) {
         this.map = new OMGRPGMap(data, this.canvas, {img: this.img})
         this.data = data
         
+        if (!this.data.palette) {
+            this.data.palette = []
+        }
         this.nameInput.value = data.name
         this.widthInput.value = data.width
         this.heightInput.value = data.height
@@ -331,7 +334,6 @@ OMGMapEditor.prototype.setupControls = function () {
         }
     }
     
-    this.setupTileEditor()
     this.setupNPCControls()
     this.setupHTMLControls()
     this.setupMusicControls()
@@ -826,7 +828,31 @@ OMGMapEditor.prototype.setupMusicEditor = function (id) {
     }
 }
 
-OMGMapEditor.prototype.setupTileEditor = function (tile, img) {
+
+OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
+
+    if (!this.tileDetails) {
+        this.setupTileEditor() 
+    }
+    else {
+        this.wm.show(this.tileDetails.window)
+    }
+
+    this.tileDetails.div.style.display = "block"
+    this.tileDetails.code.value = tile
+
+    this.tileDetails.editor.load(img, {
+        previewCallback: (data) => {
+            img.src = data
+            this.map.img.tiles[tile].src = data
+            this.map.img.tiles[tile].onload = () => {this.map.draw()}
+        }
+    })
+
+}
+
+
+OMGMapEditor.prototype.setupTileEditor = function (img) {
     
     this.tileDetails = {}
 
@@ -856,33 +882,20 @@ OMGMapEditor.prototype.setupTileEditor = function (tile, img) {
 
     this.tileDetails.editorDiv = document.getElementById("tile-editor")
     this.tileDetails.saveButton = document.getElementById("tile-editor-save-button")
+
     
-}
-
-OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
-    this.tileDetails.div.style.display = "block"
-
-    this.tileDetails.code.value = tile
-
     if (!this.tileDetails.editor) {
-        this.tileDetails.editor = new OMGTileEditor(this.tileDetails.editorDiv)
+        this.tileDetails.editor = new OMGTileEditor(this.tileDetails.editorDiv, this.map.data.palette)
     }
-    this.tileDetails.editor.load(img, {
-        previewCallback: (data) => {
-            img.src = data
-            this.map.img.tiles[tile].src = data
-            this.map.img.tiles[tile].onload = () => {this.map.draw()}
-        }
-    })
-
+    
     this.tileDetails.saveButton.onclick = e => {
         this.data.tileSet.tileCodes[this.tileDetails.code.value] = this.tileDetails.editor.getData()
 
         // they changed the name, so update the tiles
-        if (tile !== this.tileDetails.code.value) {
+        if (this.tileDetails.tile !== this.tileDetails.code.value) {
             for (var col of this.map.tiles) {
                 for (var row of col) {
-                    if (row.code === tile) {
+                    if (row.code === this.tileDetails.tile) {
                         row.code = this.tileDetails.code.value
                     }
                 }
@@ -891,9 +904,9 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
             if (this.tileListDiv) {
                 this.tileListDiv.removeChild(img)
             }
-            delete this.data.tileSet.tileCodes[tile]
-            tile = this.tileDetails.code.value
-            img = this.loadTile(tile, this.data.tileSet, () => {
+            delete this.data.tileSet.tileCodes[this.tileDetails.tile]
+            this.tileDetails.tile = this.tileDetails.code.value
+            img = this.loadTile(this.tileDetails.tile, this.data.tileSet, () => {
                 img.onclick()
                 img.ondblclick()  
             })
@@ -901,7 +914,7 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
         
     }
 
-    this.wm.newWindow({
+    this.tileDetails.window = this.wm.newWindow({
         div: this.tileDetails.div,
         width: 350,
         height: 500,
