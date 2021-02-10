@@ -2,7 +2,7 @@
 <html>
 <head>
     <link rel="stylesheet" href="/css/main.css" type="text/css" />
-
+    <link rel="stylesheet" href="/css/window_manager.css" type="text/css" />
     <style>
         body {
             margin:0px;
@@ -44,24 +44,25 @@
 
         #npc-details, #html-details, #music-details-select, #music-details-editor, #tile-editor-details {
             padding:2px;
-            position:fixed;
+            /*position:fixed;
             top:35px;
             right:0px;
-            width:150px;
+            width:150px;*/
             background-color: #999999;
             height:100%;
+            /*width:100%;*/
             display:none;
         }
 
         #tile-editor-details {
-            width: 340px;
+            /*width: 340px;*/
         }
 
         #tile-editor canvas {
             border: 2px solid black;
             width: 320px;
             height: 320px;
-            margin:auto;
+            /*margin:auto;*/
             display: block;
         }
 
@@ -146,9 +147,11 @@
 </head>
 <body>
     
+    <div id="drawing-window">
     <canvas id="back-canvas"></canvas>
     <canvas id="front-canvas"></canvas>
-    
+    </div>
+
     <div id="main-menu">
         Map Name: <input id="map-name"> Size: <input type="number" id="map-width-input">&times;<input type="number" id="map-height-input">
         <button id="save-button">Save</button>
@@ -196,11 +199,10 @@
     </div>
 
     <div id="tile-editor-details">
-        <button id="tile-editor-hide-button">Hide</button>
-        <br>
         <input id="tile-editor-code"></input>
         <div id="tile-editor"></div>
-        <button id="tile-editor-save-button">Save</button>        
+        <button id="tile-editor-save-button">Save</button>
+        
     </div>
     <div id="npc-details">
         <canvas id="npc-details-canvas"></canvas>
@@ -247,6 +249,7 @@
     <script src="rpgmap.js"></script>
     <script src="/apps/sprite/spriter.js"></script>
     <script src="tile-editor.js"></script>
+    <script src="/js/window_manager.js"></script>
     
     <script>
 

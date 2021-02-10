@@ -17,6 +17,7 @@ function OMGMapEditor (canvas, frontCanvas) {
 
     this.gamePage = "char.htm"
 
+    this.wm = new OMGWindowManager({div: document.body})
     this.setupEvents(canvas)
     this.setupControls()
 
@@ -263,6 +264,20 @@ OMGMapEditor.prototype.tilePreview = function (x, y, brushing) {
 }
 
 OMGMapEditor.prototype.setupControls = function () {
+
+    /*this.mainMenuWindow = this.wm.newWindow({
+        div: document.getElementById("main-menu"),
+        x:80, y:0, width: window.innerWidth - 84, height: 60
+    })
+    this.canvasWindow = this.wm.newWindow({
+        div: document.getElementById("drawing-window")
+    })
+    this.toolBoxWindow = this.wm.newWindow({
+        div: document.getElementById("tools"),
+        x:0, y:0, width: 80, height: window.innerHeight - 80
+    })*/
+    
+
     this.nameInput = document.getElementById("map-name")
     this.widthInput = document.getElementById("map-width-input")
     this.heightInput = document.getElementById("map-height-input")
@@ -841,11 +856,6 @@ OMGMapEditor.prototype.setupTileEditor = function (tile, img) {
 
     this.tileDetails.editorDiv = document.getElementById("tile-editor")
     this.tileDetails.saveButton = document.getElementById("tile-editor-save-button")
-    this.tileDetails.hideButton = document.getElementById("tile-editor-hide-button")
-
-    this.tileDetails.hideButton.onclick = e => {
-        this.tileDetails.div.style.display = "none"
-    }
     
 }
 
@@ -890,5 +900,14 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
         }
         
     }
+
+    this.wm.newWindow({
+        div: this.tileDetails.div,
+        width: 350,
+        height: 500,
+        caption: "Tile Editor",
+        x: window.innerWidth - 510,
+        y: 40
+    })
 
 }

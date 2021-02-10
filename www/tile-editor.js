@@ -18,7 +18,7 @@ function OMGTileEditor(div) {
 
     this.frontCanvas.style.position = "absolute"
     
-    this.frontCanvas.style.left = this.canvas.offsetLeft + 2 + "px"
+    //this.frontCanvas.style.left = this.canvas.offsetLeft + 2 + "px"
     this.frontCanvas.style.top = this.canvas.offsetTop + 2 + "px"
     this.frontCanvas.width = this.canvas.width
     this.frontCanvas.height = this.canvas.height
@@ -32,11 +32,12 @@ function OMGTileEditor(div) {
 
     this.frontCtx.fillStyle = "red"
     
+    
 }
 
 OMGTileEditor.prototype.load = function (img, options) {
     //this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height)
-
+    this.undoStack = []
     this.canvas.width = this.canvas.width
     
     var tempCanvas = document.createElement("canvas")
@@ -47,19 +48,30 @@ OMGTileEditor.prototype.load = function (img, options) {
 
     var imgData = tctx.getImageData(0, 0, this.width, this.height)
 
-    var i = 0
-    for (var y = 0; y < this.height; y++) {
-        for (var x = 0; x < this.width; x++) {
-            this.ctx.fillStyle = "rgba(" + imgData.data[i++] + ", " + imgData.data[i++] + 
-                                 ", " + imgData.data[i++] + "," + imgData.data[i++] + ")"
-            this.ctx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize)
-        }
-    }
+    this.loadImgData(imgData)
     
     this.sourceCtx = tctx
     this.sourceCanvas = tempCanvas
     this.previewCallback = options.previewCallback
     this.saveCallback = options.saveCallback
+}
+
+OMGTileEditor.prototype.loadImgData = function (imgData, updateSource) {
+    var i = 0
+    for (var y = 0; y < imgData.height; y++) {
+        for (var x = 0; x < imgData.width; x++) {
+            var color = "rgba(" + imgData.data[i++] + ", " + imgData.data[i++] + 
+                ", " + imgData.data[i++] + "," + imgData.data[i++] + ")"
+            if (updateSource) {
+                this.sourceCtx.fillStyle = color
+                this.sourceCtx.fillRect(x, y, 1, 1)
+            }
+
+            this.ctx.fillStyle = color
+            this.ctx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize)
+        }
+    }
+    
 }
 
 OMGTileEditor.prototype.setupEvents = function (canvas) {
@@ -83,6 +95,8 @@ OMGTileEditor.prototype.setupEvents = function (canvas) {
 
 
 OMGTileEditor.prototype.ondown = function (x, y) {
+    this.undoStack.push(this.sourceCtx.getImageData(0, 0, this.width, this.height))
+
     if (this.toolSelect.value === "Pencil" || this.toolSelect.value === "Brush") {
         this.drawPixel(x, y, this.colorPicker.value, this.toolSelect.value === "Brush")
     }
@@ -122,11 +136,23 @@ OMGTileEditor.prototype.setupControls = function () {
     this.flipButton = document.createElement("button")
     this.flipButton.innerHTML = "FlipX"
 
+    this.undoButton = document.createElement("button")
+    this.undoButton.innerHTML = "Undo"
+
     this.canvas.parentElement.appendChild(this.toolSelect)
     this.canvas.parentElement.appendChild(this.colorPicker)
     this.canvas.parentElement.appendChild(this.flipButton)
+    this.canvas.parentElement.appendChild(this.undoButton)
     
     this.flipButton.onclick = e => this.flipX()
+    this.undoButton.onclick = e => {
+        if (this.undoStack.length) {
+            this.loadImgData(this.undoStack.pop(), true)
+            if (this.previewCallback) {
+                this.previewCallback(this.sourceCtx.canvas.toDataURL("image/png"))
+            }
+        }
+    }
 }
 
 OMGTileEditor.prototype.drawPixel = function (x, y, color, brush) {
