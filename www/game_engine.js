@@ -104,12 +104,12 @@ OMGGameEngine.prototype.setupCanvas = function () {
     // make it square
     this.tileOffset = 8
     if (this.canvas.height > this.canvas.width) {
-        this.tileSize = this.canvas.width / (this.tileOffset * 2 + 1)
+        this.tileSize = Math.floor(this.canvas.width / (this.tileOffset * 2 + 1))
         this.offsetTop = (this.canvas.height - this.canvas.width) / 2
         this.offsetLeft = 0
     }
     else {
-        this.tileSize = this.canvas.height / (this.tileOffset * 2 + 1)
+        this.tileSize = Math.floor(this.canvas.height / (this.tileOffset * 2 + 1))
         this.offsetLeft = (this.canvas.width - this.canvas.height) / 2
         this.offsetTop = 0
     }
@@ -267,6 +267,7 @@ OMGGameEngine.prototype.render = function () {
 OMGGameEngine.prototype.loadHero = function (spriteData) {
     this.heroSprite = spriteData
     this.heroSpriter = new OMGSpriter(spriteData, this.canvas)
+    this.heroSpriter.drawBorder = true
     this.heroSpriter.x = this.offsetLeft+ this.middleTileX
     this.heroSpriter.y = this.offsetTop + this.middleTileY
 
@@ -349,6 +350,7 @@ OMGGameEngine.prototype.canProceedX = function () {
     var x = Math.floor((this.hero.x + this.hero.dx) / this.tileSize)
     var y = Math.floor((this.hero.y) / this.tileSize)
 
+    //console.log(this.hero.y, this.tileSize, this.hero.y / this.tileSize)
     if (this.hero.dx > 0) {
         x += ge.heroWidth
     }
@@ -356,8 +358,20 @@ OMGGameEngine.prototype.canProceedX = function () {
         //y += ge.heroHeight
     }
     
+    var boxCount = ge.heroHeight
+    var boxStart = 0
+    var margin = this.hero.y - y * this.tileSize
+    this.fudge = 8
+
+    if (margin < this.fudge) {
+        boxCount -= 1
+    }
+    else if (margin > this.fudge * -1 + this.tileSize) {
+        boxStart = 1
+    }
+    
     if (this.hero.dx !== 0) {
-        for (ge.imoveHitTest = 0; ge.imoveHitTest <  ge.heroHeight; ge.imoveHitTest++) {
+        for (ge.imoveHitTest = boxStart; ge.imoveHitTest <=  boxCount; ge.imoveHitTest++) {
             if (ge.map.tiles[x]) {
                 target = ge.map.tiles[x][y + ge.imoveHitTest]
                 if (target) {
@@ -400,6 +414,18 @@ OMGGameEngine.prototype.canProceedY = function () {
     if (this.hero.dy > 0) {
         y += ge.heroHeight
     }
+
+    var boxCount = ge.heroWidth
+    var boxStart = 0
+    var margin = this.hero.x - x * this.tileSize
+    this.fudge = 8
+    
+    if (margin < this.fudge) {
+        boxCount -= 1
+    }
+    else if (margin > this.fudge * -1 + this.tileSize) {
+        boxStart = 1
+    }
     
     if (this.hero.dy !== 0) {
         if (!ge.map.tiles[x]) {
@@ -407,7 +433,7 @@ OMGGameEngine.prototype.canProceedY = function () {
         }
         targety = ge.map.tiles[x][y]
         if (targety) {
-            for (ge.imoveHitTest = 0; ge.imoveHitTest <=  ge.heroWidth; ge.imoveHitTest++) {
+            for (ge.imoveHitTest = boxStart; ge.imoveHitTest <=  boxCount; ge.imoveHitTest++) {
                 if (ge.map.tiles[x + ge.imoveHitTest]) {
                     var targetTile = {
                         tile: ge.map.tiles[x + ge.imoveHitTest][y],
@@ -427,12 +453,12 @@ OMGGameEngine.prototype.canProceedY = function () {
             
             if (this.gravity && this.hero.dy > 1 && targets[ge.imoveHitTest].y * this.tileSize > this.hero.y + this.heroSpriter.h) {
                 this.hero.dy = targets[ge.imoveHitTest].y * this.tileSize - this.hero.y - this.heroSpriter.h
-                console.log("land", this.hero.dy, targets[ge.imoveHitTest].y * this.tileSize , this.hero.y + this.heroSpriter.h)
+                //console.log("land", this.hero.dy, targets[ge.imoveHitTest].y * this.tileSize , this.hero.y + this.heroSpriter.h)
                 
             }
             else {
                 this.hero.jumping = 0
-                console.log("land2")
+                //console.log("land2")
                 return false
             }
         }

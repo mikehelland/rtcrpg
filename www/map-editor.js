@@ -299,6 +299,15 @@ OMGMapEditor.prototype.setupControls = function () {
     this.toolBoxSelect.value = "Tiles"
     this.selectToolBox({target: {value: "Tiles"}})
     
+    document.getElementById("zoom-out-button").onclick = () => {
+        this.map.tileSize -= 2
+        this.map.draw()
+    }
+    document.getElementById("zoom-in-button").onclick = () => {
+        this.map.tileSize += 2
+        this.map.draw()
+    }
+
     document.getElementById("save-button").onclick = () => this.save()
 
     document.getElementById("new-copy-button").onclick = e => {
