@@ -305,11 +305,11 @@ OMGMapEditor.prototype.setupControls = function () {
     
     document.getElementById("zoom-out-button").onclick = () => {
         this.map.tileSize -= 2
-        this.map.draw()
+        this.resizeMap()
     }
     document.getElementById("zoom-in-button").onclick = () => {
         this.map.tileSize += 2
-        this.map.draw()
+        this.resizeMap()
     }
 
     document.getElementById("save-button").onclick = () => this.save()
