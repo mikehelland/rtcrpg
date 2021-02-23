@@ -85,10 +85,11 @@ OMGMapEditor.prototype.loadTile = function (key, tileSet, onload) {
     if (this.tileListDiv) {
         this.tileListDiv.appendChild(img)
         img.onclick = () => {
-            if (this.selectedTile) {
-                this.img.tiles[this.selectedTile].className = ""
+            if (this.selectedTileDiv) {
+                this.selectedTileDiv.classList.remove("selected")
             }
             this.selectedTile = key
+            this.selectedTileDiv = img
             img.className = "selected"
         }
         img.ondblclick = e => {
@@ -120,6 +121,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         this.isTouching = true    
     }
     canvas.onmousemove = (e) => {
+        if (!this.map) {
+            return
+        }
         if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
             if (this.isTouching) {
                 this.tileEvent(Math.floor(e.layerX / this.map.tileSize), Math.floor(e.layerY / this.map.tileSize))
@@ -342,6 +346,25 @@ OMGMapEditor.prototype.setupControls = function () {
             }
         }
     }
+
+    this.copyTileButton = document.getElementById("tile-list-copy-button")
+    this.addTileButton = document.getElementById("tile-list-new-button")
+    this.addTileButton.onclick = e => {
+        var code = "n" + Math.trunc(Math.random() * 1000)
+        this.data.tileSet.tileCodes[code] = ""
+        var img = this.loadTile(code, this.data.tileSet)
+        img.onclick()
+        this.showTileEditor(code, img)
+    }
+    this.copyTileButton.onclick = e => {
+        var code = "n" + Math.trunc(Math.random() * 1000)
+        this.data.tileSet.tileCodes[code] = "" //this.sourceCtx.canvas.toDataURL("image/png")
+        var img = this.loadTile(code, this.data.tileSet)
+        img.src = this.img.tiles[this.selectedTile].src
+        img.onclick()
+        this.showTileEditor(code, img)
+    }
+
     
     this.setupNPCControls()
     this.setupHTMLControls()
@@ -864,24 +887,6 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
 OMGMapEditor.prototype.setupTileEditor = function (img) {
     
     this.tileDetails = {}
-
-    this.tileDetails.copyButton = document.getElementById("tile-list-copy-button")
-    this.tileDetails.addButton = document.getElementById("tile-list-new-button")
-    this.tileDetails.addButton.onclick = e => {
-        var code = "n" + Math.trunc(Math.random() * 1000)
-        this.data.tileSet.tileCodes[code] = ""
-        var img = this.loadTile(code, this.data.tileSet)
-        img.onclick()
-        this.showTileEditor(code, img)
-    }
-    this.tileDetails.copyButton.onclick = e => {
-        var code = "n" + Math.trunc(Math.random() * 1000)
-        this.data.tileSet.tileCodes[code] = "" //this.sourceCtx.canvas.toDataURL("image/png")
-        var img = this.loadTile(code, this.data.tileSet)
-        img.src = this.img.tiles[this.selectedTile].src
-        img.onclick()
-        this.showTileEditor(code, img)
-    }
 
     this.tileDetails.div = document.getElementById("tile-editor-details")
     this.tileDetails.code = document.getElementById("tile-editor-code")
