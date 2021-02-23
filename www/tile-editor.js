@@ -156,18 +156,22 @@ OMGTileEditor.prototype.setupControls = function () {
         this.makePalette(this.colorPicker.value)
     }
 
-    this.flipButton = document.createElement("button")
-    this.flipButton.innerHTML = "FlipX"
+    this.flipXButton = document.createElement("button")
+    this.flipXButton.innerHTML = "FlipX"
+    this.flipYButton = document.createElement("button")
+    this.flipYButton.innerHTML = "FlipY"
 
     this.undoButton = document.createElement("button")
     this.undoButton.innerHTML = "Undo"
 
     this.canvas.parentElement.appendChild(this.toolSelect)
     this.canvas.parentElement.appendChild(this.colorPicker)
-    this.canvas.parentElement.appendChild(this.flipButton)
+    this.canvas.parentElement.appendChild(this.flipXButton)
+    this.canvas.parentElement.appendChild(this.flipYButton)
     this.canvas.parentElement.appendChild(this.undoButton)
     
-    this.flipButton.onclick = e => this.flipX()
+    this.flipXButton.onclick = e => this.flipX()
+    this.flipYButton.onclick = e => this.flipY()
     this.undoButton.onclick = e => {
         if (this.undoStack.length) {
             this.loadImgData(this.undoStack.pop(), true)
@@ -268,9 +272,24 @@ OMGTileEditor.prototype.flipX = function () {
             this.sourceCtx.fillRect(x, y, 1, 1)
         }
     }
-    if (this.previewCallback) {
-        this.previewCallback(this.sourceCtx.canvas.toDataURL("image/png"))
+    this.onChange()
+}
+
+OMGTileEditor.prototype.flipY = function () {
+
+    var imgData = this.sourceCtx.getImageData(0, 0, this.width, this.height)
+
+    var i = 0
+    for (var y = this.height - 1; y >= 0; y--) {
+        for (var x = 0; x < this.width; x++) {
+            this.ctx.fillStyle = "rgba(" + imgData.data[i++] + ", " + imgData.data[i++] + 
+                                 ", " + imgData.data[i++] + "," + imgData.data[i++] + ")"
+            this.ctx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize)
+            this.sourceCtx.fillStyle = this.ctx.fillStyle
+            this.sourceCtx.fillRect(x, y, 1, 1)
+        }
     }
+    this.onChange()
 }
 
 OMGTileEditor.prototype.loadPalette = function () {
