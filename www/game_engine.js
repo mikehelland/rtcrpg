@@ -19,7 +19,7 @@ function OMGGameEngine(params) {
     }
 
     this.friction = 1
-    this.maxJump = 25
+    this.maxJump = 1//25
 
     this.frameCount = 0
     this.physicsFrame = 0
@@ -37,7 +37,7 @@ OMGGameEngine.prototype.mainLoop = function () {
 
     this.render()
 
-    requestAnimationFrame(() => {this.mainLoop()})
+    //requestAnimationFrame(() => {this.mainLoop()})
 }
 
 OMGGameEngine.prototype.loadMap = function (data, mapName) {
@@ -65,7 +65,8 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
     //}
     
     if (!this.running) {
-        this.mainLoop()
+        //this.mainLoop()
+        setInterval(() => this.mainLoop(), 1000 / 60)
         this.running = true
 
         this.hero.x = data.startX
@@ -104,12 +105,12 @@ OMGGameEngine.prototype.setupCanvas = function () {
     // make it square
     this.tileOffset = 8
     if (this.canvas.height > this.canvas.width) {
-        this.tileSize = Math.floor(this.canvas.width / (this.tileOffset * 2 + 1))
+        this.tileSize = 32 //Math.floor(this.canvas.width / (this.tileOffset * 2 + 1))
         this.offsetTop = (this.canvas.height - this.canvas.width) / 2
         this.offsetLeft = 0
     }
     else {
-        this.tileSize = Math.floor(this.canvas.height / (this.tileOffset * 2 + 1))
+        this.tileSize = 32 // Math.floor(this.canvas.height / (this.tileOffset * 2 + 1))
         this.offsetLeft = (this.canvas.width - this.canvas.height) / 2
         this.offsetTop = 0
     }
@@ -140,7 +141,10 @@ OMGGameEngine.prototype.setupInputs = function () {
 
         if (e.key === " " && !this.keysPressed[" "] && !this.hero.jumping) {
             console.log("jump")
-            this.hero.jumping = 1
+            this.hero.jumping = Date.now()
+            this.heroSpriter.setSheet("jump")
+            this.heroSpriter.i = 0
+            
             //this.hero.wishY = -1
             this.hero.dy = -16
         }
@@ -260,14 +264,19 @@ OMGGameEngine.prototype.render = function () {
 
     this.canvas.width = this.canvas.width
     this.drawCharacters()
-    this.drawHighlightedTiles()
+    if (this.debugBoxes) {
+        this.drawHighlightedTiles()
+    }
     this.nextFrame = false
 }
 
 OMGGameEngine.prototype.loadHero = function (spriteData) {
     this.heroSprite = spriteData
     this.heroSpriter = new OMGSpriter(spriteData, this.canvas)
-    this.heroSpriter.drawBorder = true
+    this.heroSpriter.setSheet("walk")
+    if (this.debugBoxes) {
+        this.heroSpriter.drawBorder = true
+    }
     this.heroSpriter.x = this.offsetLeft+ this.middleTileX
     this.heroSpriter.y = this.offsetTop + this.middleTileY
 
@@ -281,8 +290,13 @@ OMGGameEngine.prototype.loadHero = function (spriteData) {
 OMGGameEngine.prototype.drawCharacters = function () {
     if (this.heroSpriter) {
         this.heroSpriter.setRow(this.hero.facing)
-        if (this.nextFrame) {
-            this.heroSpriter.next()
+        if (!this.hero.jumping) {
+            if (this.nextFrame) {
+                this.heroSpriter.next()
+            }
+        }
+        else {
+            this.heroSpriter.i = Date.now() - this.hero.jumping > 150 ? 1 : 0
         }
         this.heroSpriter.draw()
     }
@@ -458,6 +472,7 @@ OMGGameEngine.prototype.canProceedY = function () {
             }
             else {
                 this.hero.jumping = 0
+                this.heroSpriter.setSheet("walk")
                 //console.log("land2")
                 return false
             }
