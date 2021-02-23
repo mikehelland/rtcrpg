@@ -876,8 +876,10 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
     this.tileDetails.editor.load(img, {
         previewCallback: (data) => {
             img.src = data
+            this.data.tileSet.tileCodes[this.tileDetails.code.value] = data //this.tileDetails.editor.getData()
             this.map.img.tiles[tile].src = data
             this.map.img.tiles[tile].onload = () => {this.map.draw()}
+            
         }
     })
 
@@ -895,15 +897,18 @@ OMGMapEditor.prototype.setupTileEditor = function (img) {
     this.tileDetailsDelete = document.getElementById("tile-details-delete")
 
     this.tileDetails.editorDiv = document.getElementById("tile-editor")
-    this.tileDetails.saveButton = document.getElementById("tile-editor-save-button")
+    this.tileDetails.renameButton = document.getElementById("tile-editor-rename-button")
 
     
     if (!this.tileDetails.editor) {
         this.tileDetails.editor = new OMGTileEditor(this.tileDetails.editorDiv, this.map.data.palette)
     }
     
-    this.tileDetails.saveButton.onclick = e => {
-        this.data.tileSet.tileCodes[this.tileDetails.code.value] = this.tileDetails.editor.getData()
+    this.tileDetails.code.onchange = e => {
+        this.tileDetails.renameButton.style.display = "inline"    
+    }
+    this.tileDetails.renameButton.onclick = e => {
+        //this.data.tileSet.tileCodes[this.tileDetails.code.value] = this.tileDetails.editor.getData()
 
         // they changed the name, so update the tiles
         if (this.tileDetails.tile !== this.tileDetails.code.value) {
@@ -925,7 +930,7 @@ OMGMapEditor.prototype.setupTileEditor = function (img) {
                 img.ondblclick()  
             })
         }
-        
+        this.tileDetails.renameButton.style.display = "none"    
     }
 
     this.tileDetails.window = this.wm.newWindow({

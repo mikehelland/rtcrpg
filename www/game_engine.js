@@ -141,6 +141,7 @@ OMGGameEngine.prototype.setupInputs = function () {
 
         if (e.key === " " && !this.keysPressed[" "] && !this.hero.jumping) {
             console.log("jump")
+            this.hero.jumpInput = true
             this.hero.jumping = Date.now()
             this.heroSpriter.setSheet("jump")
             this.heroSpriter.i = 0
@@ -181,7 +182,8 @@ OMGGameEngine.prototype.setupInputs = function () {
                 this.hero.dy = Math.floor(this.hero.dy / 4)
             }
             this.hero.wishY = 0
-            this.hero.jumping = this.maxJump
+            //this.hero.jumping = this.maxJump
+            this.hero.jumpInput = false
         }
         if (e.key === "ArrowUp" && !this.keysPressed["ArrowDown"]) {
             this.hero.wishY = 0
@@ -292,11 +294,17 @@ OMGGameEngine.prototype.drawCharacters = function () {
         this.heroSpriter.setRow(this.hero.facing)
         if (!this.hero.jumping) {
             if (this.nextFrame) {
-                this.heroSpriter.next()
+                if (this.heroSpriter.sheetName !== "walk") {
+                    this.heroSpriter.setSheet("walk")
+                    this.heroSpriter.i = 0
+                }
+                else {
+                    this.heroSpriter.next()
+                }
             }
         }
         else {
-            this.heroSpriter.i = Date.now() - this.hero.jumping > 150 ? 1 : 0
+            this.heroSpriter.i = Date.now() - this.hero.jumping < 150 ? 0 : this.hero.jumpInput ? 1 : 2
         }
         this.heroSpriter.draw()
     }
@@ -471,8 +479,12 @@ OMGGameEngine.prototype.canProceedY = function () {
                 
             }
             else {
-                this.hero.jumping = 0
-                this.heroSpriter.setSheet("walk")
+                if (this.hero.jumping) {
+                    this.heroSpriter.i = 3
+                    this.hero.jumping = 0
+                    //this.heroSpriter.setSheet("walk")
+                    //this.heroSpriter.i = 0
+                }
                 //console.log("land2")
                 return false
             }

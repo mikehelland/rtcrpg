@@ -32,7 +32,7 @@ function OMGTileEditor(div, palette) {
 }
 
 OMGTileEditor.prototype.load = function (img, options) {
-    this.frontCanvas.style.top = this.canvas.offsetTop + 2 + "px"
+    this.frontCanvas.style.top = this.canvas.offsetTop + "px"
     this.frontCanvas.width = this.canvas.width
     this.frontCanvas.height = this.canvas.height
     this.frontCanvas.style.width = this.canvas.clientWidth  + "px"
@@ -114,6 +114,17 @@ OMGTileEditor.prototype.onmove = function (x, y) {
             this.drawPixel(x, y, this.colorPicker.value, this.toolSelect.value === "Brush")
         }
     }
+    else {
+        this.frontCanvas.width = this.frontCanvas.width
+        this.frontCtx.fillStyle = this.colorPicker.value
+        if (this.toolSelect.value === "Pencil") {
+            this.frontCtx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize)
+        }
+        else if (this.toolSelect.value === "Brush") {
+            this.frontCtx.fillRect((x - 1) * this.pixelSize, (y - 1) * this.pixelSize, this.pixelSize * 3, this.pixelSize * 3)
+        }
+
+    }
 }
 
 OMGTileEditor.prototype.onup = function (x, y) {
@@ -121,9 +132,7 @@ OMGTileEditor.prototype.onup = function (x, y) {
         if (this.toolSelect.value === "Fill") {
             this.fill(x, y, this.colorPicker.value)
         }
-        if (this.previewCallback) {
-            this.previewCallback(this.sourceCtx.canvas.toDataURL("image/png"))
-        }
+        this.onChange()
     }
 }
 
@@ -285,4 +294,11 @@ OMGTileEditor.prototype.makePalette = function (color) {
         this.colorPicker.value = color
     }
     this.palettePicker.appendChild(div)
+}
+
+OMGTileEditor.prototype.onChange = function () {
+
+    if (this.previewCallback) {
+        this.previewCallback(this.sourceCtx.canvas.toDataURL("image/png"))
+    }
 }
