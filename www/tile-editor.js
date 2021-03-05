@@ -160,7 +160,9 @@ OMGTileEditor.prototype.setupControls = function () {
     this.flipXButton.innerHTML = "FlipX"
     this.flipYButton = document.createElement("button")
     this.flipYButton.innerHTML = "FlipY"
-
+    this.rotateButton = document.createElement("button")
+    this.rotateButton.innerHTML = "Rotate"
+    
     this.undoButton = document.createElement("button")
     this.undoButton.innerHTML = "Undo"
 
@@ -168,8 +170,10 @@ OMGTileEditor.prototype.setupControls = function () {
     this.canvas.parentElement.appendChild(this.colorPicker)
     this.canvas.parentElement.appendChild(this.flipXButton)
     this.canvas.parentElement.appendChild(this.flipYButton)
+    this.canvas.parentElement.appendChild(this.rotateButton)
     this.canvas.parentElement.appendChild(this.undoButton)
     
+    this.rotateButton.onclick = e => this.rotate()
     this.flipXButton.onclick = e => this.flipX()
     this.flipYButton.onclick = e => this.flipY()
     this.undoButton.onclick = e => {
@@ -257,6 +261,23 @@ OMGTileEditor.prototype.blankTile = "data:image/png;base64,iVBORw0KGgoAAAANSUhEU
                                     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
                                     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCn" +
                                     "AUGaAAH3lkeeAAAAAElFTkSuQmCC"
+
+OMGTileEditor.prototype.rotate = function () {
+
+    var imgData = this.sourceCtx.getImageData(0, 0, this.width, this.height)
+
+    var i = 0
+    for (var x = this.width - 1; x >= 0; x--) {
+        for (var y = 0; y < this.height; y++) {
+            this.ctx.fillStyle = "rgba(" + imgData.data[i++] + ", " + imgData.data[i++] + 
+                                 ", " + imgData.data[i++] + "," + imgData.data[i++] + ")"
+            this.ctx.fillRect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize)
+            this.sourceCtx.fillStyle = this.ctx.fillStyle
+            this.sourceCtx.fillRect(x, y, 1, 1)
+        }
+    }
+    this.onChange()
+}
 
 OMGTileEditor.prototype.flipX = function () {
 
