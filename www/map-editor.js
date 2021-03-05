@@ -907,7 +907,7 @@ OMGMapEditor.prototype.setupTileEditor = function () {
                 this.tileDetails.img.ondblclick()  
             })
         }
-        this.tileDetails.renameButton.style.display = "none"    
+        //this.tileDetails.renameButton.style.display = "none"    
     }
 
     this.tileDetails.window = this.wm.newWindow({
