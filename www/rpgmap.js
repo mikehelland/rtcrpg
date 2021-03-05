@@ -57,6 +57,14 @@ OMGRPGMap.prototype.loadTileSet = function (tileSet) {
     
     this.img.tiles = {}
 
+    var onload = () => {
+        loaded++
+        if (loaded === toLoad) {
+            this.draw()
+        }
+    }
+    var toLoad = 0
+    var loaded = 0
     Object.keys(tileSet.tileCodes).forEach(key => {
         if (!this.img.tiles[key]) {
             this.img.tiles[key] = document.createElement("img")
@@ -68,8 +76,9 @@ OMGRPGMap.prototype.loadTileSet = function (tileSet) {
         else {
             img.src = (tileSet.prefix || "") + tileSet.tileCodes[key] + (tileSet.postfix || "")
         }
-        img.onload = e => this.draw()
-        
+        img.onload = e => onload()
+        img.onerror = e => onload()
+        toLoad++        
     })
 
     

@@ -277,11 +277,12 @@ OMGMapEditor.prototype.setupControls = function () {
     this.canvasWindow = this.wm.newWindow({
         div: document.getElementById("drawing-window"),
         x:100, y:40, width: window.innerWidth - 130, height: window.innerHeight - 50,
-//        overflowX: "auto", overflowY: "auto"
+        caption: "Map"
     })
     this.toolBoxWindow = this.wm.newWindow({
         div: document.getElementById("tools"),
-        x:0, y:40, width: 95, height: window.innerHeight - 80
+        x:0, y:40, width: 95, height: window.innerHeight - 50,
+        caption: "Toolbox"
     })
     
 
