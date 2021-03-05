@@ -845,6 +845,8 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
 
     this.tileDetails.div.style.display = "block"
     this.tileDetails.code.value = tile
+    this.tileDetails.tile = tile
+    this.tileDetails.img = img
 
     this.tileDetails.editor.load(img, {
         previewCallback: (data) => {
@@ -859,7 +861,7 @@ OMGMapEditor.prototype.showTileEditor = function (tile, img, tileSet) {
 }
 
 
-OMGMapEditor.prototype.setupTileEditor = function (img) {
+OMGMapEditor.prototype.setupTileEditor = function () {
     
     this.tileDetails = {}
 
@@ -894,13 +896,15 @@ OMGMapEditor.prototype.setupTileEditor = function (img) {
             }
 
             if (this.tileListDiv) {
-                this.tileListDiv.removeChild(img)
+                this.tileListDiv.removeChild(this.tileDetails.img)
             }
+
+            this.data.tileSet.tileCodes[this.tileDetails.code.value] = this.data.tileSet.tileCodes[this.tileDetails.tile]
             delete this.data.tileSet.tileCodes[this.tileDetails.tile]
             this.tileDetails.tile = this.tileDetails.code.value
-            img = this.loadTile(this.tileDetails.tile, this.data.tileSet, () => {
-                img.onclick()
-                img.ondblclick()  
+            this.tileDetails.img = this.loadTile(this.tileDetails.tile, this.data.tileSet, () => {
+                this.tileDetails.img.onclick()
+                this.tileDetails.img.ondblclick()  
             })
         }
         this.tileDetails.renameButton.style.display = "none"    
