@@ -1,11 +1,31 @@
-function OMGRPGMap(data, canvas, options) {
+function OMGRPGMap(data, options) {
     
     options = options || {}
 
     this.tileSize = 32
     this.data = data || {}
-    this.canvas = canvas 
+
+    this.canvas = options.backCanvas || document.createElement("canvas")
     this.ctx = this.canvas.getContext("2d")
+    this.charCanvas = options.charCanvas ||document.createElement("canvas")
+    this.charCtx = this.charCanvas.getContext("2d")
+
+    if (!options.backCanvas) {
+        this.canvas.style.position = "absolute"
+        this.canvas.style.top = "0px"
+        this.canvas.style.left = "0px"
+        this.canvas.style.height = "100%"
+        this.canvas.style.width = "100%"
+    }
+
+    if (!options.charCanvas) {
+        this.charCanvas.style.position = "absolute"
+    }
+
+    if (options.div) {
+        options.div.appendChild(this.canvas)
+        options.div.appendChild(this.charCanvas)
+    }
 
     this.img = options.img || {}
     this.tileSplitChar = "·"
@@ -26,6 +46,9 @@ function OMGRPGMap(data, canvas, options) {
     this.canvas.width = this.data.width * this.tileSize
     this.canvas.height = this.data.height * this.tileSize
     
+    this.charCanvasOffsetX = 0
+    this.charCanvasOffsetY = 0
+    this.loadNPCs()
 }
 
 OMGRPGMap.prototype.loadTileSet = function (tileSet) {
@@ -90,4 +113,39 @@ OMGRPGMap.prototype.updateYLines = function () {
         this.data.yLines.push(yLine.join(this.tileSplitChar))
     }
     
+}
+
+OMGRPGMap.prototype.loadNPC = function (npc) {
+    
+    npc.width = npc.sprite.frameWidth / 32
+    npc.height = npc.sprite.frameHeight / 32
+
+    var spriter = new OMGSpriter(npc.sprite, this.charCanvas)
+    spriter.w = npc.width * this.tileSize
+    spriter.h = npc.height * this.tileSize
+    
+    if (npc.soundURL) {
+        fetch(npc.soundURL).then(res => res.json()).then(data => {
+            this.loadNPCMusic(npc, data)
+        }).catch(e => console.error(e))
+    }
+    return spriter
+}
+
+OMGRPGMap.prototype.drawNPCs = function () {
+    for (this._dnpc of this.activeSprites) {
+        this._dnpc.spriter.drawXY(
+            this._dnpc.npc.x * this.tileSize + this.charCanvasOffsetX, 
+            this._dnpc.npc.y * this.tileSize + this.charCanvasOffsetY)        
+    }
+
+}
+
+OMGRPGMap.prototype.loadNPCs = function () {
+    this.activeSprites = []
+
+    for (var npc of this.data.npcs) {
+        var spriter = this.loadNPC(npc)
+        this.activeSprites.push({npc, spriter})
+   }
 }

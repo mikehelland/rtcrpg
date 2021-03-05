@@ -12,8 +12,11 @@ function OMGEmbeddedViewerMAP (viewer) {
     viewer.embedDiv.appendChild(this.canvas)
 
 
-    omg.util.loadScripts([omg.apps["rtcrpg"].path + "rpgmap.js"], () => {
-        this.map = new OMGRPGMap(viewer.data, this.canvas)
+    omg.util.loadScripts([
+        omg.apps["rtcrpg"].path + "rpgmap.js",
+        omg.apps["sprite"].path + "spriter.js"
+    ], () => {
+        this.map = new OMGRPGMap(viewer.data, {div: viewer.embedDiv})
         this.map.draw() 
     })
     

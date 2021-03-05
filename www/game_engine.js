@@ -27,6 +27,8 @@ function OMGGameEngine(params) {
     this.dmax = 8
     this.gravity = 0 //0.5
     this.targetTiles = []
+
+    this.activeSprites = []
 }
 
 OMGGameEngine.prototype.mainLoop = function () {
@@ -43,7 +45,7 @@ OMGGameEngine.prototype.mainLoop = function () {
 OMGGameEngine.prototype.loadMap = function (data, mapName) {
     this.roomName = mapName
 
-    this.map = new OMGRPGMap(data, this.backgroundCanvas)
+    this.map = new OMGRPGMap(data, {backCanvas: this.backgroundCanvas, charCanvas: this.canvas})
     this.map.tileSize = this.tileSize
     
     this.background.style.width = this.backgroundCanvas.width + "px"
@@ -54,7 +56,7 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
 
     this.npcs = data.npcs || []
     this.npcs.forEach(npc => {
-        this.loadNPC(npc)
+        this.map.loadNPC(npc)
     })
 
 
@@ -308,6 +310,11 @@ OMGGameEngine.prototype.drawCharacters = function () {
         }
         this.heroSpriter.draw()
     }
+
+    this.map.charCanvasOffsetX = this.middleTileX - this.hero.x
+    this.map.charCanvasOffsetY = this.middleTileY - this.hero.y
+    
+    this.map.drawNPCs()
 }
 
 OMGGameEngine.prototype.drawHighlightedTiles = function () {

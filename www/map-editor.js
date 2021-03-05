@@ -1,11 +1,7 @@
-function OMGMapEditor (canvas, frontCanvas) {
-    this.canvas = canvas
-    this.context = canvas.getContext("2d")
+function OMGMapEditor (div) {
+    console.log(div)
+    this.div = div
     this.zoom = 1
-
-    this.frontCanvas = frontCanvas
-    this.frontContext = this.frontCanvas.getContext("2d")
-    this.frontCanvas.style.pointerEvents = "none"
 
     this.mode = "TILE"
     this.img = {
@@ -18,7 +14,6 @@ function OMGMapEditor (canvas, frontCanvas) {
     this.gamePage = "char.htm"
 
     this.wm = new OMGWindowManager({div: document.body})
-    this.setupEvents(canvas)
     this.setupControls()
 
 }
@@ -31,8 +26,11 @@ OMGMapEditor.prototype.load = function (data) {
         }
         this.loadTileSet(data.tileSet)
 
-        this.map = new OMGRPGMap(data, this.canvas, {img: this.img})
+        this.map = new OMGRPGMap(data, {div: this.div, img: this.img})
         this.data = data
+        this.canvas = this.map.charCanvas
+        this.setupEvents(this.map.charCanvas)
+    
         
         if (!this.data.palette) {
             this.data.palette = []
@@ -41,10 +39,8 @@ OMGMapEditor.prototype.load = function (data) {
         this.widthInput.value = data.width
         this.heightInput.value = data.height
 
-        this.canvas.width = this.data.width * this.map.tileSize * this.zoom
-        this.canvas.height = this.data.height * this.map.tileSize * this.zoom 
-        this.canvas.style.width = this.canvas.width + "px"
-        this.canvas.style.height = this.canvas.height + "px"
+        this.div.style.width = this.data.width * this.map.tileSize * this.zoom + "px"
+        this.div.style.height = this.data.height * this.map.tileSize * this.zoom + "px"
         
         this.loadNPCs()
         this.loadHTML()
@@ -178,7 +174,7 @@ OMGMapEditor.prototype.tileEvent = function (x, y, brushing) {
     if (this.selectedTile && this.map.tiles[x] && this.map.tiles[x][y]) {
         this.map.tiles[x][y] = {code: this.selectedTile}
 
-        this.context.drawImage(this.img.tiles[this.selectedTile],
+        this.map.ctx.drawImage(this.img.tiles[this.selectedTile],
             x * this.map.tileSize, 
             y * this.map.tileSize,
             this.map.tileSize, this.map.tileSize)
@@ -203,7 +199,7 @@ OMGMapEditor.prototype.tileFill = function (x, y) {
     var tilesChecked = {}
     var nextTiles = [[x, y]]
     this.map.tiles[x][y].code = this.selectedTile
-    this.context.drawImage(this.img.tiles[this.selectedTile],
+    this.map.ctx.drawImage(this.img.tiles[this.selectedTile],
         x * this.map.tileSize, 
         y * this.map.tileSize,
         this.map.tileSize, this.map.tileSize)
@@ -236,7 +232,7 @@ OMGMapEditor.prototype.checkFillTile = function (x, y, fillTile, newTiles) {
     if (this.map.tiles[x] && this.map.tiles[x][y] && this.map.tiles[x][y].code === fillTile) {
         newTiles.push([x, y])
         this.map.tiles[x][y].code = this.selectedTile
-        this.context.drawImage(this.img.tiles[this.selectedTile],
+        this.map.ctx.drawImage(this.img.tiles[this.selectedTile],
             x * this.map.tileSize, 
             y * this.map.tileSize,
             this.map.tileSize, this.map.tileSize)
@@ -252,7 +248,7 @@ OMGMapEditor.prototype.tilePreview = function (x, y, brushing) {
     }
 
     if (this.selectedTile) {
-        this.frontContext.drawImage(this.img.tiles[this.selectedTile],
+        this.map.charCtx.drawImage(this.img.tiles[this.selectedTile],
             x * this.map.tileSize, 
             y * this.map.tileSize,
             this.map.tileSize, this.map.tileSize)
@@ -390,23 +386,16 @@ OMGMapEditor.prototype.setupControls = function () {
 }
 
 OMGMapEditor.prototype.setupSelectCharacterDialog = function () {
-    omg.server.getHTTP("/data/?type=SPRITE", results => {
-        results.forEach(result => {
-            var newEl = document.createElement("canvas")
-            newEl.className = "select-character-dialog-item"
-            this.selectCharacterList.appendChild(newEl)
-            try {
-                var spriter = new OMGSpriter(result, newEl)
-                spriter.setSheet()
-                spriter.draw()
-            }
-            catch (e) {console.error(e)}
 
-            newEl.onclick = e => {
-                this.placeNPC(result)
-            }
-        })
-    })
+    var searchBox = new OMGSearchBox({types: ["SPRITE"]})
+
+    this.selectCharacterList.appendChild(searchBox.div)
+    
+    searchBox.onclickcontent = e => {
+        this.placeNPC(e.data)
+    }
+
+    searchBox.search()
 }
 
 OMGMapEditor.prototype.resizeMap = function () {
@@ -492,6 +481,7 @@ OMGMapEditor.prototype.setupNPCControls = function () {
             this.isCharacterDialogAnimate = true
             this.setupSelectCharacterDialog()
         }
+        this.selectCharacterDialog.style.display = "block"
         this.closeSelectCharacerDialog = omg.ui.showDialog(this.selectCharacterDialog)
     }
     this.npcDetailsDiv = document.getElementById("npc-details")
@@ -564,7 +554,7 @@ OMGMapEditor.prototype.addNPC = function (e) {
         ]
     }
 
-    let spriter = new OMGSpriter(npc.sprite, this.frontCanvas)
+    let spriter = new OMGSpriter(npc.sprite, this.map.charCanvas)
     spriter.w = spriter.w * this.zoom
     spriter.h = spriter.h * this.zoom
 
@@ -588,7 +578,7 @@ OMGMapEditor.prototype.placeNPC = function (sprite) {
     this.addNPCButton.innerHTML = "Place..."
     this.mode = "NPC_PLACE"
     this.selectedSprite = sprite
-    this.previewSpriter = new OMGSpriter(sprite, this.frontCanvas)
+    this.previewSpriter = new OMGSpriter(sprite, this.map.charCanvas)
     this.previewSpriter.w = this.previewSpriter.w * this.zoom
     this.previewSpriter.h = this.previewSpriter.h * this.zoom
 
@@ -707,21 +697,21 @@ OMGMapEditor.prototype.drawNPCs = function () {
         return
     }
 
-    this.frontCanvas.width = this.canvas.width
-    this.frontCanvas.height = this.canvas.height
-    this.frontCanvas.style.width = this.canvas.width * this.zoom + "px"
-    this.frontCanvas.style.height = this.canvas.height * this.zoom + "px"
+    this.map.charCanvas.width = this.map.canvas.width
+    this.map.charCanvas.height = this.map.canvas.height
+    this.map.charCanvas.style.width = this.map.canvas.width * this.zoom + "px"
+    this.map.charCanvas.style.height = this.map.canvas.height * this.zoom + "px"
 
-    this.frontContext.fillStyle = "white"
+    this.map.charCanvas.fillStyle = "white"
 
-    this.frontContext.fillRect(
+    this.map.charCtx.fillRect(
         this.data.startX * this.map.tileSize,
         this.data.startY * this.map.tileSize,
         this.map.tileSize, this.map.tileSize)
 
-    this.frontContext.strokeStyle = "red"
+    this.map.charCtx.strokeStyle = "red"
     if (this.htmlBeingAdded) {
-        this.frontContext.strokeRect(this.htmlBeingAdded.x * this.map.tileSize,
+        this.map.charCtx.strokeRect(this.htmlBeingAdded.x * this.map.tileSize,
             this.htmlBeingAdded.y * this.map.tileSize,
             this.htmlBeingAdded.width * this.map.tileSize,
             this.htmlBeingAdded.height * this.map.tileSize)
@@ -729,7 +719,7 @@ OMGMapEditor.prototype.drawNPCs = function () {
     
     if (this.data.html) {
         for (this._loop_drawNPCs_i = 0;  this._loop_drawNPCs_i < this.data.html.length; this._loop_drawNPCs_i++) {
-            this.frontContext.strokeRect(
+            this.map.charCtx.strokeRect(
                 this.data.html[this._loop_drawNPCs_i].x * this.map.tileSize,
                 this.data.html[this._loop_drawNPCs_i].y * this.map.tileSize,
                 this.data.html[this._loop_drawNPCs_i].width * this.map.tileSize,
@@ -738,25 +728,8 @@ OMGMapEditor.prototype.drawNPCs = function () {
         }
     }
 
-    for (this._loop_drawNPCs_i = 0;  this._loop_drawNPCs_i < this.data.npcs.length; this._loop_drawNPCs_i++) {
-
-        this._loop_draw_npc = this.data.npcs[this._loop_drawNPCs_i]
-        
-
-        this._loop_draw_spriter = this.spriters.get(this._loop_draw_npc)
-        if (this._loop_draw_npc === this.selectedNPC) {
-
-            this.frontContext.lineWidth = 4
-            this.frontContext.strokeStyle = "red" 
-            this.frontContext.strokeRect(
-                this._loop_draw_npc.x * this.map.tileSize,
-                this._loop_draw_npc.y * this.map.tileSize,
-                this._loop_draw_spriter.w, this._loop_draw_spriter.h)
-        }
-
-        this._loop_draw_spriter.drawXY(this._loop_draw_npc.x * this.map.tileSize, this._loop_draw_npc.y * this.map.tileSize)        
-    }
-
+    this.map.drawNPCs()
+    
     if (this.previewSpriter) {
         this.previewSpriter.draw()
     }
@@ -776,7 +749,7 @@ OMGMapEditor.prototype.loadNPCs = function () {
     this.spriters = new Map()
 
     for (var i = 0; i < this.data.npcs.length; i++) {
-        let spriter = new OMGSpriter(this.data.npcs[i].sprite, this.frontCanvas)
+        let spriter = new OMGSpriter(this.data.npcs[i].sprite, this.map.charCanvas)
         spriter.w = spriter.w * this.zoom
         spriter.h = spriter.h * this.zoom
 
@@ -827,8 +800,8 @@ OMGMapEditor.prototype.moveHero = function (e) {
 
 OMGMapEditor.prototype.drawSpritePreview = function (e) {
     if (this.previewSpriter) {
-        this.previewSpriter.x = Math.floor((e.clientX - this.canvas.offsetLeft) / this.map.tileSize) * this.map.tileSize
-        this.previewSpriter.y = Math.floor((e.clientY - this.canvas.offsetTop) / this.map.tileSize) * this.map.tileSize
+        this.previewSpriter.x = Math.floor((e.clientX - this.div.offsetLeft) / this.map.tileSize) * this.map.tileSize
+        this.previewSpriter.y = Math.floor((e.clientY - this.div.offsetTop) / this.map.tileSize) * this.map.tileSize
         this.drawNPCs() 
     }
 }

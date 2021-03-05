@@ -3,6 +3,7 @@
 <head>
     <link rel="stylesheet" href="/css/main.css" type="text/css" />
     <link rel="stylesheet" href="/css/window_manager.css" type="text/css" />
+    <link rel="stylesheet" href="/css/viewer.css" type="text/css" />
     <style>
         body {
             margin:0px;
@@ -124,11 +125,14 @@
         }
         
         #select-character-dialog {
+            width: 50%;
+            height: 70%;
             display:none;
             background-color: #EEEEEE;
             color:black;
             border:1px solid black;
             max-width: 800px;
+            overflow-y: auto;
         }
 
         .select-character-dialog-item {
@@ -148,13 +152,17 @@
             width: 32px;
             height:32px;
         }
+
+        #drawing-window {
+            position:absolute;
+            top:36px;
+            left:80px;
+        }
     </style>
 </head>
 <body>
     
     <div id="drawing-window">
-    <canvas id="back-canvas"></canvas>
-    <canvas id="front-canvas"></canvas>
     </div>
 
     <div id="main-menu">
@@ -256,6 +264,8 @@
     <script src="/apps/sprite/spriter.js"></script>
     <script src="tile-editor.js"></script>
     <script src="/js/window_manager.js"></script>
+
+    <script src="/js/searchbox.js"></script>
     
     <script>
 
@@ -273,10 +283,7 @@
         var heightInput = document.getElementById('map-height-input')
         var tilesizeInput = document.getElementById('map-tile-size-input')
 
-        var canvas = document.getElementById("back-canvas")
-        var canvas2 = document.getElementById("front-canvas")
-
-        var editor = new OMGMapEditor(canvas, canvas2)
+        var editor = new OMGMapEditor(document.getElementById("drawing-window"))
 
         var params = omg.util.getPageParams()
         if (params.id) {
