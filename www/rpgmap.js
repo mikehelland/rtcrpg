@@ -14,8 +14,8 @@ function OMGRPGMap(data, options) {
         this.canvas.style.position = "absolute"
         this.canvas.style.top = "0px"
         this.canvas.style.left = "0px"
-        this.canvas.style.height = "100%"
-        this.canvas.style.width = "100%"
+        //this.canvas.style.height = "100%"
+        //this.canvas.style.width = "100%"
     }
 
     if (!options.charCanvas) {

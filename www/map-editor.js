@@ -30,7 +30,9 @@ OMGMapEditor.prototype.load = function (data) {
         this.data = data
         this.canvas = this.map.charCanvas
         this.setupEvents(this.map.charCanvas)
-    
+
+        //this.map.charCanvas.style.width = "100%"
+        //this.map.charCanvas.style.height = "100%"
         
         if (!this.data.palette) {
             this.data.palette = []
@@ -39,8 +41,8 @@ OMGMapEditor.prototype.load = function (data) {
         this.widthInput.value = data.width
         this.heightInput.value = data.height
 
-        this.div.style.width = this.data.width * this.map.tileSize * this.zoom + "px"
-        this.div.style.height = this.data.height * this.map.tileSize * this.zoom + "px"
+        //this.div.style.width = this.data.width * this.map.tileSize * this.zoom + "px"
+        //this.div.style.height = this.data.height * this.map.tileSize * this.zoom + "px"
         
         this.loadNPCs()
         this.loadHTML()
@@ -271,14 +273,16 @@ OMGMapEditor.prototype.setupControls = function () {
     /*this.mainMenuWindow = this.wm.newWindow({
         div: document.getElementById("main-menu"),
         x:80, y:0, width: window.innerWidth - 84, height: 60
-    })
+    })*/
     this.canvasWindow = this.wm.newWindow({
-        div: document.getElementById("drawing-window")
+        div: document.getElementById("drawing-window"),
+        x:90, y:40, width: window.innerWidth - 120, height: window.innerHeight - 50,
+//        overflowX: "auto", overflowY: "auto"
     })
     this.toolBoxWindow = this.wm.newWindow({
         div: document.getElementById("tools"),
-        x:0, y:0, width: 80, height: window.innerHeight - 80
-    })*/
+        x:0, y:40, width: 80, height: window.innerHeight - 80
+    })
     
 
     this.nameInput = document.getElementById("map-name")
@@ -916,7 +920,7 @@ OMGMapEditor.prototype.setupTileEditor = function () {
         height: 500,
         caption: "Tile Editor",
         x: window.innerWidth - 510,
-        y: 40
+        y: 70
     })
 
 }
