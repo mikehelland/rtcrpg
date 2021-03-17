@@ -217,20 +217,7 @@
         
         
     </div>
-    <div id="npc-details">
-        <canvas id="npc-details-canvas"></canvas>
-        <input id="npc-details-name"></input>
-        <hr>
-        Dialog:
-        <div id="npc-details-dialog"></div>
-        <!--<button id="npc-details-dialog-add-button">Add Dialog</button>-->
-        <textarea id="npc-dialog-input"></textarea>
-        Sound URL:
-        <input id="npc-details-sound"></input>
-        <hr>
-        <button id="npc-details-delete">Delete</button>
-    </div>
-
+    
     <div id="html-details">
         <input id="html-details-name"></input>
         <hr>
@@ -249,6 +236,12 @@
         <button id="new-copy-button">New Copy</button>
     </div>
 
+    <div id="saved">
+        Your map has been saved.
+        <br>
+        <a id="saved-url"></a>
+    </div>
+
     <div id="select-character-dialog">
         <h3>Select a Character</h3>
         <hr>
@@ -258,16 +251,13 @@
 
     <div id="tile-highlight"></div>
     <script src="/js/omgservice.js"></script>
-    <script src="map-editor.js"></script>
-    <script src="rpgmap.js"></script>
-    <script src="/apps/sprite/spriter.js"></script>
     <script src="tile-editor.js"></script>
     <script src="/js/window_manager.js"></script>
 
     <script src="/js/searchbox.js"></script>
     
-    <script>
-
+    <script type="module">
+        import OMGMapEditor from "./map-editor.js"
         var blankMap = {
         "name": "",
         "width": 30,

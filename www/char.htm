@@ -22,17 +22,15 @@
     <canvas tabindex="1" id="mainCanvas"></canvas>
 
     <script src="/js/omgservice.js"></script>
-    <script src="game_engine.js"></script>
-    <script src="/apps/sprite/spriter.js"></script>
-    <script src="rpgmap.js"></script>
-    <script>
+    <script type="module">
+        import OMGGameEngine from "./game_engine.js"
         var ge
         var params = omg.util.getPageParams()
         if (params.id) {
             omg.server.getId(params.id, data => {
 
                 ge = new OMGGameEngine()
-
+                window.ge = ge
                 ge.loadMap(data, location.href)
 
                 var charSprite = "https://wesandm.com/data/64"

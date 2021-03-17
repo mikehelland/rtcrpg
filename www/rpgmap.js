@@ -1,4 +1,6 @@
-function OMGRPGMap(data, options) {
+import OMGSpriter from "/apps/sprite/spriter.js"
+
+export default function OMGRPGMap(data, options) {
     
     options = options || {}
 
@@ -128,7 +130,6 @@ OMGRPGMap.prototype.loadNPC = function (npc) {
     
     npc.width = npc.sprite.frameWidth / 32
     npc.height = npc.sprite.frameHeight / 32
-
     var spriter = new OMGSpriter(npc.sprite, this.charCanvas)
     spriter.w = npc.width * this.tileSize
     spriter.h = npc.height * this.tileSize
@@ -141,20 +142,26 @@ OMGRPGMap.prototype.loadNPC = function (npc) {
     return spriter
 }
 
-OMGRPGMap.prototype.drawNPCs = function () {
+OMGRPGMap.prototype.drawNPCs = function (advanceFrame) {
     for (this._dnpc of this.activeSprites) {
+        if (advanceFrame && this._dnpc.npc.animating) {
+            this._dnpc.spriter.next()
+        }
         this._dnpc.spriter.drawXY(
             this._dnpc.npc.x * this.tileSize + this.charCanvasOffsetX, 
-            this._dnpc.npc.y * this.tileSize + this.charCanvasOffsetY)        
+            this._dnpc.npc.y * this.tileSize + this.charCanvasOffsetY)
     }
 
 }
 
-OMGRPGMap.prototype.loadNPCs = function () {
+OMGRPGMap.prototype.loadNPCs = async function () {
     this.activeSprites = []
-
+    var loadPromises = []
     for (var npc of this.data.npcs) {
         var spriter = this.loadNPC(npc)
+        loadPromises.push(spriter.setSheet())
         this.activeSprites.push({npc, spriter})
    }
+
+   Promise.all(loadPromises).then(() => this.drawNPCs())
 }

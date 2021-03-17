@@ -1,5 +1,7 @@
-function OMGGameEngine(params) {
+import OMGRPGMap from "./rpgmap.js"
 
+export default function OMGGameEngine(params) {
+    this.debugBoxes = true
     this.params = params
 
     this.setupCanvas()
@@ -29,6 +31,7 @@ function OMGGameEngine(params) {
     this.targetTiles = []
 
     this.activeSprites = []
+    this.fudge = 8
 }
 
 OMGGameEngine.prototype.mainLoop = function () {
@@ -141,8 +144,7 @@ OMGGameEngine.prototype.setupInputs = function () {
             return
         }
 
-        if (e.key === " " && !this.keysPressed[" "] && !this.hero.jumping) {
-            console.log("jump")
+        if (this.gravity && e.key === " " && !this.keysPressed[" "] && !this.hero.jumping) {
             this.hero.jumpInput = true
             this.hero.jumping = Date.now()
             this.heroSpriter.setSheet("jump")
@@ -150,6 +152,9 @@ OMGGameEngine.prototype.setupInputs = function () {
             
             //this.hero.wishY = -1
             this.hero.dy = -16
+        }
+        else if (!this.gravity && e.key === " ") {
+            this.actionKey()
         }
         else if (e.key === "ArrowUp") {
             this.hero.wishY = -1
@@ -274,9 +279,12 @@ OMGGameEngine.prototype.render = function () {
     this.nextFrame = false
 }
 
-OMGGameEngine.prototype.loadHero = function (spriteData) {
+OMGGameEngine.prototype.loadHero = async function (spriteData) {
     this.heroSprite = spriteData
-    this.heroSpriter = new OMGSpriter(spriteData, this.canvas)
+
+    // todo move to top
+    var o = await import("/apps/sprite/spriter.js")
+    this.heroSpriter = new o.default(spriteData, this.canvas)
     this.heroSpriter.setSheet("walk")
     if (this.debugBoxes) {
         this.heroSpriter.drawBorder = true
@@ -314,7 +322,7 @@ OMGGameEngine.prototype.drawCharacters = function () {
     this.map.charCanvasOffsetX = this.middleTileX - this.hero.x
     this.map.charCanvasOffsetY = this.middleTileY - this.hero.y
     
-    this.map.drawNPCs()
+    this.map.drawNPCs(this.nextFrame)
 }
 
 OMGGameEngine.prototype.drawHighlightedTiles = function () {
@@ -343,6 +351,10 @@ OMGGameEngine.prototype.physics = function () {
     
 
     this.targetTiles = []
+
+    if (this.hero.dy || this.hero.dx) {
+        this.touchingNPC = null
+    }
 
     if (this.hero.dy && this.canProceedY()) {
         this.hero.y += this.hero.dy
@@ -381,16 +393,16 @@ OMGGameEngine.prototype.canProceedX = function () {
 
     //console.log(this.hero.y, this.tileSize, this.hero.y / this.tileSize)
     if (this.hero.dx > 0) {
-        x += ge.heroWidth
+        x += this.heroWidth
     }
     if (this.hero.dy > 0) {
-        //y += ge.heroHeight
+        //y += this.heroHeight
     }
     
-    var boxCount = ge.heroHeight
+    var boxCount = this.heroHeight
     var boxStart = 0
     var margin = this.hero.y - y * this.tileSize
-    this.fudge = 8
+    
 
     if (margin < this.fudge) {
         boxCount -= 1
@@ -398,18 +410,28 @@ OMGGameEngine.prototype.canProceedX = function () {
     else if (margin > this.fudge * -1 + this.tileSize) {
         boxStart = 1
     }
+
+    // if we're we can walk in all directions,
+    // use the feet as the hit box
+    if (!this.gravity) {
+        boxStart = boxCount
+    }
     
     if (this.hero.dx !== 0) {
-        for (ge.imoveHitTest = boxStart; ge.imoveHitTest <=  boxCount; ge.imoveHitTest++) {
-            if (ge.map.tiles[x]) {
-                target = ge.map.tiles[x][y + ge.imoveHitTest]
+        for (this.imoveHitTest = boxStart; this.imoveHitTest <=  boxCount; this.imoveHitTest++) {
+            if (this.map.tiles[x]) {
+                target = this.map.tiles[x][y + this.imoveHitTest]
                 if (target) {
                     var targetTile = {tile: target,
                         x: x,
-                        y: y + ge.imoveHitTest
+                        y: y + this.imoveHitTest
                     }
                     this.targetTiles.push(targetTile)
                     targets.push(targetTile)
+                }
+
+                if (!target || target.code.charAt(0) === target.code.charAt(0).toUpperCase()) {
+                    return false
                 }
             }
             else {
@@ -418,11 +440,15 @@ OMGGameEngine.prototype.canProceedX = function () {
         }
     }
 
-    for (ge.imoveHitTest = 0; ge.imoveHitTest <  targets.length; ge.imoveHitTest++) {
-        if (!targets[ge.imoveHitTest].tile || 
-                (targets[ge.imoveHitTest].tile.code.charAt(0) === targets[ge.imoveHitTest].tile.code.charAt(0).toUpperCase())) {
-                    //console.log(targets)
-            return false
+    for (var sprite of this.map.activeSprites) {
+        for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
+            if (sprite.npc.y <= targets[this.imoveHitTest].y && sprite.npc.y + sprite.npc.height > targets[this.imoveHitTest].y && 
+                (targets[this.imoveHitTest].x === (this.hero.dx < 0 ? sprite.npc.x + sprite.npc.width - 1 : sprite.npc.x))) {
+
+                this.touchingNPC = sprite
+                return false
+            }
+
         }
     }
     return true
@@ -434,68 +460,95 @@ OMGGameEngine.prototype.canProceedY = function () {
     var target
     var targety
 
-    var x = Math.floor((this.hero.x + this.hero.dx) / this.tileSize)
+    var x = Math.round((this.hero.x + this.hero.dx) / this.tileSize)
     var y = Math.floor((this.hero.y + this.hero.dy) / this.tileSize)
 
     if (this.hero.dx > 0) {
-        //x += ge.heroWidth
-    }
-    if (this.hero.dy > 0) {
-        y += ge.heroHeight
+        //x += this.heroWidth
     }
 
-    var boxCount = ge.heroWidth
+    // if we can walk in all directions, use the feet as hit boxes
+    if (this.hero.dy > 0) {
+        y += this.heroHeight
+    }
+    else {
+        if (!this.gravity) {
+            y += this.heroHeight - 1
+        }    
+    }
+
+    var boxCount = this.heroWidth
     var boxStart = 0
     var margin = this.hero.x - x * this.tileSize
-    this.fudge = 8
     
+    /*
     if (margin < this.fudge) {
         boxCount -= 1
     }
     else if (margin > this.fudge * -1 + this.tileSize) {
         boxStart = 1
     }
+    */
     
     if (this.hero.dy !== 0) {
-        if (!ge.map.tiles[x]) {
+        if (!this.map.tiles[x]) {
             return false
         }
-        targety = ge.map.tiles[x][y]
+        targety = this.map.tiles[x][y]
         if (targety) {
-            for (ge.imoveHitTest = boxStart; ge.imoveHitTest <=  boxCount; ge.imoveHitTest++) {
-                if (ge.map.tiles[x + ge.imoveHitTest]) {
+            for (this.imoveHitTest = boxStart; this.imoveHitTest <  boxCount; this.imoveHitTest++) {
+                if (this.map.tiles[x + this.imoveHitTest]) {
                     var targetTile = {
-                        tile: ge.map.tiles[x + ge.imoveHitTest][y],
-                        x: x + ge.imoveHitTest,
+                        tile: this.map.tiles[x + this.imoveHitTest][y],
+                        x: x + this.imoveHitTest,
                         y: y
                     }
                     targets.push(targetTile)
                     this.targetTiles.push(targetTile)
+
+                    if (targetTile.tile.code.charAt(0) === targetTile.tile.code.charAt(0).toUpperCase()) {
+                        if (this.gravity && this.hero.dy > 1 && targetTile.y * this.tileSize > this.hero.y + this.heroSpriter.h) {
+                            this.hero.dy = targetTile.y * this.tileSize - this.hero.y - this.heroSpriter.h
+                            //console.log("land", this.hero.dy, targets[this.imoveHitTest].y * this.tileSize , this.hero.y + this.heroSpriter.h)
+                            
+                        }
+                        else {
+                            if (this.hero.jumping) {
+                                this.heroSpriter.i = 3
+                                this.hero.jumping = 0
+                                //this.heroSpriter.setSheet("walk")
+                                //this.heroSpriter.i = 0
+                            }
+                            //console.log("land2")
+                            return false
+                        }
+                    }
                 }
             }
         }
     }
+
     
-    for (ge.imoveHitTest = 0; ge.imoveHitTest <  targets.length; ge.imoveHitTest++) {
-        if (!targets[ge.imoveHitTest].tile || 
-                (targets[ge.imoveHitTest].tile.code.charAt(0) === targets[ge.imoveHitTest].tile.code.charAt(0).toUpperCase())) {
-            
-            if (this.gravity && this.hero.dy > 1 && targets[ge.imoveHitTest].y * this.tileSize > this.hero.y + this.heroSpriter.h) {
-                this.hero.dy = targets[ge.imoveHitTest].y * this.tileSize - this.hero.y - this.heroSpriter.h
-                //console.log("land", this.hero.dy, targets[ge.imoveHitTest].y * this.tileSize , this.hero.y + this.heroSpriter.h)
-                
+    for (var sprite of this.map.activeSprites) {
+        for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
+            if (sprite.npc.x <= targets[this.imoveHitTest].x && sprite.npc.x + sprite.npc.width > targets[this.imoveHitTest].x && 
+                (targets[this.imoveHitTest].y === (this.hero.dy < 0 ? sprite.npc.y + sprite.npc.height : sprite.npc.y))) {
+                    if (this.hero.jumping) {
+                        this.heroSpriter.i = 3
+                        this.hero.jumping = 0
+                    }
+                    this.touchingNPC = sprite
+                    return false
             }
-            else {
-                if (this.hero.jumping) {
-                    this.heroSpriter.i = 3
-                    this.hero.jumping = 0
-                    //this.heroSpriter.setSheet("walk")
-                    //this.heroSpriter.i = 0
-                }
-                //console.log("land2")
-                return false
-            }
+
         }
     }
     return true
+}
+
+OMGGameEngine.prototype.actionKey = function () {
+    console.log(this.touchingNPC)
+    if (this.touchingNPC) {
+        this.touchingNPC.npc.animating = !this.touchingNPC.npc.animating
+    }
 }

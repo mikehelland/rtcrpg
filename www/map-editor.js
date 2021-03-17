@@ -1,4 +1,8 @@
-function OMGMapEditor (div) {
+import OMGSpriter from "/apps/sprite/spriter.js"
+import OMGRPGMap from "./rpgmap.js"
+import OMGWindowManager from "/js/window_manager.js"
+
+export default function OMGMapEditor (div) {
     console.log(div)
     this.div = div
     this.zoom = 1
@@ -102,12 +106,17 @@ OMGMapEditor.prototype.loadTile = function (key, tileSet, onload) {
 
 
 OMGMapEditor.prototype.setupEvents = function (canvas) {
+    this.offsets = omg.ui.totalOffsets(canvas)
+        
     canvas.onmousedown = (e) => {
+        this.offsets = omg.ui.totalOffsets(canvas)
+        this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
+        this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
         if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
-            this.tileEvent(Math.floor(e.layerX / this.map.tileSize), Math.floor(e.layerY / this.map.tileSize))
+            this.tileEvent(this._movex, this._movey)
         }
         if (this.mode === "TILE" && this.tileDrawMode === "Fill") {
-            this.tileFill(Math.floor(e.layerX / this.map.tileSize), Math.floor(e.layerY / this.map.tileSize))
+            this.tileFill(this._movex, this._movey)
         }
         if (this.mode === "HTML_PLACE") {
             this.htmlBeingAdded = this.addHTML(e)
@@ -122,16 +131,18 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         if (!this.map) {
             return
         }
+        this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
+        this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
         if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
             if (this.isTouching) {
-                this.tileEvent(Math.floor(e.layerX / this.map.tileSize), Math.floor(e.layerY / this.map.tileSize))
+                this.tileEvent(this._movex, this._movey)
             }
             else {
-                this.tilePreview(Math.floor(e.layerX / this.map.tileSize), Math.floor(e.layerY / this.map.tileSize))
+                this.tilePreview(this._movex, this._movey)
             }
         }
         else if (this.mode.indexOf("NPC_PLACE") > -1 || this.mode.indexOf("NPC_MOVE") > -1) {
-            this.drawSpritePreview(e)
+            this.drawSpritePreview(this._movex, this._movey)
         }
         else if (this.mode.indexOf("_PLACE") > -1) {
             this.highlightTile(e)
@@ -145,19 +156,22 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
     }
     canvas.onmouseup = (e) => {
         
+        this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
+        this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
+        
         if (this.mode === "TILE" && this.tileDrawMode === "Fill") {
             if (this.isTouching) {
                 //this.tileFill(e)
             }    
         }
         else if (this.mode === "NPC_PLACE") {
-            this.addNPC(e)
+            this.addNPC(this._movex, this._movey)
         }
         else if (this.mode === "NPC_MOVE") {
-            this.moveNPC(e)
+            this.moveNPC(this._movex, this._movey)
         }
         else if (this.mode === "HERO_MOVE") {
-            this.moveHero(e)
+            this.moveHero(this._movex, this._movey)
         }
         else if (this.mode === "HTML_STRETCH") {
             //this.addHTML(e)
@@ -318,12 +332,12 @@ OMGMapEditor.prototype.setupControls = function () {
     document.getElementById("new-copy-button").onclick = e => {
         delete this.data.id
         omg.server.post(this.data, res => {
-            window.location = this.gamePage + "?id=" + res.id
+            this.saved(res)
         })
     }
     document.getElementById("overwrite-button").onclick = e => {
         omg.server.post(this.data, res => {
-            window.location = this.gamePage + "?id=" + res.id
+            this.saved(res)
         })
     }
     omg.server.getHTTP("/user", user => this.user = user)
@@ -378,7 +392,7 @@ OMGMapEditor.prototype.setupControls = function () {
         this.tileSets = results
         results.forEach(result => {
             result.url = window.location.origin + "/data/" + result.id
-            newOption = document.createElement('option')
+            var newOption = document.createElement('option')
             this.tileSetSelect.appendChild(newOption)
             newOption.innerHTML = result.name
         })
@@ -433,7 +447,7 @@ OMGMapEditor.prototype.save = function () {
     
     if (this.data.id) {
         if (this.user && this.data.user_id === this.user.id) {
-            omg.ui.showDialog(document.getElementById("overwrite-or-new"))
+            this.wm.newWindow({div: document.getElementById("overwrite-or-new"), width: 200, height: 200})
             return
         }
         else {
@@ -442,8 +456,17 @@ OMGMapEditor.prototype.save = function () {
     }
 
     omg.server.post(this.data, res => {
-        window.location = this.gamePage + "?id=" + res.id
+        this.saved(res)        
     })
+}
+
+OMGMapEditor.prototype.saved = function (res) {
+    var urlTag = document.getElementById("saved-url")
+    var url = this.gamePage + "?id=" + res.id
+    urlTag.href = url
+    urlTag.innerHTML = url
+
+    this.wm.newWindow({div: document.getElementById("saved"), caption: "Saved", width: 200, height: 200})
 }
 
 OMGMapEditor.prototype.selectToolBox = function (e) {
@@ -489,12 +512,7 @@ OMGMapEditor.prototype.setupNPCControls = function () {
         this.selectCharacterDialog.style.display = "block"
         this.closeSelectCharacerDialog = omg.ui.showDialog(this.selectCharacterDialog)
     }
-    this.npcDetailsDiv = document.getElementById("npc-details")
-    this.npcDetailsName = document.getElementById("npc-details-name")
-    this.npcDetailsSound = document.getElementById("npc-details-sound")
-    this.npcDetailsDialog = document.getElementById("npc-dialog-input")
-    this.npcDetailsCanvas = document.getElementById("npc-details-canvas")
-    this.npcDetailsDelete = document.getElementById("npc-details-delete")
+    
 }
 
 OMGMapEditor.prototype.setupHTMLControls = function () {
@@ -545,10 +563,8 @@ OMGMapEditor.prototype.highlightTile = function (e) {
     this.tileHighlightDiv.style.top = Math.floor(e.clientY / this.map.tileSize) * this.map.tileSize + 1.5 + "px"
 }
 
-OMGMapEditor.prototype.addNPC = function (e) {
-    var x = Math.floor((e.clientX - this.canvas.offsetLeft) / this.map.tileSize)
-    var y = Math.floor((e.clientY - this.canvas.offsetTop) / this.map.tileSize)
-
+OMGMapEditor.prototype.addNPC = async function (x, y) {
+    
     var npc = {
         "name": this.selectedSprite ? this.selectedSprite.name : "name me",
         "x": x,
@@ -559,7 +575,7 @@ OMGMapEditor.prototype.addNPC = function (e) {
         ]
     }
 
-    let spriter = new OMGSpriter(npc.sprite, this.map.charCanvas)
+    let spriter = this.previewSpriter
     spriter.w = spriter.w * this.zoom
     spriter.h = spriter.h * this.zoom
 
@@ -571,11 +587,15 @@ OMGMapEditor.prototype.addNPC = function (e) {
     
     this.map.data.npcs.push(npc)
     this.showNPCDetails(npc, div)
-    
+
+    // todo this should be where the npc is selected
+    this.selectedNPC = npc
+
     this.mode = "NPC_SELECT"
     this.tileHighlightDiv.style.display = "none"
     this.addNPCButton.innerHTML = "+Add"
 
+    this.map.activeSprites.push({npc, spriter})
     this.drawNPCs()
 }
 
@@ -584,6 +604,7 @@ OMGMapEditor.prototype.placeNPC = function (sprite) {
     this.mode = "NPC_PLACE"
     this.selectedSprite = sprite
     this.previewSpriter = new OMGSpriter(sprite, this.map.charCanvas)
+    this.previewSpriter.setSheet()
     this.previewSpriter.w = this.previewSpriter.w * this.zoom
     this.previewSpriter.h = this.previewSpriter.h * this.zoom
 
@@ -618,36 +639,18 @@ OMGMapEditor.prototype.addHTML = function (e) {
 }
 
 OMGMapEditor.prototype.showNPCDetails = function (npc, npcDiv) {
-    this.npcDetailsDiv.style.display = "block"
-    this.npcDetailsName.value = npc.name
-    this.npcDetailsSound.value = npc.soundURL || ""
-    this.npcDetailsName.onkeypress = e => {
-        if (e.key === "Enter") {
-            npc.name = this.npcDetailsName.value
-            npcDiv.getElementsByTagName("div")[0].innerHTML = npc.name
-        }
-    }
-    this.npcDetailsSound.onkeypress = e => {
-        if (e.key === "Enter") {
-            npc.soundURL = this.npcDetailsSound.value
-        }
-    }
+    
+    var f = new NPCFragment(npc)
+    this.wm.showFragment(f, {
+        width: 350,
+        height: 500,
+        caption: "NPC - " + npc.name,
+        x: window.innerWidth - 510,
+        y: 70
+    })
 
-    this.npcDetailsDialog.value = npc.dialog.join("\n")
-    this.npcDetailsDialog.onkeyup = e => {
-        npc.dialog = this.npcDetailsDialog.value.split("\n")
-    }
 
-    this.npcDetailsDelete.onclick = e => {
-        let i = this.map.npcs.indexOf(npc)
-        this.map.npcs.splice(i, 1)
-        this.drawNPCs()
-
-        npcDiv.parentElement.removeChild(npcDiv)
-    }
-
-    this.selectedNPC = npc
-    this.drawNPCs()
+    //this.drawNPCs()
 }
 
 OMGMapEditor.prototype.showHTMLDetails = function (html, div) {
@@ -751,16 +754,15 @@ OMGMapEditor.prototype.drawCharacter = function (context, x, y) {
 }
 
 OMGMapEditor.prototype.loadNPCs = function () {
-    this.spriters = new Map()
+    
+    for (var item of this.map.activeSprites) {
+        
+        item.spriter.w = item.spriter.w * this.zoom
+        item.spriter.h = item.spriter.h * this.zoom
 
-    for (var i = 0; i < this.data.npcs.length; i++) {
-        let spriter = new OMGSpriter(this.data.npcs[i].sprite, this.map.charCanvas)
-        spriter.w = spriter.w * this.zoom
-        spriter.h = spriter.h * this.zoom
+        this.spriters.set(item.npc, item.spriter)
 
-        this.spriters.set(this.data.npcs[i], spriter)
-
-        this.setupNPCToolBoxDiv(this.data.npcs[i])
+        this.setupNPCToolBoxDiv(item.npc)
     }
 }
 
@@ -803,10 +805,10 @@ OMGMapEditor.prototype.moveHero = function (e) {
     this.drawNPCs()
 }
 
-OMGMapEditor.prototype.drawSpritePreview = function (e) {
+OMGMapEditor.prototype.drawSpritePreview = function (x, y) {
     if (this.previewSpriter) {
-        this.previewSpriter.x = Math.floor((e.clientX - this.div.offsetLeft) / this.map.tileSize) * this.map.tileSize
-        this.previewSpriter.y = Math.floor((e.clientY - this.div.offsetTop) / this.map.tileSize) * this.map.tileSize
+        this.previewSpriter.x = x * this.map.tileSize
+        this.previewSpriter.y = y * this.map.tileSize
         this.drawNPCs() 
     }
 }
@@ -924,4 +926,52 @@ OMGMapEditor.prototype.setupTileEditor = function () {
         y: 70
     })
 
+}
+
+function NPCFragment(npc) {
+
+    this.div = document.createElement("div")
+    
+    this.npcDetailsName   = document.createElement("input")
+    this.div.appendChild(this.npcDetailsName)
+    this.npcDetailsSound  = document.createElement("div")
+    this.div.appendChild(this.npcDetailsSound)
+    this.npcDetailsDialog = document.createElement("textarea")
+    this.div.appendChild(this.npcDetailsDialog)
+    this.npcDetailsCanvas = document.createElement("canvas")
+    this.npcDetailsCanvas.width = 32
+    this.npcDetailsCanvas.height = 32
+    
+    this.div.appendChild(this.npcDetailsCanvas)
+    this.npcDetailsDelete = document.createElement("button")
+    this.div.appendChild(this.npcDetailsDelete)
+
+    this.npcDetailsName.value = npc.name
+    this.npcDetailsSound.value = npc.soundURL || ""
+    this.npcDetailsName.onkeypress = e => {
+        if (e.key === "Enter") {
+            npc.name = this.npcDetailsName.value
+            npcDiv.getElementsByTagName("div")[0].innerHTML = npc.name
+        }
+    }
+    this.npcDetailsSound.onkeypress = e => {
+        if (e.key === "Enter") {
+            npc.soundURL = this.npcDetailsSound.value
+        }
+    }
+
+    this.npcDetailsDialog.value = npc.dialog.join("\n")
+    this.npcDetailsDialog.onkeyup = e => {
+        npc.dialog = this.npcDetailsDialog.value.split("\n")
+    }
+
+    this.npcDetailsDelete.onclick = e => {
+        let i = this.map.npcs.indexOf(npc)
+        this.map.npcs.splice(i, 1)
+        this.drawNPCs()
+
+        npcDiv.parentElement.removeChild(npcDiv)
+    }
+
+ 
 }
