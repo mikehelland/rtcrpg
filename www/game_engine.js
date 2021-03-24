@@ -74,8 +74,8 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
         setInterval(() => this.mainLoop(), 1000 / 60)
         this.running = true
 
-        this.hero.x = data.startX
-        this.hero.y = data.startY
+        this.hero.x = data.startX * this.tileSize
+        this.hero.y = data.startY * this.tileSize
         this.hero.facing = 0    
     }
 }
@@ -300,6 +300,12 @@ OMGGameEngine.prototype.loadHero = async function (spriteData) {
 }
 
 OMGGameEngine.prototype.drawCharacters = function () {
+
+    this.map.charCanvasOffsetX = this.middleTileX - this.hero.x
+    this.map.charCanvasOffsetY = this.middleTileY - this.hero.y
+    
+    this.map.drawNPCs(this.nextFrame)
+
     if (this.heroSpriter) {
         this.heroSpriter.setRow(this.hero.facing)
         if (!this.hero.jumping) {
@@ -318,11 +324,6 @@ OMGGameEngine.prototype.drawCharacters = function () {
         }
         this.heroSpriter.draw()
     }
-
-    this.map.charCanvasOffsetX = this.middleTileX - this.hero.x
-    this.map.charCanvasOffsetY = this.middleTileY - this.hero.y
-    
-    this.map.drawNPCs(this.nextFrame)
 }
 
 OMGGameEngine.prototype.drawHighlightedTiles = function () {

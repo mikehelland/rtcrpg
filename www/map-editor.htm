@@ -99,6 +99,7 @@
             border: 2px solid red;
             position:absolute;
             display: none;
+            z-index: 1;
         }
 
         .npc-tool-item {
@@ -162,6 +163,8 @@
 <body>
     
     <div id="drawing-window">
+        <div id="tile-highlight"></div>
+    
     </div>
 
     <div id="main-menu">
@@ -249,7 +252,6 @@
     </div>
 
 
-    <div id="tile-highlight"></div>
     <script src="/js/omgservice.js"></script>
     <script src="tile-editor.js"></script>
     <script src="/js/window_manager.js"></script>
@@ -273,6 +275,7 @@
         var tilesizeInput = document.getElementById('map-tile-size-input')
 
         var editor = new OMGMapEditor(document.getElementById("drawing-window"))
+        window.editor = editor
 
         var params = omg.util.getPageParams()
         if (params.id) {

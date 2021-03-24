@@ -19,6 +19,7 @@ export default function OMGMapEditor (div) {
 
     this.wm = new OMGWindowManager({div: document.body})
     this.setupControls()
+    this.setupMenu()
 
 }
 
@@ -145,10 +146,10 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
             this.drawSpritePreview(this._movex, this._movey)
         }
         else if (this.mode.indexOf("_PLACE") > -1) {
-            this.highlightTile(e)
+            this.highlightTile(this._movex, this._movey)
         }
         else if (this.mode.indexOf("_MOVE") > -1) {
-            this.highlightTile(e)
+            this.highlightTile(this._movex, this._movey)
         }
         else if (this.mode === "HTML_STRETCH") {
             this.stretchHTML(e)
@@ -555,12 +556,12 @@ OMGMapEditor.prototype.setupMusicControls = function () {
     
 }
 
-OMGMapEditor.prototype.highlightTile = function (e) {
+OMGMapEditor.prototype.highlightTile = function (x, y) {
     this.tileHighlightDiv.style.display = "block"
     this.tileHighlightDiv.style.width = this.map.tileSize * this.zoom + "px"
     this.tileHighlightDiv.style.height = this.map.tileSize * this.zoom + "px"
-    this.tileHighlightDiv.style.left = Math.floor(e.clientX / this.map.tileSize) * this.map.tileSize - 3 + "px"
-    this.tileHighlightDiv.style.top = Math.floor(e.clientY / this.map.tileSize) * this.map.tileSize + 1.5 + "px"
+    this.tileHighlightDiv.style.left = x * this.map.tileSize - 3 + "px"
+    this.tileHighlightDiv.style.top = y * this.map.tileSize + 1.5 + "px"
 }
 
 OMGMapEditor.prototype.addNPC = async function (x, y) {
@@ -795,11 +796,9 @@ OMGMapEditor.prototype.moveNPC = function (e) {
     this.drawNPCs()
 }
 
-OMGMapEditor.prototype.moveHero = function (e) {
-    var x = Math.floor((e.clientX - this.canvas.offsetLeft) / this.map.tileSize)
-    var y = Math.floor((e.clientY - this.canvas.offsetTop) / this.map.tileSize)
-    this.map.startX = x
-    this.map.startY = y
+OMGMapEditor.prototype.moveHero = function (x, y) {
+    this.map.data.startX = x
+    this.map.data.startY = y
     this.mode = "HERO_MOVE" 
     this.tileHighlightDiv.style.display = "none"
     this.drawNPCs()
@@ -974,4 +973,28 @@ function NPCFragment(npc) {
     }
 
  
+}
+
+OMGMapEditor.prototype.setupMenu = function () {
+    return
+    this.wm.showMainMenu({
+        items: [
+            {name: "File", items: [
+                {name: "User", onclick: () => this.showUserWindow()},
+                {separator: true},
+                {name: "New", onclick: () => this.newSong()},
+                {name: "Open", onclick: () => this.showOpenWindow()},
+                {name: "Save", onclick: () => this.showSaveWindow()},
+                {separator: true},
+                {name: "Settings", onclick: () => this.showSettingsWindow()},
+                {separator: true},
+                {name: "OMG Home", onclick: () => this.showSaveWindow()}
+            ]},
+            {name: "Window", items: [
+                {name: "Music", onclick: () => this.showRandomizerWindow()}
+            ]},
+            {name: "Help", items: [
+            ]}
+        ]
+    })
 }
