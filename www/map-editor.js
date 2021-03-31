@@ -18,8 +18,8 @@ export default function OMGMapEditor (div) {
     this.gamePage = "char.htm"
 
     this.wm = new OMGWindowManager({div: document.body})
-    this.setupControls()
     this.setupMenu()
+    this.setupControls()
 
 }
 
@@ -54,6 +54,10 @@ OMGMapEditor.prototype.load = function (data) {
 
         this.map.draw()
         this.drawNPCs()
+
+        if (this.map.data.music) {
+            this.loadMusic(this.map.data.music)
+        }
     }
 
     if (this.tileSets) {
@@ -291,12 +295,12 @@ OMGMapEditor.prototype.setupControls = function () {
     })*/
     this.canvasWindow = this.wm.newWindow({
         div: document.getElementById("drawing-window"),
-        x:100, y:40, width: window.innerWidth - 130, height: window.innerHeight - 50,
+        x:100, y:5, width: window.innerWidth - 130, height: window.innerHeight - 50,
         caption: "Map"
     })
     this.toolBoxWindow = this.wm.newWindow({
         div: document.getElementById("tools"),
-        x:0, y:40, width: 95, height: window.innerHeight - 50,
+        x:0, y:5, width: 95, height: window.innerHeight - 50,
         caption: "Toolbox"
     })
     
@@ -641,7 +645,7 @@ OMGMapEditor.prototype.addHTML = function (e) {
 
 OMGMapEditor.prototype.showNPCDetails = function (npc, npcDiv) {
     
-    var f = new NPCFragment(npc)
+    var f = new NPCFragment(npc, this)
     this.wm.showFragment(f, {
         width: 350,
         height: 500,
@@ -927,9 +931,136 @@ OMGMapEditor.prototype.setupTileEditor = function () {
 
 }
 
-function NPCFragment(npc) {
 
+OMGMapEditor.prototype.setupMenu = function () {
+    this.wm.showMainMenu({
+        items: [
+            {name: "File", items: [
+                {name: "User", onclick: () => this.showUserWindow()},
+                {separator: true},
+                {name: "New", onclick: () => this.newSong()},
+                {name: "Open", onclick: () => this.showOpenWindow()},
+                {name: "Save", onclick: () => this.save()},
+                {separator: true},
+                {name: "Settings", onclick: () => this.showSettingsWindow()},
+                {separator: true},
+                //{name: "OMG Home", onclick: () => this.showSaveWindow()}
+            ]},
+            {name: "Window", items: [
+                {name: "Size", onclick: () => this.showSizeWindow()},
+                {name: "Music", onclick: () => this.showMusicWindow()}
+            ]},
+            {name: "Help", items: [
+            ]}
+        ]
+    })
+}
+
+OMGMapEditor.prototype.showSizeWindow = function () {
+    this.canvasWindow = this.wm.newWindow({
+        div: document.getElementById("size-menu"),
+        caption: "Size", width: 200, height: 150
+    })
+
+}
+
+
+OMGMapEditor.prototype.showMusicWindow = function () {
+    if (!this.map.data.music) {
+
+        var searchBox = new OMGSearchBox({types: ["SONG"]})
+
+        this.selectCharacterList.appendChild(searchBox.div)
+        
+        searchBox.onclickcontent = e => {
+            this.selectMusic(e.data)
+            win.close()
+        }
+
+        searchBox.search()
+
+        var win = this.wm.newWindow({
+            caption: "Select Music",
+            div: searchBox.div, 
+            x: 50, y: 50, width: 500, height: 500,
+            overflowY: "auto"
+        })
+    }
+    else {
+        this.showDawesome()
+    }
+}
+
+OMGMapEditor.prototype.selectMusic = async function (data) {
+    console.log(data)
+    this.map.data.music = {
+        type: data.type,
+        omgurl: data.omgurl
+    }
+
+    this.musicData = data
+    await this.loadMusic(data)
+    this.showDawesome()
+}
+
+OMGMapEditor.prototype.showDawesome = async function () {
+
+    if (!this.dawesome) {
+        var o = await import("/apps/dawesome/js/dawesome.js")
+        this.dawesome = new o.default({div: document.body, 
+            song: this.song,
+            player: this.musicPlayer,
+            musicContext: this.musicContext, 
+            transportWindowConfig: {
+                caption: "Transport",
+                x: window.innerWidth / 2, y: 100,
+                width: window.innerWidth / 3, height: 90
+            }, 
+            timelineWindowConfig: {
+                caption: "Timeline",
+                x: 30, y: window.innerHeight - 400,
+                width: window.innerWidth - 80, height: 350
+            },
+            mixerWindowConfig: {
+                caption: "Mixer", 
+                x: window.innerWidth - 360, y: window.innerHeight / 4,
+                width: 300, height: 300
+            }, 
+            fxWindowConfig: {
+                hidden: true
+            }
+        })
+        //this.dawesome.load(data)
+    }
+}
+
+OMGMapEditor.prototype.loadMusic = async function (music) {
+    if (!this.musicPlayer) {
+        var o = await import("/apps/music/js/omusic.js")
+        var OMusicContext = o.default
+        this.musicContext = new OMusicContext()
+    }
+
+    if (music.type === "SONG" && music.omgurl) {
+        var res = await fetch(music.omgurl)
+        var data = await res.json()
+        
+        var {player, song} = await this.musicContext.load(data)
+        this.musicPlayer = player
+        this.song = song
+
+    }
+
+}
+
+
+
+
+function NPCFragment(npc, editor) {
+    this.editor = editor
     this.div = document.createElement("div")
+    
+    var caption
     
     this.npcDetailsName   = document.createElement("input")
     this.div.appendChild(this.npcDetailsName)
@@ -972,29 +1103,34 @@ function NPCFragment(npc) {
         npcDiv.parentElement.removeChild(npcDiv)
     }
 
+    this.selectMusicPart = document.createElement("select")
+    if (this.editor.song) {
+        this.loadMusicParts()
+    }
+    caption = document.createElement("div")
+    caption.innerHTML = "Music Part:"
+    this.div.appendChild(caption)
+    this.div.appendChild(this.selectMusicPart)
+
+    this.selectMusicPart.value = npc.musicPart || "(None}"
+    this.selectMusicPart.onchange = e => {
+        if (this.selectMusicPart.selectedIndex === 0) {
+            delete npc.musicPart 
+        }
+        else {
+            npc.musicPart =  this.selectMusicPart.value 
+        }
+    }
  
 }
 
-OMGMapEditor.prototype.setupMenu = function () {
-    return
-    this.wm.showMainMenu({
-        items: [
-            {name: "File", items: [
-                {name: "User", onclick: () => this.showUserWindow()},
-                {separator: true},
-                {name: "New", onclick: () => this.newSong()},
-                {name: "Open", onclick: () => this.showOpenWindow()},
-                {name: "Save", onclick: () => this.showSaveWindow()},
-                {separator: true},
-                {name: "Settings", onclick: () => this.showSettingsWindow()},
-                {separator: true},
-                {name: "OMG Home", onclick: () => this.showSaveWindow()}
-            ]},
-            {name: "Window", items: [
-                {name: "Music", onclick: () => this.showRandomizerWindow()}
-            ]},
-            {name: "Help", items: [
-            ]}
-        ]
-    })
+NPCFragment.prototype.loadMusicParts = function () {
+    this.selectMusicPart.innerHTML = "<option value=''>(None)</option>"
+    for (var partName in this.editor.song.parts) {
+        var option = document.createElement("option")
+        option.innerHTML = partName
+        this.selectMusicPart.appendChild(option)
+    }
+    
 }
+

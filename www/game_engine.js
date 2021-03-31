@@ -1,4 +1,5 @@
 import OMGRPGMap from "./rpgmap.js"
+import OMusicContext from "/apps/music/js/omusic.js"
 
 export default function OMGGameEngine(params) {
     this.debugBoxes = true
@@ -77,6 +78,10 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
         this.hero.x = data.startX * this.tileSize
         this.hero.y = data.startY * this.tileSize
         this.hero.facing = 0    
+    }
+
+    if (this.map.data.music) {
+        this.loadMusic(this.map.data.music)
     }
 }
 
@@ -182,6 +187,11 @@ OMGGameEngine.prototype.setupInputs = function () {
         }
     
         this.keysPressed[e.key] = true
+
+        if (this.musicPlayer && !this.musicStarted && (this.hero.wishX || this.hero.wishY)) {
+            this.musicPlayer.play()
+            this.musicStarted = true
+        }
     }
     document.onkeyup = e => {
         if (e.key === " ") {
@@ -272,6 +282,10 @@ OMGGameEngine.prototype.render = function () {
     this.background.style.top = this.hero.y * -1 + this.middleTileY  + "px"
 
     this.canvas.width = this.canvas.width
+    this.context.fillStyle = "white"
+    this.context.font = "14pt serif"
+    this.context.fillText(this.hero.dx, 10, 20)
+    this.context.fillText(this.hero.dy, 10, 50)
     this.drawCharacters()
     if (this.debugBoxes) {
         this.drawHighlightedTiles()
@@ -340,7 +354,24 @@ OMGGameEngine.prototype.drawHighlightedTiles = function () {
 }
 
 OMGGameEngine.prototype.physics = function () {
+
     
+    var hyp = Math.sqrt(Math.pow(this.hero.dx + this.hero.wishX, 2) + Math.pow(this.hero.dy + this.hero.wishY, 2))
+
+    /*var hyp = Math.sqrt(Math.pow(this.hero.dx, 2) + Math.pow(this.hero.dy, 2))
+    //console.log(hyp)
+    if (hyp > this.dmax) {
+        console.log(hyp)
+        this.hero.dx = Math.floor((this.hero.wishX + this.hero.dx) / hyp * this.dmax)
+        this.hero.dy = Math.floor((this.hero.wishY + this.hero.dy) / hyp * this.dmax)
+    }
+    else {
+        this.hero.dy = Math.max(-this.dmax, Math.min(this.dmax, this.hero.dy + this.hero.wishY))
+        this.hero.dx = Math.max(-this.dmax, Math.min(this.dmax, this.hero.dx + this.hero.wishX))
+    
+    }*/
+    
+
     if (this.gravity) { 
         this.hero.dy += this.gravity
         this.hero.dy = Math.max(-2 * this.dmax, Math.min(2 * this.dmax, this.hero.dy + this.hero.wishY))
@@ -356,6 +387,7 @@ OMGGameEngine.prototype.physics = function () {
     if (this.hero.dy || this.hero.dx) {
         this.touchingNPC = null
     }
+
 
     if (this.hero.dy && this.canProceedY()) {
         this.hero.y += this.hero.dy
@@ -548,8 +580,34 @@ OMGGameEngine.prototype.canProceedY = function () {
 }
 
 OMGGameEngine.prototype.actionKey = function () {
-    console.log(this.touchingNPC)
     if (this.touchingNPC) {
         this.touchingNPC.npc.animating = !this.touchingNPC.npc.animating
+        
+        if (this.touchingNPC.npc.musicPart) {
+            let partName = this.touchingNPC.npc.musicPart
+            if (this.song && this.song.parts[partName]) {
+                let part = this.song.parts[partName]
+                this.musicCtx.mutePart(part, !part.data.audioParams.mute)
+            }
+        }
     }
+}
+
+OMGGameEngine.prototype.loadMusic = async function (music) {
+    if (!this.musicPlayer) {
+        var o = await import("/apps/music/js/omusic.js")
+        var OMusicContext = o.default
+        this.musicCtx = new OMusicContext()
+    }
+
+    if (music.type === "SONG" && music.omgurl) {
+        var res = await fetch(music.omgurl)
+        var data = await res.json()
+        
+        var {player, song} = await this.musicCtx.load(data)
+        this.musicPlayer = player
+        this.song = song
+
+    }
+
 }

@@ -159,6 +159,8 @@
             position:absolute;
         }
     </style>
+    <link rel="stylesheet" href="/apps/dawesome/dawesome.css" type="text/css" />
+    
 </head>
 <body>
     
@@ -167,14 +169,20 @@
     
     </div>
 
-    <div id="main-menu">
-        Map Name: <input id="map-name"> Size: <input type="number" id="map-width-input">&times;<input type="number" id="map-height-input">
+    <div id="size-menu" class="dialog">
+        Size: <input type="number" id="map-width-input">&times;<input type="number" id="map-height-input">
+        <br><br>
+        <button id="zoom-in-button">Zoom +</button><button id="zoom-out-button">Zoom -</button>
+
+    </div>
+    <div id="main-menu" class="dialog">
+        Map Name: <input id="map-name"> 
         <button id="zoom-in-button">Zoom +</button><button id="zoom-out-button">Zoom -</button>
         <button id="save-button">Save</button>
 
     </div>
 
-    <div id="tools">
+    <div id="tools"  class="dialog">
         
         <select id="tool-box-select">
             <option>Tiles</option>
@@ -239,7 +247,7 @@
         <button id="new-copy-button">New Copy</button>
     </div>
 
-    <div id="saved">
+    <div id="saved" class="dialog">
         Your map has been saved.
         <br>
         <a id="saved-url"></a>
@@ -253,6 +261,7 @@
 
 
     <script src="/js/omgservice.js"></script>
+    <script src="/apps/music/js/omgservice_music.js"></script>
     <script src="tile-editor.js"></script>
     <script src="/js/window_manager.js"></script>
 
