@@ -239,19 +239,33 @@
     <div id="music-details-select"></div>
     <div id="music-details-editor"></div>
     
-    <div class="dialog" id="overwrite-or-new">
-        Do you want to overwrite or create a new copy?
-        <hr>
-        <button id="overwrite-button">Overwrite</button>
-        <br><br>
-        <button id="new-copy-button">New Copy</button>
+    <div id="save" class="dialog">
+        <div id="saved">
+            Your map has been saved.
+            <br>
+            <a id="saved-url"></a>
+        </div>
+
+        <div id="overwrite-or-new">
+            Do you want to overwrite or create a new copy?
+            <hr>
+            <button id="overwrite-button">Overwrite</button>
+            <br><br>
+            <button id="new-copy-button">New Copy</button>
+        </div>
+
+        <div id="overwrite-music">
+            <hr>
+            The music has changed. Do you want to overwrite or create a new copy?
+            <hr>
+            <button id="overwrite-music-button">Overwrite</button>
+            <br><br>
+            <button id="new-copy-music-button">New Copy</button>
+        </div>
+
     </div>
 
-    <div id="saved" class="dialog">
-        Your map has been saved.
-        <br>
-        <a id="saved-url"></a>
-    </div>
+    
 
     <div id="select-character-dialog">
         <h3>Select a Character</h3>

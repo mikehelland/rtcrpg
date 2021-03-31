@@ -115,8 +115,8 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         
     canvas.onmousedown = (e) => {
         this.offsets = omg.ui.totalOffsets(canvas)
-        this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
-        this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
+        this._movex = Math.floor((e.clientX - this.offsets.left + this.drawingWindow.scrollLeft) / this.map.tileSize)
+        this._movey = Math.floor((e.clientY - this.offsets.top + this.drawingWindow.scrollTop) / this.map.tileSize)
         if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
             this.tileEvent(this._movex, this._movey)
         }
@@ -136,8 +136,8 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         if (!this.map) {
             return
         }
-        this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
-        this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
+        this._movex = Math.floor((e.clientX - this.offsets.left + this.drawingWindow.scrollLeft) / this.map.tileSize)
+        this._movey = Math.floor((e.clientY - this.offsets.top + this.drawingWindow.scrollTop) / this.map.tileSize)
         if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
             if (this.isTouching) {
                 this.tileEvent(this._movex, this._movey)
@@ -161,8 +161,8 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
     }
     canvas.onmouseup = (e) => {
         
-        this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
-        this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
+        this._movex = Math.floor((e.clientX - this.offsets.left + this.drawingWindow.scrollLeft) / this.map.tileSize)
+        this._movey = Math.floor((e.clientY - this.offsets.top + this.drawingWindow.scrollTop) / this.map.tileSize)
         
         if (this.mode === "TILE" && this.tileDrawMode === "Fill") {
             if (this.isTouching) {
@@ -293,8 +293,9 @@ OMGMapEditor.prototype.setupControls = function () {
         div: document.getElementById("main-menu"),
         x:80, y:0, width: window.innerWidth - 84, height: 60
     })*/
+    this.drawingWindow = document.getElementById("drawing-window")
     this.canvasWindow = this.wm.newWindow({
-        div: document.getElementById("drawing-window"),
+        div: this.drawingWindow,
         x:100, y:5, width: window.innerWidth - 130, height: window.innerHeight - 50,
         caption: "Map"
     })
@@ -343,6 +344,17 @@ OMGMapEditor.prototype.setupControls = function () {
     document.getElementById("overwrite-button").onclick = e => {
         omg.server.post(this.data, res => {
             this.saved(res)
+        })
+    }
+    document.getElementById("new-copy-music-button").onclick = e => {
+        delete this.song.data.id
+        omg.server.post(this.song.getData(), res => {
+            this.savedMusic(res)
+        })
+    }
+    document.getElementById("overwrite-music-button").onclick = e => {
+        omg.server.post(this.song.getData(), res => {
+            this.savedMusic(res)
         })
     }
     omg.server.getHTTP("/user", user => this.user = user)
@@ -450,14 +462,26 @@ OMGMapEditor.prototype.save = function () {
 
     this.map.updateYLines()
     
+    this.overwriteDiv = document.getElementById("overwrite-or-new")
+    this.overwriteMusicDiv = document.getElementById("overwrite-music")
+    this.savedDiv = document.getElementById("saved")
+    this.saveDiv = document.getElementById("save")
+
+    this.savedWindow = this.wm.newWindow({caption: "Save", div: this.saveDiv, width: 300, height: 350})
+
+    this.savedDiv.style.display = "none"
     if (this.data.id) {
-        if (this.user && this.data.user_id === this.user.id) {
-            this.wm.newWindow({div: document.getElementById("overwrite-or-new"), width: 200, height: 200})
+        if (this.user && this.data.user_id === this.user.id)  {
+            this.overwriteDiv.style.display = "block"
             return
         }
         else {
+            this.overwriteDiv.style.display = "none"
             delete this.data.id
         }
+    }
+    else {
+        this.overwriteDiv.style.display = "none"
     }
 
     omg.server.post(this.data, res => {
@@ -471,7 +495,18 @@ OMGMapEditor.prototype.saved = function (res) {
     urlTag.href = url
     urlTag.innerHTML = url
 
-    this.wm.newWindow({div: document.getElementById("saved"), caption: "Saved", width: 200, height: 200})
+    this.overwriteDiv.style.display = "none"
+    this.savedDiv.style.display = "block"
+}
+
+OMGMapEditor.prototype.savedMusic = function (res) {
+    var urlTag = document.getElementById("saved-url")
+    var url = this.gamePage + "?id=" + res.id
+    urlTag.href = url
+    urlTag.innerHTML = url
+
+    this.overwriteDiv.style.display = "none"
+    this.savedDiv.style.display = "block"
 }
 
 OMGMapEditor.prototype.selectToolBox = function (e) {
