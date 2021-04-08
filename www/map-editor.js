@@ -484,6 +484,13 @@ OMGMapEditor.prototype.save = function () {
         this.overwriteDiv.style.display = "none"
     }
 
+    if (this.song) {
+        this.overwriteMusicDiv.style.display = "block"
+    }
+    else {
+        this.overwriteMusicDiv.style.display = "none"
+    }
+
     omg.server.post(this.data, res => {
         this.saved(res)        
     })
@@ -505,8 +512,8 @@ OMGMapEditor.prototype.savedMusic = function (res) {
     urlTag.href = url
     urlTag.innerHTML = url
 
-    this.overwriteDiv.style.display = "none"
-    this.savedDiv.style.display = "block"
+    this.overwriteMusicDiv.style.display = "none"
+    this.savedMusicDiv.style.display = "block"
 }
 
 OMGMapEditor.prototype.selectToolBox = function (e) {
@@ -983,7 +990,8 @@ OMGMapEditor.prototype.setupMenu = function () {
             ]},
             {name: "Window", items: [
                 {name: "Size", onclick: () => this.showSizeWindow()},
-                {name: "Music", onclick: () => this.showMusicWindow()}
+                {name: "Music", onclick: () => this.showMusicWindow()},
+                {name: "Import Tile", onclick: () => this.showImportTileWindow()}
             ]},
             {name: "Help", items: [
             ]}
@@ -1089,7 +1097,15 @@ OMGMapEditor.prototype.loadMusic = async function (music) {
 }
 
 
-
+OMGMapEditor.prototype.showImportTileWindow = async function () {
+    var f = new ImportTileFragment(this)
+    this.wm.showFragment(f, {
+        caption: "Import Tile",
+        width: 400,
+        height: 400,
+        overflowY: "auto"
+    })
+}
 
 function NPCFragment(npc, editor) {
     this.editor = editor
@@ -1169,3 +1185,66 @@ NPCFragment.prototype.loadMusicParts = function () {
     
 }
 
+function ImportTileFragment(editor) {
+    this.editor = editor
+    this.div = document.createElement("div")
+    this.backButton = document.createElement("button")
+    this.backButton.innerHTML = "< Back"
+    this.backButton.onclick = e => {
+        this.backButton.style.display = "none"
+        searchBox.div.style.display = "block"
+        this.tileListDiv.style.display = "none"
+    }
+    this.backButton.style.display = "none"
+
+    this.tileListDiv = document.createElement("div")
+    var searchBox = new OMGSearchBox({types: ["TILESET", "RPGMAP"]})
+
+    this.div.appendChild(searchBox.div)
+    this.div.appendChild(this.backButton)
+    this.div.appendChild(this.tileListDiv)
+    
+    searchBox.onclickcontent = e => {
+
+        this.tileListDiv.innerHTML = ""
+        searchBox.div.style.display = "none"
+        this.backButton.style.display ="block"
+        this.tileListDiv.style.display = "block"
+
+        var tileSet
+        if (e.data.type === "TILESET") {
+            tileSet = e.data
+        }
+        else if (e.data.type === "RPGMAP") {
+            tileSet = e.data.tileSet
+        }
+
+        if (tileSet) {
+            for (var tileCode in tileSet.tileCodes) {
+                var url = tileSet.tileCodes[tileCode]
+                if (!url.startsWith("data:")) {
+                    url = (tileSet.prefix || "") + url + (tileSet.postfix || "")
+                }
+                this.makeTile(tileCode, url)
+            }
+        }
+        
+    }
+
+    searchBox.search()
+}
+
+ImportTileFragment.prototype.makeTile = function (tileCode, url) {
+    var img = document.createElement("img")
+    img.src = url
+    img.width = 32
+    img.height = 32
+    this.tileListDiv.appendChild(img)
+    img.onclick = e => {
+        this.editor.data.tileSet.tileCodes[tileCode] = url //"" //this.sourceCtx.canvas.toDataURL("image/png")
+        var img = this.editor.loadTile(tileCode, this.editor.data.tileSet)
+        img.src = url //this.img.tiles[this.selectedTile].src
+        img.onclick()
+               
+    }
+}
