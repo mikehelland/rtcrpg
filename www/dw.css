@@ -109,3 +109,12 @@ img {
     width: 128px;
     height: 128px;
 }
+
+.game-engine-beat-indicator {
+    width: 32px;
+    height: 32px;
+}
+.game-engine-beat-indicator-beat {
+    width: 32px;
+    height: 32px;
+}

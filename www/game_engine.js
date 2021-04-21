@@ -608,6 +608,40 @@ OMGGameEngine.prototype.loadMusic = async function (music) {
         this.musicPlayer = player
         this.song = song
 
+        this.setupBeatIndicator()
     }
 
+}
+
+OMGGameEngine.prototype.setupBeatIndicator = function () {
+    this.beatIndicatorDiv = document.createElement("div")
+    this.beatIndicatorDiv.className = "game-engine-beat-indicator"
+    var beatDivs = []
+    var lastDiv
+
+    var colors = ["green", "yellow", "blue", "yellow"]
+
+    for (var i = 0; i < 4; i++) {
+        let beatDiv = document.createElement("div")
+
+        this.beatIndicatorDiv.appendChild(beatDiv)
+        beatDiv.className = "game-engine-beat-indicator-beat"
+        beatDivs.push(beatDiv)
+
+        beatDiv.style.backgroundColor = colors[i]
+        beatDiv.style.border = "10px solid black"
+    }
+
+
+    this.beatPlayedListener = (subbeat) => {
+        if (subbeat % 4 === 0) {
+            if (lastDiv) {
+                lastDiv.style.border = "10px solid black"
+            }
+            lastDiv = beatDivs[subbeat / 4]
+            lastDiv.style.border = "10px solid " + colors[subbeat / 4]
+        }
+    }
+    this.musicPlayer.onBeatPlayedListeners.push(this.beatPlayedListener)
+    document.body.appendChild(this.beatIndicatorDiv)
 }

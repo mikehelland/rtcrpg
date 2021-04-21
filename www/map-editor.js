@@ -2,6 +2,9 @@ import OMGSpriter from "/apps/sprite/spriter.js"
 import OMGRPGMap from "./rpgmap.js"
 import OMGWindowManager from "/js/window_manager.js"
 
+import * as fragments from "./map-editor_fragments.js"
+
+
 export default function OMGMapEditor (div) {
     console.log(div)
     this.div = div
@@ -14,8 +17,6 @@ export default function OMGMapEditor (div) {
     }
 
     this.spriters = new Map()
-
-    this.gamePage = "char.htm"
 
     this.wm = new OMGWindowManager({div: document.body})
     this.setupMenu()
@@ -301,7 +302,7 @@ OMGMapEditor.prototype.setupControls = function () {
     })
     this.toolBoxWindow = this.wm.newWindow({
         div: document.getElementById("tools"),
-        x:0, y:5, width: 95, height: window.innerHeight - 50,
+        x:0, y:5, width: 98, height: window.innerHeight - 50,
         caption: "Toolbox"
     })
     
@@ -333,30 +334,6 @@ OMGMapEditor.prototype.setupControls = function () {
         this.resizeMap()
     }
 
-    document.getElementById("save-button").onclick = () => this.save()
-
-    document.getElementById("new-copy-button").onclick = e => {
-        delete this.data.id
-        omg.server.post(this.data, res => {
-            this.saved(res)
-        })
-    }
-    document.getElementById("overwrite-button").onclick = e => {
-        omg.server.post(this.data, res => {
-            this.saved(res)
-        })
-    }
-    document.getElementById("new-copy-music-button").onclick = e => {
-        delete this.song.data.id
-        omg.server.post(this.song.getData(), res => {
-            this.savedMusic(res)
-        })
-    }
-    document.getElementById("overwrite-music-button").onclick = e => {
-        omg.server.post(this.song.getData(), res => {
-            this.savedMusic(res)
-        })
-    }
     omg.server.getHTTP("/user", user => this.user = user)
 
     this.tileSetSelect = document.getElementById("tile-set-select")
@@ -456,65 +433,7 @@ OMGMapEditor.prototype.resizeMap = function () {
     this.map.draw()
 }
 
-OMGMapEditor.prototype.save = function () {
-    this.data.name = this.nameInput.value
-    this.data.type = "RPGMAP"
 
-    this.map.updateYLines()
-    
-    this.overwriteDiv = document.getElementById("overwrite-or-new")
-    this.overwriteMusicDiv = document.getElementById("overwrite-music")
-    this.savedDiv = document.getElementById("saved")
-    this.saveDiv = document.getElementById("save")
-
-    this.savedWindow = this.wm.newWindow({caption: "Save", div: this.saveDiv, width: 300, height: 350})
-
-    this.savedDiv.style.display = "none"
-    if (this.data.id) {
-        if (this.user && this.data.user_id === this.user.id)  {
-            this.overwriteDiv.style.display = "block"
-            return
-        }
-        else {
-            this.overwriteDiv.style.display = "none"
-            delete this.data.id
-        }
-    }
-    else {
-        this.overwriteDiv.style.display = "none"
-    }
-
-    if (this.song) {
-        this.overwriteMusicDiv.style.display = "block"
-    }
-    else {
-        this.overwriteMusicDiv.style.display = "none"
-    }
-
-    omg.server.post(this.data, res => {
-        this.saved(res)        
-    })
-}
-
-OMGMapEditor.prototype.saved = function (res) {
-    var urlTag = document.getElementById("saved-url")
-    var url = this.gamePage + "?id=" + res.id
-    urlTag.href = url
-    urlTag.innerHTML = url
-
-    this.overwriteDiv.style.display = "none"
-    this.savedDiv.style.display = "block"
-}
-
-OMGMapEditor.prototype.savedMusic = function (res) {
-    var urlTag = document.getElementById("saved-url")
-    var url = this.gamePage + "?id=" + res.id
-    urlTag.href = url
-    urlTag.innerHTML = url
-
-    this.overwriteMusicDiv.style.display = "none"
-    this.savedMusicDiv.style.display = "block"
-}
 
 OMGMapEditor.prototype.selectToolBox = function (e) {
     if (this.lastToolBox) {
@@ -687,7 +606,7 @@ OMGMapEditor.prototype.addHTML = function (e) {
 
 OMGMapEditor.prototype.showNPCDetails = function (npc, npcDiv) {
     
-    var f = new NPCFragment(npc, this)
+    var f = new fragments.NPCFragment(npc, this)
     this.wm.showFragment(f, {
         width: 350,
         height: 500,
@@ -980,18 +899,28 @@ OMGMapEditor.prototype.setupMenu = function () {
             {name: "File", items: [
                 {name: "User", onclick: () => this.showUserWindow()},
                 {separator: true},
-                {name: "New", onclick: () => this.newSong()},
+                {name: "New", onclick: () => {window.location = window.location.pathname}},
                 {name: "Open", onclick: () => this.showOpenWindow()},
                 {name: "Save", onclick: () => this.save()},
                 {separator: true},
                 {name: "Settings", onclick: () => this.showSettingsWindow()},
                 {separator: true},
-                //{name: "OMG Home", onclick: () => this.showSaveWindow()}
+                {name: "OMG Home", onclick: () => {window.location = "/"}}
             ]},
             {name: "Window", items: [
                 {name: "Size", onclick: () => this.showSizeWindow()},
-                {name: "Music", onclick: () => this.showMusicWindow()},
                 {name: "Import Tile", onclick: () => this.showImportTileWindow()}
+            ]},
+            {name: "Music", items: [
+                {name: "Choose", onclick: () => this.showMusicWindow()},
+                {name: "Remove", onclick: () => this.removeMusic()},
+                {name: "New (Blank)", onclick: () => this.newBlankMusic()},
+                {separator: true},
+                {name: "Timeline Window", onclick: () => this.showDawTimeline()},
+                {name: "Transport Window", onclick: () => this.showDawTransport()},
+                {name: "Mixer Window", onclick: () => this.showDawMixer()},
+                {name: "FX Window", onclick: () => this.showDawFX()},
+                
             ]},
             {name: "Help", items: [
             ]}
@@ -1009,29 +938,25 @@ OMGMapEditor.prototype.showSizeWindow = function () {
 
 
 OMGMapEditor.prototype.showMusicWindow = function () {
-    if (!this.map.data.music) {
 
-        var searchBox = new OMGSearchBox({types: ["SONG"]})
+    var searchBox = new OMGSearchBox({types: ["SONG"]})
 
-        this.selectCharacterList.appendChild(searchBox.div)
-        
-        searchBox.onclickcontent = e => {
-            this.selectMusic(e.data)
-            win.close()
-        }
-
-        searchBox.search()
-
-        var win = this.wm.newWindow({
-            caption: "Select Music",
-            div: searchBox.div, 
-            x: 50, y: 50, width: 500, height: 500,
-            overflowY: "auto"
-        })
+    this.selectCharacterList.appendChild(searchBox.div)
+    
+    searchBox.onclickcontent = e => {
+        this.selectMusic(e.data)
+        win.close()
     }
-    else {
-        this.showDawesome()
-    }
+
+    searchBox.search()
+
+    var win = this.wm.newWindow({
+        caption: "Select Music",
+        div: searchBox.div, 
+        x: 50, y: 50, width: 500, height: 500,
+        overflowY: "auto"
+    })
+    
 }
 
 OMGMapEditor.prototype.selectMusic = async function (data) {
@@ -1047,34 +972,53 @@ OMGMapEditor.prototype.selectMusic = async function (data) {
 }
 
 OMGMapEditor.prototype.showDawesome = async function () {
-
     if (!this.dawesome) {
-        var o = await import("/apps/dawesome/js/dawesome.js")
-        this.dawesome = new o.default({div: document.body, 
-            song: this.song,
-            player: this.musicPlayer,
-            musicContext: this.musicContext, 
-            transportWindowConfig: {
-                caption: "Transport",
-                x: window.innerWidth / 2, y: 100,
-                width: window.innerWidth / 3, height: 90
-            }, 
-            timelineWindowConfig: {
-                caption: "Timeline",
-                x: 30, y: window.innerHeight - 400,
-                width: window.innerWidth - 80, height: 350
-            },
-            mixerWindowConfig: {
-                caption: "Mixer", 
-                x: window.innerWidth - 360, y: window.innerHeight / 4,
-                width: 300, height: 300
-            }, 
-            fxWindowConfig: {
-                hidden: true
-            }
-        })
-        //this.dawesome.load(data)
+        await this.loadDawesome()
     }
+    this.showDawTransport()
+}
+OMGMapEditor.prototype.loadDawesome = async function () {
+
+    var o = await import("/apps/dawesome/js/dawesome.js")
+    this.dawesome = new o.default({div: document.body, 
+        song: this.song,
+        player: this.musicPlayer,
+        musicContext: this.musicContext, 
+        transportWindowConfig: {
+            caption: "Transport",
+            x: window.innerWidth / 2, y: 100,
+            width: window.innerWidth / 3, height: 90,
+            hidden: true
+        }, 
+        timelineWindowConfig: {
+            caption: "Timeline",
+            x: 30, y: window.innerHeight - 400,
+            width: window.innerWidth - 80, height: 350,
+            //hidden: true
+        },
+        mixerWindowConfig: {
+            caption: "Mixer", 
+            x: window.innerWidth - 360, y: window.innerHeight / 4,
+            width: 300, height: 300
+        }, 
+        fxWindowConfig: {
+            hidden: true
+        }
+    })
+}
+
+OMGMapEditor.prototype.showDawTransport = async function () {
+    if (!this.dawesome) {
+        await this.loadDawesome()
+    }
+    this.dawesome.showTransportWindow()
+}
+
+OMGMapEditor.prototype.showDawTimeline = async function () {
+    if (!this.dawesome) {
+        await this.loadDawesome()
+    }
+    this.dawesome.showTimelineWindow()
 }
 
 OMGMapEditor.prototype.loadMusic = async function (music) {
@@ -1084,10 +1028,13 @@ OMGMapEditor.prototype.loadMusic = async function (music) {
         this.musicContext = new OMusicContext()
     }
 
-    if (music.type === "SONG" && music.omgurl) {
-        var res = await fetch(music.omgurl)
-        var data = await res.json()
-        
+    if (music.type === "SONG") {
+        var data
+        if (music.omgurl) {
+            var res = await fetch(music.omgurl)
+            data = await res.json()
+        }
+
         var {player, song} = await this.musicContext.load(data)
         this.musicPlayer = player
         this.song = song
@@ -1098,7 +1045,7 @@ OMGMapEditor.prototype.loadMusic = async function (music) {
 
 
 OMGMapEditor.prototype.showImportTileWindow = async function () {
-    var f = new ImportTileFragment(this)
+    var f = new fragments.ImportTileFragment(this)
     this.wm.showFragment(f, {
         caption: "Import Tile",
         width: 400,
@@ -1107,144 +1054,25 @@ OMGMapEditor.prototype.showImportTileWindow = async function () {
     })
 }
 
-function NPCFragment(npc, editor) {
-    this.editor = editor
-    this.div = document.createElement("div")
-    
-    var caption
-    
-    this.npcDetailsName   = document.createElement("input")
-    this.div.appendChild(this.npcDetailsName)
-    this.npcDetailsSound  = document.createElement("div")
-    this.div.appendChild(this.npcDetailsSound)
-    this.npcDetailsDialog = document.createElement("textarea")
-    this.div.appendChild(this.npcDetailsDialog)
-    this.npcDetailsCanvas = document.createElement("canvas")
-    this.npcDetailsCanvas.width = 32
-    this.npcDetailsCanvas.height = 32
-    
-    this.div.appendChild(this.npcDetailsCanvas)
-    this.npcDetailsDelete = document.createElement("button")
-    this.div.appendChild(this.npcDetailsDelete)
-
-    this.npcDetailsName.value = npc.name
-    this.npcDetailsSound.value = npc.soundURL || ""
-    this.npcDetailsName.onkeypress = e => {
-        if (e.key === "Enter") {
-            npc.name = this.npcDetailsName.value
-            npcDiv.getElementsByTagName("div")[0].innerHTML = npc.name
-        }
-    }
-    this.npcDetailsSound.onkeypress = e => {
-        if (e.key === "Enter") {
-            npc.soundURL = this.npcDetailsSound.value
-        }
-    }
-
-    this.npcDetailsDialog.value = npc.dialog.join("\n")
-    this.npcDetailsDialog.onkeyup = e => {
-        npc.dialog = this.npcDetailsDialog.value.split("\n")
-    }
-
-    this.npcDetailsDelete.onclick = e => {
-        let i = this.map.npcs.indexOf(npc)
-        this.map.npcs.splice(i, 1)
-        this.drawNPCs()
-
-        npcDiv.parentElement.removeChild(npcDiv)
-    }
-
-    this.selectMusicPart = document.createElement("select")
-    if (this.editor.song) {
-        this.loadMusicParts()
-    }
-    caption = document.createElement("div")
-    caption.innerHTML = "Music Part:"
-    this.div.appendChild(caption)
-    this.div.appendChild(this.selectMusicPart)
-
-    this.selectMusicPart.value = npc.musicPart || "(None}"
-    this.selectMusicPart.onchange = e => {
-        if (this.selectMusicPart.selectedIndex === 0) {
-            delete npc.musicPart 
-        }
-        else {
-            npc.musicPart =  this.selectMusicPart.value 
-        }
-    }
- 
+OMGMapEditor.prototype.removeMusic = function () {
+    delete this.map.data.music
+    delete this.musicPlayer
+    delete this.song
 }
 
-NPCFragment.prototype.loadMusicParts = function () {
-    this.selectMusicPart.innerHTML = "<option value=''>(None)</option>"
-    for (var partName in this.editor.song.parts) {
-        var option = document.createElement("option")
-        option.innerHTML = partName
-        this.selectMusicPart.appendChild(option)
-    }
-    
+OMGMapEditor.prototype.newBlankMusic = async function () {
+    this.removeMusic()
+    this.map.data.music = {type: "SONG"}
+    await this.loadMusic(this.map.data.music)
+    this.showDawesome()
 }
 
-function ImportTileFragment(editor) {
-    this.editor = editor
-    this.div = document.createElement("div")
-    this.backButton = document.createElement("button")
-    this.backButton.innerHTML = "< Back"
-    this.backButton.onclick = e => {
-        this.backButton.style.display = "none"
-        searchBox.div.style.display = "block"
-        this.tileListDiv.style.display = "none"
-    }
-    this.backButton.style.display = "none"
 
-    this.tileListDiv = document.createElement("div")
-    var searchBox = new OMGSearchBox({types: ["TILESET", "RPGMAP"]})
-
-    this.div.appendChild(searchBox.div)
-    this.div.appendChild(this.backButton)
-    this.div.appendChild(this.tileListDiv)
-    
-    searchBox.onclickcontent = e => {
-
-        this.tileListDiv.innerHTML = ""
-        searchBox.div.style.display = "none"
-        this.backButton.style.display ="block"
-        this.tileListDiv.style.display = "block"
-
-        var tileSet
-        if (e.data.type === "TILESET") {
-            tileSet = e.data
-        }
-        else if (e.data.type === "RPGMAP") {
-            tileSet = e.data.tileSet
-        }
-
-        if (tileSet) {
-            for (var tileCode in tileSet.tileCodes) {
-                var url = tileSet.tileCodes[tileCode]
-                if (!url.startsWith("data:")) {
-                    url = (tileSet.prefix || "") + url + (tileSet.postfix || "")
-                }
-                this.makeTile(tileCode, url)
-            }
-        }
-        
-    }
-
-    searchBox.search()
-}
-
-ImportTileFragment.prototype.makeTile = function (tileCode, url) {
-    var img = document.createElement("img")
-    img.src = url
-    img.width = 32
-    img.height = 32
-    this.tileListDiv.appendChild(img)
-    img.onclick = e => {
-        this.editor.data.tileSet.tileCodes[tileCode] = url //"" //this.sourceCtx.canvas.toDataURL("image/png")
-        var img = this.editor.loadTile(tileCode, this.editor.data.tileSet)
-        img.src = url //this.img.tiles[this.selectedTile].src
-        img.onclick()
-               
-    }
+OMGMapEditor.prototype.save = function () {
+    var f = new fragments.SaveFragment(this)
+    this.wm.showFragment(f, {
+        caption: "Save",
+        width: 400,
+        height: 400
+    })
 }
