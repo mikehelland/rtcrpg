@@ -26,46 +26,32 @@ export default function OMGMapEditor (div) {
 
 OMGMapEditor.prototype.load = function (data) {
 
-    var load = () => {
-        if (!data.tileSet) {
-            data.tileSet = this.tileSets[0]
-        }
-        this.loadTileSet(data.tileSet)
+    this.loadTileSet(data.tileSet)
 
-        this.map = new OMGRPGMap(data, {div: this.div, img: this.img})
-        this.data = data
-        this.canvas = this.map.charCanvas
-        this.setupEvents(this.map.charCanvas)
+    this.map = new OMGRPGMap(data, {div: this.div, img: this.img})
+    this.data = data
+    this.canvas = this.map.charCanvas
+    this.setupEvents(this.map.charCanvas)
 
-        //this.map.charCanvas.style.width = "100%"
-        //this.map.charCanvas.style.height = "100%"
-        
-        if (!this.data.palette) {
-            this.data.palette = []
-        }
-        this.nameInput.value = data.name
-        this.widthInput.value = data.width
-        this.heightInput.value = data.height
-
-        //this.div.style.width = this.data.width * this.map.tileSize * this.zoom + "px"
-        //this.div.style.height = this.data.height * this.map.tileSize * this.zoom + "px"
-        
-        this.loadNPCs()
-        this.loadHTML()
-
-        this.map.draw()
-        this.drawNPCs()
-
-        if (this.map.data.music) {
-            this.loadMusic(this.map.data.music)
-        }
+    //this.map.charCanvas.style.width = "100%"
+    //this.map.charCanvas.style.height = "100%"
+    
+    if (!this.data.palette) {
+        this.data.palette = []
     }
+    this.nameInput.value = data.name
+    
+    //this.div.style.width = this.data.width * this.map.tileSize * this.zoom + "px"
+    //this.div.style.height = this.data.height * this.map.tileSize * this.zoom + "px"
+    
+    this.loadNPCs()
+    this.loadHTML()
 
-    if (this.tileSets) {
-        load()
-    }
-    else {
-        this.onready = () => load()
+    this.map.draw()
+    this.drawNPCs()
+
+    if (this.map.data.music) {
+        this.loadMusic(this.map.data.music)
     }
 }
 
@@ -125,7 +111,7 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
             this.tileFill(this._movex, this._movey)
         }
         if (this.mode === "HTML_PLACE") {
-            this.htmlBeingAdded = this.addHTML(e)
+            this.addHTML(this._movex, this._movey)
             this.mode = "HTML_STRETCH"
         }
         if (this.mode === "NPC_SELECT") {
@@ -157,7 +143,7 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
             this.highlightTile(this._movex, this._movey)
         }
         else if (this.mode === "HTML_STRETCH") {
-            this.stretchHTML(e)
+            this.stretchHTML(this._movex, this._movey)
         }
     }
     canvas.onmouseup = (e) => {
@@ -182,6 +168,7 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         else if (this.mode === "HTML_STRETCH") {
             //this.addHTML(e)
             this.mode = "HTML_SELECT"
+            this.htmlBeingAdded = null
         }
         this.isTouching = false
     }
@@ -308,10 +295,6 @@ OMGMapEditor.prototype.setupControls = function () {
     
 
     this.nameInput = document.getElementById("map-name")
-    this.widthInput = document.getElementById("map-width-input")
-    this.heightInput = document.getElementById("map-height-input")
-    this.widthInput.onchange = e => this.resizeMap()
-    this.heightInput.onchange = e => this.resizeMap()
     this.toolBoxSelect = document.getElementById("tool-box-select")
     this.tileModeDiv = document.getElementById("tile-mode")
     this.tileListDiv = document.getElementById("tile-list")
@@ -325,36 +308,13 @@ OMGMapEditor.prototype.setupControls = function () {
     this.toolBoxSelect.value = "Tiles"
     this.selectToolBox({target: {value: "Tiles"}})
     
-    document.getElementById("zoom-out-button").onclick = () => {
-        this.map.tileSize -= 2
-        this.resizeMap()
-    }
-    document.getElementById("zoom-in-button").onclick = () => {
-        this.map.tileSize += 2
-        this.resizeMap()
-    }
-
     omg.server.getHTTP("/user", user => this.user = user)
-
-    this.tileSetSelect = document.getElementById("tile-set-select")
 
     this.tileSelectMode = document.getElementById("tile-draw-mode")
     this.tileSelectMode.onchange = e => {
         this.tileDrawMode = this.tileSelectMode.value
     }
     this.tileDrawMode = this.tileSelectMode.value
-
-    this.tileSetSelect.onchange = e => {
-        for (let i = 0; i < this.tileSets.length; i++) {
-            if (this.tileSets[i].name === this.tileSetSelect.value) {
-                this.tileListDiv.innerHTML = ""
-                this.map.data.tileSet = this.tileSets[i]
-                this.loadTileSet(this.tileSets[i])
-                this.map.draw()
-                return
-            }
-        }
-    }
 
     this.copyTileButton = document.getElementById("tile-list-copy-button")
     this.addTileButton = document.getElementById("tile-list-new-button")
@@ -377,25 +337,10 @@ OMGMapEditor.prototype.setupControls = function () {
     
     this.setupNPCControls()
     this.setupHTMLControls()
-    this.setupMusicControls()
-
+    
     this.selectCharacterDialog = document.getElementById("select-character-dialog")
     this.selectCharacterList = document.getElementById("select-character-list")
 
-    omg.server.getHTTP("/data/?type=TILESET", results => {
-        this.tileSets = results
-        results.forEach(result => {
-            result.url = window.location.origin + "/data/" + result.id
-            var newOption = document.createElement('option')
-            this.tileSetSelect.appendChild(newOption)
-            newOption.innerHTML = result.name
-        })
-
-        // we want the tilesets loaded for a blank map before we're ready to load
-        if (this.onready) {
-            this.onready()
-        }
-    })
 }
 
 OMGMapEditor.prototype.setupSelectCharacterDialog = function () {
@@ -411,9 +356,11 @@ OMGMapEditor.prototype.setupSelectCharacterDialog = function () {
     searchBox.search()
 }
 
-OMGMapEditor.prototype.resizeMap = function () {
-    this.data.width = parseInt(this.widthInput.value)
-    this.data.height = parseInt(this.heightInput.value)
+OMGMapEditor.prototype.resizeMap = function (width, height) {
+    if (width && height) {
+        this.data.width = width
+        this.data.height = height
+    }
     this.canvas.width = this.data.width * this.map.tileSize * this.zoom
     this.canvas.height = this.data.height * this.map.tileSize * this.zoom
     this.canvas.style.width = this.canvas.width + "px"
@@ -451,7 +398,7 @@ OMGMapEditor.prototype.selectToolBox = function (e) {
         this.mode = "NPC_SELECT"
         this.lastToolBox = this.characterModeDiv
     }
-    else if (e.target.value === "HTML") {
+    else if (e.target.value === "Region") {
         this.htmlListDiv.style.display = "block"
         this.mode = "HTML_SELECT"
         this.lastToolBox = this.htmlListDiv
@@ -487,36 +434,6 @@ OMGMapEditor.prototype.setupHTMLControls = function () {
     this.addHTMLButton.onclick = e => {
         e.target.innerHTML = "Place..."
         this.mode = "HTML_PLACE"
-    }
-    this.htmlDetailsDiv = document.getElementById("html-details")
-    this.htmlDetailsName = document.getElementById("html-details-name")
-    this.htmlDetailsInput = document.getElementById("html-input")
-}
-
-OMGMapEditor.prototype.setupMusicControls = function () {
-    
-    this.musicDetailsSelect = document.getElementById("music-details-select")
-    this.musicDetailsEditor = document.getElementById("music-details-editor")
-    this.selectMusicButton = document.getElementById("music-select-button")
-    this.selectMusicButton.onclick = e => {
-        this.musicDetailsSelect.style.display = "block"
-        this.musicDetailsEditor.style.display = "none"
-        
-        if (!this.isMusicSelectSetup) {
-            this.setupMusicSelect()
-            this.isMusicSelectSetup = true
-        }
-        
-    }
-
-    this.musicEditorButton = document.getElementById("music-editor-button")
-    this.musicEditorButton.onclick = e => {
-        this.musicDetailsSelect.style.display = "none"
-        this.musicDetailsEditor.style.display = "block"
-        if (!this.data.music) {
-            this.data.music = {}
-        }
-        this.setupMusicEditor(this.data.music.id)
     }
     
 }
@@ -554,7 +471,6 @@ OMGMapEditor.prototype.addNPC = async function (x, y) {
     this.map.data.npcs.push(npc)
     this.showNPCDetails(npc, div)
 
-    // todo this should be where the npc is selected
     this.selectedNPC = npc
 
     this.mode = "NPC_SELECT"
@@ -580,28 +496,27 @@ OMGMapEditor.prototype.placeNPC = function (sprite) {
     }
 }
 
-OMGMapEditor.prototype.addHTML = function (e) {
-    var x = Math.floor((e.clientX - this.canvas.offsetLeft) / this.map.tileSize)
-    var y = Math.floor((e.clientY - this.canvas.offsetTop) / this.map.tileSize)
-
+OMGMapEditor.prototype.addHTML = function (x, y) {
+    
     var html = {
         "name": "name me",
         "x": x,
         "y": y,
+        "width": 1,
+        "height": 1,
         "innerHTML": "<iframe src='URL_HERE'></iframe>"
     }
 
+    this.htmlBeingAdded = html
     var div = this.setupHTMLToolBoxDiv(html)
     
     this.map.html.push(html)
-    //this.showHTMLDetails(html, div)
     
     this.mode = "HTML_SELECT"
     this.tileHighlightDiv.style.display = "none"
     this.addHTMLButton.innerHTML = "+Add"
 
     this.drawNPCs()
-    return html
 }
 
 OMGMapEditor.prototype.showNPCDetails = function (npc, npcDiv) {
@@ -619,23 +534,19 @@ OMGMapEditor.prototype.showNPCDetails = function (npc, npcDiv) {
     //this.drawNPCs()
 }
 
-OMGMapEditor.prototype.showHTMLDetails = function (html, div) {
-    this.htmlDetailsDiv.style.display = "block"
-    this.htmlDetailsName.value = html.name
-    this.htmlDetailsName.onkeypress = e => {
-        if (e.key === "Enter") {
-            html.name = this.htmlDetailsName.value
-            div.getElementsByTagName("div")[0].innerHTML = html.name
-        }
-    }
+OMGMapEditor.prototype.showRegionDetails = function (region, div) {
+    
+    var f = new fragments.SpecialRegionFragment(region, this)
+    this.wm.showFragment(f, {
+        width: 350,
+        height: 500,
+        caption: "Region - " + region.name,
+        x: window.innerWidth - 510,
+        y: 70
+    })
 
-    this.htmlDetailsInput.value = html.innerHTML //.join("\n")
-    this.htmlDetailsInput.onkeyup = e => {
-        html.innerHTML = this.htmlDetailsInput.value //.split("\n")
-    }
 
-    this.selectedHTML = html
-    this.drawNPCs()
+    this.selectedRegion = region
 }
 
 OMGMapEditor.prototype.setupNPCToolBoxDiv = function (npc) {
@@ -647,7 +558,9 @@ OMGMapEditor.prototype.setupNPCToolBoxDiv = function (npc) {
     //npcDiv.appendChild(npcImg)
     npcDiv.appendChild(npcName)
     npcDiv.onclick = e => {
+        this.selectedNPC = npc
         this.showNPCDetails(npc, npcDiv)
+        this.drawNPCs()
     }
     this.characterListDiv.appendChild(npcDiv)
     return npcDiv
@@ -660,7 +573,7 @@ OMGMapEditor.prototype.setupHTMLToolBoxDiv = function (html) {
     name.innerHTML = html.name
     div.appendChild(name)
     div.onclick = e => {
-        this.showHTMLDetails(html, div)
+        this.showRegionDetails(html, div)
     }
     this.htmlListDiv.appendChild(div)
     return div
@@ -676,13 +589,14 @@ OMGMapEditor.prototype.drawNPCs = function () {
     this.map.charCanvas.style.width = this.map.canvas.width * this.zoom + "px"
     this.map.charCanvas.style.height = this.map.canvas.height * this.zoom + "px"
 
-    this.map.charCanvas.fillStyle = "white"
+    this.map.charCtx.fillStyle = "green"
 
     this.map.charCtx.fillRect(
         this.data.startX * this.map.tileSize,
         this.data.startY * this.map.tileSize,
         this.map.tileSize, this.map.tileSize)
 
+    this.map.charCtx.lineWidth = 2    
     this.map.charCtx.strokeStyle = "red"
     if (this.htmlBeingAdded) {
         this.map.charCtx.strokeRect(this.htmlBeingAdded.x * this.map.tileSize,
@@ -691,18 +605,30 @@ OMGMapEditor.prototype.drawNPCs = function () {
             this.htmlBeingAdded.height * this.map.tileSize)
     }
     
-    if (this.data.html) {
-        for (this._loop_drawNPCs_i = 0;  this._loop_drawNPCs_i < this.data.html.length; this._loop_drawNPCs_i++) {
-            this.map.charCtx.strokeRect(
-                this.data.html[this._loop_drawNPCs_i].x * this.map.tileSize,
-                this.data.html[this._loop_drawNPCs_i].y * this.map.tileSize,
-                this.data.html[this._loop_drawNPCs_i].width * this.map.tileSize,
-                this.data.html[this._loop_drawNPCs_i].height * this.map.tileSize)
-
+    this.map.charCtx.strokeStyle = "blue"
+    if (this.map.html) {
+        for (this._loop_drawNPCs_i of this.map.html) {
+            if (this._loop_drawNPCs_i !== this.htmlBeingAdded) {
+                this.map.charCtx.strokeRect(
+                    this._loop_drawNPCs_i.x * this.map.tileSize,
+                    this._loop_drawNPCs_i.y * this.map.tileSize,
+                    this._loop_drawNPCs_i.width * this.map.tileSize,
+                    this._loop_drawNPCs_i.height * this.map.tileSize)
+            }
         }
     }
 
     this.map.drawNPCs()
+
+    if (this.selectedNPC) {
+        this.map.charCtx.strokeStyle = "red"
+        this.map.charCtx.lineWidth = 2
+        this.map.charCtx.strokeRect(
+            this.selectedNPC.x * this.map.tileSize,
+            this.selectedNPC.y * this.map.tileSize,
+            this.selectedNPC.width * this.map.tileSize,
+            this.selectedNPC.height * this.map.tileSize)
+    }
     
     if (this.previewSpriter) {
         this.previewSpriter.draw()
@@ -741,19 +667,15 @@ OMGMapEditor.prototype.loadHTML = function () {
     }
 }
 
-OMGMapEditor.prototype.stretchHTML = function (e) {
- 
-    var x = Math.ceil((e.clientX - this.canvas.offsetLeft) / this.map.tileSize)
-    var y = Math.ceil((e.clientY - this.canvas.offsetTop) / this.map.tileSize)
-    this.htmlBeingAdded.width = x - this.htmlBeingAdded.x
-    this.htmlBeingAdded.height = y - this.htmlBeingAdded.y
+OMGMapEditor.prototype.stretchHTML = function (x, y) {
+
+    this.htmlBeingAdded.width = Math.max(1, x - this.htmlBeingAdded.x)
+    this.htmlBeingAdded.height = Math.max(1, y - this.htmlBeingAdded.y)
 
     this.drawNPCs()
 }
 
-OMGMapEditor.prototype.moveNPC = function (e) {
-    var x = Math.floor((e.clientX - this.canvas.offsetLeft) / this.map.tileSize)
-    var y = Math.floor((e.clientY - this.canvas.offsetTop) / this.map.tileSize)
+OMGMapEditor.prototype.moveNPC = function (x, y) {
     this.selectedNPC.x = x
     this.selectedNPC.y = y
     this.mode = "NPC_SELECT" 
@@ -929,7 +851,9 @@ OMGMapEditor.prototype.setupMenu = function () {
 }
 
 OMGMapEditor.prototype.showSizeWindow = function () {
-    this.canvasWindow = this.wm.newWindow({
+    var f = new fragments.SizeFragment(this)
+
+    this.wm.showFragment(f, {
         div: document.getElementById("size-menu"),
         caption: "Size", width: 200, height: 150
     })

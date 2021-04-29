@@ -144,7 +144,10 @@ export function SaveFragment(editor) {
     this.editor = editor
     this.data = editor.data
     this.user = editor.user
+    this.map = editor.map
     var song = editor.song
+
+    this.gamePage = "char.htm"
 
     this.div = document.createElement("div")
     
@@ -205,6 +208,9 @@ export function SaveFragment(editor) {
         this.musicDiv.appendChild(discardMusicButton)
 
     }
+    else {
+        this.showSaveButtons()
+    }
 
     if (mapChanged && musicChanged) {
         var saveAllButton = document.createElement("button")
@@ -212,58 +218,14 @@ export function SaveFragment(editor) {
         saveAllButton.onclick = e => this.saveAll()
     }
 
-    
-    document.getElementById("new-copy-button").onclick = e => {
-        delete this.data.id
-        omg.server.post(this.data, res => {
-            this.saved(res)
-        })
-    }
-    document.getElementById("overwrite-button").onclick = e => {
-        omg.server.post(this.data, res => {
-            this.saved(res)
-        })
-    }
-    document.getElementById("new-copy-music-button").onclick = e => {
-        
-    }
 
 }
 
 SaveFragment.prototype.save = function () {
     this.data.name = this.nameInput.value
     this.data.type = "RPGMAP"
-
     this.map.updateYLines()
     
-    this.overwriteDiv = document.getElementById("overwrite-or-new")
-    this.overwriteMusicDiv = document.getElementById("overwrite-music")
-    this.savedDiv = document.getElementById("saved")
-    this.saveDiv = document.getElementById("save")
-
-    this.savedWindow = this.wm.newWindow({caption: "Save", div: this.saveDiv, width: 300, height: 350})
-
-    this.savedDiv.style.display = "none"
-    if (this.data.id) {
-        if (this.user && this.data.user_id === this.user.id)  {
-            this.overwriteDiv.style.display = "block"
-            return
-        }
-        else {
-            this.overwriteDiv.style.display = "none"
-            delete this.data.id
-        }
-    }
-    else {
-        this.overwriteDiv.style.display = "none"
-    }
-
-    if (this.song) {
-        this.overwriteMusicDiv.style.display = "block"
-    }
-    else {
-        this.overwriteMusicDiv.style.display = "none"
-    }
 
     omg.server.post(this.data, res => {
         this.saved(res)        
@@ -271,13 +233,14 @@ SaveFragment.prototype.save = function () {
 }
 
 SaveFragment.prototype.saved = function (res) {
-    var urlTag = document.getElementById("saved-url")
-    var url = this.gamePage + "?id=" + res.id
-    urlTag.href = url
-    urlTag.innerHTML = url
+    this.data.id = res.id
+    this.data.user_id = res.user_id
 
-    this.overwriteDiv.style.display = "none"
-    this.savedDiv.style.display = "block"
+    this.div.innerHTML = "Saved!<br>" + 
+                        "<a href='" + this.gamePage + "?id=" + res.id + "'>" +
+                        this.gamePage + "?id=" + res.id + "</a>"
+
+    
 }
 
 SaveFragment.prototype.savedMusic = function (res) {
@@ -292,7 +255,19 @@ SaveFragment.prototype.savedMusic = function (res) {
 
 SaveFragment.prototype.showSaveButtons = function () {
 
-    this.musicDiv.style.display = "none"
+    if (this.musicDiv) {
+        this.musicDiv.style.display = "none"
+    }
+
+    this.nameInput = document.createElement("input")
+    var caption = document.createElement("div")
+    caption.innerHTML = "Map Name:"
+    this.div.appendChild(caption)
+
+    this.nameInput.value = this.data.name
+    this.div.appendChild(this.nameInput)
+
+    this.div.appendChild(document.createElement("br"))
 
     var canOverwrite = this.user && this.data.user_id === this.user.id
 
@@ -300,18 +275,14 @@ SaveFragment.prototype.showSaveButtons = function () {
         var overwriteButton = document.createElement("button")
         overwriteButton.innerHTML = "Overwrite MAP"
         overwriteButton.onclick = e => {
-            omg.server.post(this.data, res => {
-                this.saved(res)        
-            })
+            this.save()
         }
 
         var saveCopyButton = document.createElement("button")
         saveCopyButton.innerHTML = "Save Copy of MAP"
         saveCopyButton.onclick = e => {
             delete this.data.id
-            omg.server.post(this.data, res => {
-                this.saved(res)        
-            })
+            this.save()
         }
         
         this.div.appendChild(overwriteButton)
@@ -319,20 +290,101 @@ SaveFragment.prototype.showSaveButtons = function () {
     }
     else {
         delete this.data.id
-        omg.server.post(this.data, res => {
-            this.saved(res)        
-        })
-
+        this.save()
     }
 }
 
-SaveFragment.prototype.saved = function (res) {
-    this.gamePage = "char.htm"
 
-    this.data.id = res.id
+export function SpecialRegionFragment(region, editor) {
+    this.editor = editor
+    this.div = document.createElement("div")
+    
+    var caption
+    caption = document.createElement("div")
+    caption.innerHTML = "Region name:"
+    this.div.appendChild(caption)
+    this.nameInput   = document.createElement("input")
+    this.nameInput.value = region.name
+    this.div.appendChild(this.nameInput)
 
-    this.div.innerHTML = "Saved!<br>" + 
-                        "<a href='" + this.gamePage + "?id=" + res.id + "'>" +
-                        this.gamePage + "?id=" + res.id + "</a>"
+    this.selectType = document.createElement("select")
+    this.selectType.innerHTML = "<option value='HTML'>HTML</option><option value='MAP'>Door to another map</option>"
+    this.div.appendChild(this.selectType)
+
+    caption = document.createElement("div")
+    caption.innerHTML = "Data:"
+    this.div.appendChild(caption)
+
+    this.dataInput = document.createElement("textarea")
+    this.dataInput.value = region.data
+    this.div.appendChild(this.dataInput)
+
+    this.nameInput.onkeypress = e => {
+        if (e.key === "Enter") {
+            region.name = this.nameInput.value
+            
+            //div.getElementsByTagName("div")[0].innerHTML = html.name
+        }
+    }
+
+    this.dataInput.onkeyup = e => {
+        region.data = this.dataInput.value //.split("\n")
+    }
+
+    
+}
+
+export function SizeFragment(editor) {
+    var data = editor.data
+    var map = editor.map
+    this.div = document.createElement("div")
+
+    var caption
+    caption = document.createElement("span")
+    caption.innerHTML = "Size: "
+    this.div.appendChild(caption)
+
+    this.widthInput = document.createElement("input")
+    this.widthInput.type = "number"
+    this.heightInput = document.createElement("input")
+    this.heightInput.type = "number"
+
+    this.widthInput.className = "size-input"
+    this.heightInput.className = "size-input"
+
+    this.widthInput.value = data.width
+    this.heightInput.value = data.height
+ 
+    this.div.appendChild(this.widthInput)
+    
+    caption = document.createElement("span")
+    caption.innerHTML = "&times;"
+    this.div.appendChild(caption)
+
+    this.div.appendChild(this.heightInput)
+
+    this.div.appendChild(document.createElement("br"))
+    this.div.appendChild(document.createElement("br"))
+
+    this.zoomInButton = document.createElement("button")
+    this.zoomOutButton = document.createElement("button")   
+
+    this.zoomInButton.innerHTML = "Zoom +"
+    this.zoomOutButton.innerHTML = "Zoom -"
+
+    this.div.appendChild(this.zoomInButton)
+    this.div.appendChild(this.zoomOutButton)
+
+    this.widthInput.onchange = e => editor.resizeMap(parseInt(this.widthInput.value), parseInt(this.heightInput.value))
+    this.heightInput.onchange = e => editor.resizeMap(parseInt(this.widthInput.value), parseInt(this.heightInput.value))
+    
+    this.zoomInButton.onclick = () => {
+        map.tileSize += 2
+        editor.resizeMap()
+    }
+    this.zoomOutButton.onclick = () => {
+        map.tileSize -= 2
+        editor.resizeMap()
+    }
 
 }

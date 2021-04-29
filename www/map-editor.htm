@@ -27,9 +27,6 @@
             background-color: #999999;
             height: 100%;
         }
-        #tools select {
-            width:74px;
-        }
         #tools img {
             margin: 2px;
             width:32px;
@@ -90,7 +87,7 @@
             display: none;
             padding: 8px;
         }
-        #map-width-input, #map-height-input {
+        .size-input {
             width: 50px;
         }
 
@@ -169,12 +166,6 @@
     
     </div>
 
-    <div id="size-menu" class="dialog">
-        Size: <input type="number" id="map-width-input">&times;<input type="number" id="map-height-input">
-        <br><br>
-        <button id="zoom-in-button">Zoom +</button><button id="zoom-out-button">Zoom -</button>
-
-    </div>
     <div id="main-menu" class="dialog">
         Map Name: <input id="map-name"> 
         <button id="zoom-in-button">Zoom +</button><button id="zoom-out-button">Zoom -</button>
@@ -188,8 +179,7 @@
             <option>Tiles</option>
             <option>NPCs</option>
             <option>Hero</option>
-            <option>HTML</option>
-            <option>Music</option>
+            <option>Region</option>
         </select>
         <hr>
         <div id="tile-mode">          
@@ -198,7 +188,6 @@
                 <option>Brush</option>
                 <option>Fill</option>
             </select>
-            <select id="tile-set-select"></select>
             <div id="tile-list"></div>
             <button id="tile-list-copy-button">Copy Tile</button>
             <button id="tile-list-new-button">New Tile</button>
@@ -212,14 +201,6 @@
             <button id="add-html-button">+Add</button>
             <hr>
         </div>
-        <div id="music-mode">
-            Music:
-            <div id="music-name">(None)</div>
-            <button id="music-select-button">Select</button>
-            <button id="music-play-button">Play</button>
-            <button id="music-editor-button">Editor</button>
-            <hr>
-        </div>
     </div>
 
     <div id="tile-editor-details">
@@ -229,42 +210,10 @@
         
     </div>
     
-    <div id="html-details">
-        <input id="html-details-name"></input>
-        <hr>
-        innerHTML:
-        <textarea id="html-input"></textarea>
-    </div>
 
     <div id="music-details-select"></div>
     <div id="music-details-editor"></div>
     
-    <div id="save" class="dialog">
-        <div id="saved">
-            Your map has been saved.
-            <br>
-            <a id="saved-url"></a>
-        </div>
-
-        <div id="overwrite-or-new">
-            Do you want to overwrite or create a new copy?
-            <hr>
-            <button id="overwrite-button">Overwrite</button>
-            <br><br>
-            <button id="new-copy-button">New Copy</button>
-        </div>
-
-        <div id="overwrite-music">
-            <hr>
-            The music has changed. Do you want to overwrite or create a new copy?
-            <hr>
-            <button id="overwrite-music-button">Overwrite</button>
-            <br><br>
-            <button id="new-copy-music-button">New Copy</button>
-        </div>
-
-    </div>
-
     
 
     <div id="select-character-dialog">
@@ -277,8 +226,7 @@
     <script src="/js/omgservice.js"></script>
     <script src="/apps/music/js/omgservice_music.js"></script>
     <script src="tile-editor.js"></script>
-    <script src="/js/window_manager.js"></script>
-
+    
     <script src="/js/searchbox.js"></script>
     
     <script type="module">
@@ -290,7 +238,8 @@
         "startX": 1,
         "startY": 1,
         "npcs": [],
-        "yLines": []
+        "yLines": [],
+        "tileSet": {"tileCodes": {}}
         }
  
         var widthInput = document.getElementById('map-width-input')
