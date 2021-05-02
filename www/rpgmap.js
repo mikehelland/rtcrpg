@@ -156,6 +156,7 @@ OMGRPGMap.prototype.loadNPC = function (npc) {
     npc.width = npc.sprite.frameWidth / 32
     npc.height = npc.sprite.frameHeight / 32
     var spriter = new OMGSpriter(npc.sprite, this.charCanvas)
+    spriter.npc = npc
     spriter.w = npc.width * this.tileSize
     spriter.h = npc.height * this.tileSize
     
@@ -189,4 +190,12 @@ OMGRPGMap.prototype.loadNPCs = async function () {
    }
 
    Promise.all(loadPromises).then(() => this.drawNPCs())
+}
+
+OMGRPGMap.prototype.resizeSpriters = function () {
+
+    for (var sprite of this.activeSprites) {
+        sprite.spriter.w = sprite.npc.width * this.tileSize
+        sprite.spriter.h = sprite.npc.height * this.tileSize
+    }
 }

@@ -31,7 +31,6 @@ export default function OMGGameEngine(params) {
     this.gravity = 0 //0.5
     this.targetTiles = []
 
-    this.activeSprites = []
     this.fudge = 8
 }
 
@@ -54,9 +53,6 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
     
     this.background.style.width = this.backgroundCanvas.width + "px"
     this.background.style.height = this.backgroundCanvas.height + "px"
-
-    
-    this.activeSprites = []
 
     this.npcs = data.npcs || []
     this.npcs.forEach(npc => {

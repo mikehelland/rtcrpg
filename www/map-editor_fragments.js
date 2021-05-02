@@ -380,10 +380,12 @@ export function SizeFragment(editor) {
     
     this.zoomInButton.onclick = () => {
         map.tileSize += 2
+        map.resizeSpriters()
         editor.resizeMap()
     }
     this.zoomOutButton.onclick = () => {
         map.tileSize -= 2
+        map.resizeSpriters()
         editor.resizeMap()
     }
 
