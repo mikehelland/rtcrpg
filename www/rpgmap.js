@@ -110,8 +110,33 @@ OMGRPGMap.prototype.draw = function () {
             }
         }    
     }
-
 }
+
+OMGRPGMap.prototype.drawCustom = function (canvas, tileSize) {
+    canvas.width = this.data.width * tileSize
+    canvas.height = this.data.height * tileSize
+    var ctx = canvas.getContext("2d")
+    ctx.fillStyle = "black"
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    for (var x = 0; x < this.data.width; x++) {
+        for (var y = 0; y < this.data.height; y++) { 
+            if (this.tiles[x] && this.tiles[x][y]) {
+                var tileCode = this.tiles[x][y].code
+                if (this.img.tiles[tileCode]) {
+                    try {
+                        ctx.drawImage(this.img.tiles[tileCode],
+                            x * tileSize, 
+                            y * tileSize,
+                            tileSize + 0.5, tileSize + 0.5)
+                    }
+                    catch (e) {}
+                }
+            }
+        }    
+    }
+}
+
 
 OMGRPGMap.prototype.updateYLines = function () {
 

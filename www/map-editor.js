@@ -10,6 +10,8 @@ export default function OMGMapEditor (div) {
     this.div = div
     this.zoom = 1
 
+    this.onchangedlisteners = []
+
     this.mode = "TILE"
     this.img = {
         characters: document.getElementById("characters-spritesheet"),
@@ -151,9 +153,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         this._movex = Math.floor((e.clientX - this.offsets.left + this.drawingWindow.scrollLeft) / this.map.tileSize)
         this._movey = Math.floor((e.clientY - this.offsets.top + this.drawingWindow.scrollTop) / this.map.tileSize)
         
-        if (this.mode === "TILE" && this.tileDrawMode === "Fill") {
+        if (this.mode === "TILE") {
             if (this.isTouching) {
-                //this.tileFill(e)
+                this.onChanged()
             }    
         }
         else if (this.mode === "NPC_PLACE") {
@@ -378,6 +380,7 @@ OMGMapEditor.prototype.resizeMap = function (width, height) {
     }
 
     this.map.draw()
+    this.drawNPCs()
 }
 
 
@@ -831,6 +834,8 @@ OMGMapEditor.prototype.setupMenu = function () {
             ]},
             {name: "Window", items: [
                 {name: "Size", onclick: () => this.showSizeWindow()},
+                {name: "Mini Map", onclick: () => this.showMiniMap()},
+                {separator: true},
                 {name: "Import Tile", onclick: () => this.showImportTileWindow()}
             ]},
             {name: "Music", items: [
@@ -999,4 +1004,28 @@ OMGMapEditor.prototype.save = function () {
         width: 400,
         height: 400
     })
+}
+
+OMGMapEditor.prototype.showMiniMap = async function () {
+    var f = new fragments.MiniMapFragment(this)
+    this.wm.showFragment(f, {
+        caption: "Mini Map",
+        width: 400,
+        height: 400
+    })
+
+    var listener = () => {
+        f.draw()
+    }
+
+    this.onchangedlisteners.push(listener)
+}
+
+OMGMapEditor.prototype.onChanged = function () {
+
+    for (var listener of this.onchangedlisteners) {
+        listener()
+    }
+
+
 }

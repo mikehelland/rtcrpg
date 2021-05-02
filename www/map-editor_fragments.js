@@ -388,3 +388,16 @@ export function SizeFragment(editor) {
     }
 
 }
+
+export function MiniMapFragment(editor) {
+    this.editor = editor
+    this.div = document.createElement("canvas")
+    this.ctx = this.div.getContext("2d")
+    this.map = editor.map
+    this.draw()
+    
+}
+
+MiniMapFragment.prototype.draw = function () {
+    this.map.drawCustom(this.div, 16)
+}
