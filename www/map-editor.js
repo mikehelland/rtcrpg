@@ -100,12 +100,12 @@ OMGMapEditor.prototype.loadTile = function (key, tileSet, onload) {
 
 
 OMGMapEditor.prototype.setupEvents = function (canvas) {
-    this.offsets = omg.ui.totalOffsets(canvas)
+    this.offsets = this.wm.getTotalOffsets(canvas)
         
     canvas.onmousedown = (e) => {
-        this.offsets = omg.ui.totalOffsets(canvas)
-        this._movex = Math.floor((e.clientX - this.offsets.left + this.drawingWindow.scrollLeft) / this.map.tileSize)
-        this._movey = Math.floor((e.clientY - this.offsets.top + this.drawingWindow.scrollTop) / this.map.tileSize)
+        this.offsets = this.wm.getTotalOffsets(canvas)
+        this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
+        this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
         if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
             this.tileEvent(this._movex, this._movey)
         }
@@ -125,8 +125,8 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         if (!this.map) {
             return
         }
-        this._movex = Math.floor((e.clientX - this.offsets.left + this.drawingWindow.scrollLeft) / this.map.tileSize)
-        this._movey = Math.floor((e.clientY - this.offsets.top + this.drawingWindow.scrollTop) / this.map.tileSize)
+        this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
+        this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
         if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
             if (this.isTouching) {
                 this.tileEvent(this._movex, this._movey)
@@ -150,8 +150,8 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
     }
     canvas.onmouseup = (e) => {
         
-        this._movex = Math.floor((e.clientX - this.offsets.left + this.drawingWindow.scrollLeft) / this.map.tileSize)
-        this._movey = Math.floor((e.clientY - this.offsets.top + this.drawingWindow.scrollTop) / this.map.tileSize)
+        this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
+        this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
         
         if (this.mode === "TILE") {
             if (this.isTouching) {
@@ -295,6 +295,16 @@ OMGMapEditor.prototype.setupControls = function () {
         caption: "Toolbox"
     })
     
+    this.canvasWindow.onmove = () =>{
+        this.offsets = this.wm.getTotalOffsets(this.map.charCanvas)
+    }
+    this.drawingWindow.onscroll = () =>{
+        this.offsets = this.wm.getTotalOffsets(this.map.charCanvas)
+    }
+    document.body.onscroll = () =>{
+        this.offsets = this.wm.getTotalOffsets(this.map.charCanvas)
+    }
+
 
     this.nameInput = document.getElementById("map-name")
     this.toolBoxSelect = document.getElementById("tool-box-select")
