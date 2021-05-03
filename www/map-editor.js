@@ -987,7 +987,7 @@ OMGMapEditor.prototype.showImportTileWindow = async function () {
     var f = new fragments.ImportTileFragment(this)
     this.wm.showFragment(f, {
         caption: "Import Tile",
-        width: 400,
+        width: 500,
         height: 400,
         overflowY: "auto"
     })

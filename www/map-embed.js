@@ -8,13 +8,19 @@ function OMGEmbeddedViewerMAP (viewer) {
     import(omg.apps["rtcrpg"].path + "rpgmap.js").then(o => {
         var OMGRPGMap = o.default
         this.map = new OMGRPGMap(viewer.data, {div: viewer.embedDiv})
-        if (viewer.params && viewer.params.maxHeight) {
-            this.map.canvas.style.width = "100%"
-            this.map.canvas.style.height = "100%"
-            viewer.embedDiv.style.height = viewer.params.maxHeight + "px"
-            console.log(viewer.params.maxHeight)
+        
+        this.map.canvas.style.width = "100%"
+        this.map.charCanvas.style.width = "100%"
+        
+        if (viewer.params.maxHeight) {
+            this.map.canvas.style.height = viewer.params.maxHeight + "px"
+            this.map.charCanvas.style.height = viewer.params.maxHeight + "px"
         }
-
+        else {
+            this.map.canvas.style.height = "100%"
+            this.map.charCanvas.style.height = "100%"
+        }
+        
         this.map.draw() 
     })
     
