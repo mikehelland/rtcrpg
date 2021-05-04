@@ -73,7 +73,7 @@ export function NPCFragment(npc, npcDiv, editor) {
         })
         this.editor.drawNPCs()
 
-        this.win.close()
+        this.window.close()
     }
 
 }

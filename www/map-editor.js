@@ -538,15 +538,13 @@ OMGMapEditor.prototype.addHTML = function (x, y) {
 OMGMapEditor.prototype.showNPCDetails = function (npc, npcDiv) {
     
     var f = new fragments.NPCFragment(npc, npcDiv, this)
-    let win = this.wm.showFragment(f, {
+    this.wm.showFragment(f, {
         width: 350,
         height: 500,
         caption: "NPC - " + npc.name,
         x: window.innerWidth - 510,
         y: 70
     })
-    f.win = win
-
 
     //this.drawNPCs()
 }
