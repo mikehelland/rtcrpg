@@ -34,16 +34,7 @@ export default function OMGRPGMap(data, options) {
 
     this.loadTileSet(data.tileSet)
 
-    this.tiles = []
-    for (var x = 0; x < this.data.width; x++) {
-        this.tiles[x] = []
-
-        var ys = (this.data.yLines[x] || "").split(this.tileSplitChar)
-        for (var y = 0; y < this.data.height; y++) {
-            this.tiles[x][y] = {code: ys[y] || ""}
-        }
-    
-    }
+    this.loadTiles()
 
     this.canvas.width = this.data.width * this.tileSize
     this.canvas.height = this.data.height * this.tileSize
@@ -197,5 +188,18 @@ OMGRPGMap.prototype.resizeSpriters = function () {
     for (var sprite of this.activeSprites) {
         sprite.spriter.w = sprite.npc.width * this.tileSize
         sprite.spriter.h = sprite.npc.height * this.tileSize
+    }
+}
+
+OMGRPGMap.prototype.loadTiles = function () {
+    this.tiles = []
+    for (var x = 0; x < this.data.width; x++) {
+        this.tiles[x] = []
+
+        var ys = (this.data.yLines[x] || "").split(this.tileSplitChar)
+        for (var y = 0; y < this.data.height; y++) {
+            this.tiles[x][y] = {code: ys[y] || ""}
+        }
+    
     }
 }

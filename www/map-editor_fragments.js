@@ -403,3 +403,57 @@ export function MiniMapFragment(editor) {
 MiniMapFragment.prototype.draw = function () {
     this.map.drawCustom(this.div, 16)
 }
+
+
+export function UndoFragment(editor) {
+    this.editor = editor
+    this.map = editor.map
+    this.undoStack = editor.undoStack
+    this.div = document.createElement("div")
+
+
+    var undoButton = document.createElement("button")
+    undoButton.onclick = () => this.undo() 
+    undoButton.innerHTML = "Undo Last"
+    this.div.appendChild(undoButton)
+
+    this.listDiv = document.createElement("div")
+    this.div.appendChild(this.listDiv)
+
+    this.divMap = new Map()
+
+    for (let undo of editor.undoStack) {
+        let div = document.createElement("div")
+        div.innerHTML = undo.time.toLocaleTimeString() + " " + undo.type + " " + (undo.mode || "")
+        this.listDiv.insertBefore(div, this.listDiv.firstChild)
+        this.divMap.set(undo, div)
+    }
+
+    this.listener = undo => {
+        let div = document.createElement("div")
+        div.innerHTML = undo.time.toLocaleTimeString() + " " + undo.type + " " + (undo.mode || "")
+        this.listDiv.insertBefore(div, this.listDiv.firstChild)
+        this.divMap.set(undo, div)
+    }
+    editor.onchangedlisteners.push(this.listener)
+
+}
+
+UndoFragment.prototype.undo = function () {
+    if (this.undoStack.length === 0) {
+        return
+    }
+
+    let undo = this.undoStack.pop()
+    
+    this.map.data.yLines = undo.state.yLines
+    this.map.loadTiles()
+    this.map.draw()
+
+    this.editor.setWorkingState()
+
+    let div = this.divMap.get(undo)
+    if (div) {
+        this.listDiv.removeChild(div)
+    }
+}

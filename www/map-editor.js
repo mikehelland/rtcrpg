@@ -11,6 +11,7 @@ export default function OMGMapEditor (div) {
     this.zoom = 1
 
     this.onchangedlisteners = []
+    this.undoStack = []
 
     this.mode = "TILE"
     this.img = {
@@ -55,6 +56,8 @@ OMGMapEditor.prototype.load = function (data) {
     if (this.map.data.music) {
         this.loadMusic(this.map.data.music)
     }
+
+    this.setWorkingState()
 }
 
 
@@ -155,7 +158,7 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         
         if (this.mode === "TILE") {
             if (this.isTouching) {
-                this.onChanged()
+                this.onChanged({type: "TILE", mode: this.tileDrawMode})
             }    
         }
         else if (this.mode === "NPC_PLACE") {
@@ -843,6 +846,8 @@ OMGMapEditor.prototype.setupMenu = function () {
                 {name: "OMG Home", onclick: () => {window.location = "/"}}
             ]},
             {name: "Window", items: [
+                {name: "Undo List", onclick: () => this.showUndoWindow()},
+                {separator: true},
                 {name: "Size", onclick: () => this.showSizeWindow()},
                 {name: "Mini Map", onclick: () => this.showMiniMap()},
                 {separator: true},
@@ -1031,11 +1036,37 @@ OMGMapEditor.prototype.showMiniMap = async function () {
     this.onchangedlisteners.push(listener)
 }
 
-OMGMapEditor.prototype.onChanged = function () {
+OMGMapEditor.prototype.onChanged = function (info) {
+
+    if (!info) info = {}
+    info.state = this.workingState
+    info.time = new Date()
+    this.undoStack.push(info)
+    
+    if (info && info.type === "TILE") {
+        this.map.updateYLines()
+    }
+
+    this.setWorkingState()
 
     for (var listener of this.onchangedlisteners) {
-        listener()
+        listener(info)
     }
 
 
+}
+
+OMGMapEditor.prototype.showUndoWindow = async function () {
+    var f = new fragments.UndoFragment(this)
+    this.wm.showFragment(f, {
+        caption: "Undo List",
+        width: 200,
+        height: 400,
+        x: window.innerWidth - 250
+    })
+
+}
+
+OMGMapEditor.prototype.setWorkingState = function () {
+    this.workingState = JSON.parse(JSON.stringify(this.data))
 }
