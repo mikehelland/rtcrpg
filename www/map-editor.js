@@ -333,6 +333,7 @@ OMGMapEditor.prototype.setupControls = function () {
 
     this.copyTileButton = document.getElementById("tile-list-copy-button")
     this.addTileButton = document.getElementById("tile-list-new-button")
+    this.importTileButton = document.getElementById("tile-list-import-button")
     this.addTileButton.onclick = e => {
         var code = "n" + Math.trunc(Math.random() * 1000)
         this.data.tileSet.tileCodes[code] = ""
@@ -347,6 +348,9 @@ OMGMapEditor.prototype.setupControls = function () {
         img.src = this.img.tiles[this.selectedTile].src
         img.onclick()
         this.showTileEditor(code, img)
+    }
+    this.importTileButton.onclick = e => {
+        this.showImportTileWindow()
     }
 
     
@@ -993,7 +997,8 @@ OMGMapEditor.prototype.showImportTileWindow = async function () {
         caption: "Import Tile",
         width: 500,
         height: 400,
-        overflowY: "auto"
+        overflowY: "auto",
+        x: 200
     })
 }
 
