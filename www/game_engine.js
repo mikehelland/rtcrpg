@@ -1,8 +1,9 @@
 import OMGRPGMap from "./rpgmap.js"
+import OMGSpriter from "/apps/sprite/spriter.js"
 import OMusicContext from "/apps/music/js/omusic.js"
 
 export default function OMGGameEngine(params) {
-    this.debugBoxes = true
+    this.debugBoxes = false
     this.params = params
 
     this.setupCanvas()
@@ -181,6 +182,13 @@ OMGGameEngine.prototype.setupInputs = function () {
                 this.gravity = 0.5
             }
         }
+        else if (e.key === "D") {
+            this.heroSpriter.drawBorder = !this.heroSpriter.drawBorder
+            this.debugBoxes = !this.debugBoxes
+            for (var sprite of this.map.activeSprites) {
+                sprite.spriter.drawBorder = !sprite.spriter.drawBorder
+            }
+        }
     
         this.keysPressed[e.key] = true
 
@@ -278,12 +286,13 @@ OMGGameEngine.prototype.render = function () {
     this.background.style.top = this.hero.y * -1 + this.middleTileY  + "px"
 
     this.canvas.width = this.canvas.width
-    this.context.fillStyle = "white"
-    this.context.font = "14pt serif"
-    this.context.fillText(this.hero.dx, 10, 20)
-    this.context.fillText(this.hero.dy, 10, 50)
+    
     this.drawCharacters()
     if (this.debugBoxes) {
+        this.context.fillStyle = "white"
+        this.context.font = "14pt serif"
+        this.context.fillText(this.hero.dx, 10, 20)
+        this.context.fillText(this.hero.dy, 10, 50)
         this.drawHighlightedTiles()
     }
     this.nextFrame = false
@@ -293,8 +302,7 @@ OMGGameEngine.prototype.loadHero = async function (spriteData) {
     this.heroSprite = spriteData
 
     // todo move to top
-    var o = await import("/apps/sprite/spriter.js")
-    this.heroSpriter = new o.default(spriteData, this.canvas)
+    this.heroSpriter = new OMGSpriter(spriteData, this.canvas)
     this.heroSpriter.setSheet("walk")
     if (this.debugBoxes) {
         this.heroSpriter.drawBorder = true
