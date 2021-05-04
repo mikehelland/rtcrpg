@@ -851,6 +851,8 @@ OMGMapEditor.prototype.setupMenu = function () {
             {name: "Window", items: [
                 {name: "Undo List", onclick: () => this.showUndoWindow()},
                 {separator: true},
+                {name: "Properties", onclick: () => this.showPropertiesWindow()},
+                {separator: true},
                 {name: "Size", onclick: () => this.showSizeWindow()},
                 {name: "Mini Map", onclick: () => this.showMiniMap()},
                 {separator: true},
@@ -1073,4 +1075,16 @@ OMGMapEditor.prototype.showUndoWindow = async function () {
 
 OMGMapEditor.prototype.setWorkingState = function () {
     this.workingState = JSON.parse(JSON.stringify(this.data))
+}
+
+
+OMGMapEditor.prototype.showPropertiesWindow = async function () {
+    var f = new fragments.PropertiesFragment(this)
+    this.wm.showFragment(f, {
+        caption: "Properties",
+        width: 500,
+        height: 400,
+        overflowY: "auto",
+        x: 200
+    })
 }

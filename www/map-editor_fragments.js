@@ -212,7 +212,7 @@ export function SaveFragment(editor) {
             this.musicDiv.appendChild(saveMusicButton)
         }
         var discardMusicButton = document.createElement("button")
-        discardMusicButton.innerHTML = "Discard MUSIC"
+        discardMusicButton.innerHTML = "SKIP MUSIC"
         discardMusicButton.onclick = e => {
             this.showSaveButtons()
         }
@@ -468,4 +468,35 @@ UndoFragment.prototype.undo = function () {
     if (div) {
         this.listDiv.removeChild(div)
     }
+}
+
+export function PropertiesFragment(editor) {
+    this.editor = editor
+    this.map = editor.map
+    this.data = editor.data
+
+    this.div = document.createElement("div")
+    
+    var caption
+    caption = document.createElement("div")
+    caption.innerHTML = "Map Name:"
+    this.div.appendChild(caption)
+
+    var nameInput = document.createElement("input")
+    nameInput.value = this.data.name
+    this.div.appendChild(nameInput)
+
+    caption = document.createElement("div")
+    caption.innerHTML = "Gravity On:"
+    this.div.appendChild(caption)
+
+    var gravityInput = document.createElement("input")
+    gravityInput.type = "CHECKBOX"
+    gravityInput.checked = this.data.gravity
+    this.div.appendChild(gravityInput)
+
+    nameInput.onchange = e => this.data.name = nameInput.value
+    gravityInput.onchange = e => this.data.gravity = gravityInput.checked
+
+
 }

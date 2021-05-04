@@ -29,7 +29,8 @@ export default function OMGGameEngine(params) {
     this.physicsFrame = 0
 
     this.dmax = 8
-    this.gravity = 0 //0.5
+    this.gravity = 0 
+    this.gravityOnValue = 0.5
     this.targetTiles = []
 
     this.fudge = 8
@@ -59,6 +60,10 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
     this.npcs.forEach(npc => {
         this.map.loadNPC(npc)
     })
+
+    if (this.map.data.gravity) {
+        this.gravity = this.gravityOnValue
+    }
 
 
     //todo unload previous map html elements?
@@ -179,7 +184,7 @@ OMGGameEngine.prototype.setupInputs = function () {
                 this.gravity = 0
             }
             else {
-                this.gravity = 0.5
+                this.gravity = this.gravityOnValue
             }
         }
         else if (e.key === "D") {
@@ -189,7 +194,10 @@ OMGGameEngine.prototype.setupInputs = function () {
                 sprite.spriter.drawBorder = !sprite.spriter.drawBorder
             }
         }
-    
+        else if (e.key === "E") {
+            window.location = "map-editor.htm?id=" + this.map.data.id
+        }
+
         this.keysPressed[e.key] = true
 
         if (this.musicPlayer && !this.musicStarted && (this.hero.wishX || this.hero.wishY)) {
