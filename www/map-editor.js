@@ -78,7 +78,7 @@ OMGMapEditor.prototype.loadTile = function (key, tileSet, onload) {
         img.src = tileSet.tileCodes[key]
     }
     else {
-        img.src = (tileSet.prefix + "") + tileSet.tileCodes[key] + (tileSet.postfix || "")
+        img.src = (tileSet.prefix || "") + tileSet.tileCodes[key] + (tileSet.postfix || "")
     }
     this.img.tiles[key] = img
     if (this.tileListDiv) {
