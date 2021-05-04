@@ -1,5 +1,6 @@
-export function NPCFragment(npc, editor) {
+export function NPCFragment(npc, npcDiv, editor) {
     this.editor = editor
+    this.map = editor.map
     this.div = document.createElement("div")
     
     var caption
@@ -15,8 +16,6 @@ export function NPCFragment(npc, editor) {
     this.npcDetailsCanvas.height = 32
     
     this.div.appendChild(this.npcDetailsCanvas)
-    this.npcDetailsDelete = document.createElement("button")
-    this.div.appendChild(this.npcDetailsDelete)
 
     this.npcDetailsName.value = npc.name
     this.npcDetailsSound.value = npc.soundURL || ""
@@ -37,14 +36,6 @@ export function NPCFragment(npc, editor) {
         npc.dialog = this.npcDetailsDialog.value.split("\n")
     }
 
-    this.npcDetailsDelete.onclick = e => {
-        let i = this.map.npcs.indexOf(npc)
-        this.map.npcs.splice(i, 1)
-        this.drawNPCs()
-
-        npcDiv.parentElement.removeChild(npcDiv)
-    }
-
     this.selectMusicPart = document.createElement("select")
     if (this.editor.song) {
         this.loadMusicParts()
@@ -63,7 +54,28 @@ export function NPCFragment(npc, editor) {
             npc.musicPart =  this.selectMusicPart.value 
         }
     }
- 
+
+    this.div.appendChild(document.createElement("hr"))
+
+    this.npcDetailsDelete = document.createElement("button")
+    this.npcDetailsDelete.innerHTML = "Delete NPC"
+    this.div.appendChild(this.npcDetailsDelete)
+
+    this.npcDetailsDelete.onclick = e => {
+        let i = this.map.data.npcs.indexOf(npc)
+        this.map.data.npcs.splice(i, 1)
+        
+        npcDiv.parentElement.removeChild(npcDiv)
+        this.map.activeSprites.forEach(sprite => {
+            if (sprite.npc === npc) {
+                this.map.activeSprites.splice(sprite, 1)
+            }
+        })
+        this.editor.drawNPCs()
+
+        this.win.close()
+    }
+
 }
 
 NPCFragment.prototype.loadMusicParts = function () {
