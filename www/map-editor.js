@@ -48,7 +48,7 @@ OMGMapEditor.prototype.load = function (data) {
     //this.div.style.height = this.data.height * this.map.tileSize * this.zoom + "px"
     
     this.loadNPCs()
-    this.loadHTML()
+    this.loadRegions()
 
     this.map.draw()
     this.drawNPCs()
@@ -141,6 +141,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         else if (this.mode.indexOf("NPC_PLACE") > -1 || this.mode.indexOf("NPC_MOVE") > -1) {
             this.drawSpritePreview(this._movex, this._movey)
         }
+        else if (this.mode.indexOf("HTML_PLACE") > -1 && this.previewSpriter) {
+            this.drawSpritePreview(this._movex, this._movey)
+        }
         else if (this.mode.indexOf("_PLACE") > -1) {
             this.highlightTile(this._movex, this._movey)
         }
@@ -149,6 +152,7 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         }
         else if (this.mode === "HTML_STRETCH") {
             this.stretchHTML(this._movex, this._movey)
+            
         }
     }
     canvas.onmouseup = (e) => {
@@ -357,22 +361,25 @@ OMGMapEditor.prototype.setupControls = function () {
     this.setupNPCControls()
     this.setupHTMLControls()
     
-    this.selectCharacterDialog = document.getElementById("select-character-dialog")
-    this.selectCharacterList = document.getElementById("select-character-list")
-
 }
 
-OMGMapEditor.prototype.setupSelectCharacterDialog = function () {
+OMGMapEditor.prototype.showCharacterSelectWindow = function (onclick) {
 
-    var searchBox = new OMGSearchBox({types: ["SPRITE"]})
+    var searchBox = new OMGSearchBox({types: ["SPRITE", "IMAGE"]})
 
-    this.selectCharacterList.appendChild(searchBox.div)
-    
     searchBox.onclickcontent = e => {
-        this.placeNPC(e.data)
+        onclick(e.data)
+        win.close()
     }
 
     searchBox.search()
+
+    var win = this.wm.newWindow({
+        caption: "Select Character",
+        div: searchBox.div, 
+        x: 250, y: 50, width: 500, height: 500,
+        overflowY: "auto"
+    })
 }
 
 OMGMapEditor.prototype.resizeMap = function (width, height) {
@@ -438,14 +445,10 @@ OMGMapEditor.prototype.setupNPCControls = function () {
     this.tileHighlightDiv = document.getElementById("tile-highlight")
     this.addNPCButton = document.getElementById("add-npc-button")
     this.addNPCButton.onclick = e => {
-        if (!this.isCharacterDialogAnimate) {
-            this.isCharacterDialogAnimate = true
-            this.setupSelectCharacterDialog()
-        }
-        this.selectCharacterDialog.style.display = "block"
-        this.closeSelectCharacerDialog = omg.ui.showDialog(this.selectCharacterDialog)
-    }
-    
+        this.showCharacterSelectWindow(e => {
+            this.placeNPC(e)
+        })
+    }    
 }
 
 OMGMapEditor.prototype.setupHTMLControls = function () {
@@ -454,6 +457,22 @@ OMGMapEditor.prototype.setupHTMLControls = function () {
     this.addHTMLButton.onclick = e => {
         e.target.innerHTML = "Place..."
         this.mode = "HTML_PLACE"
+    }
+    
+    this.addSpriteButton = document.getElementById("add-region-sprite-button")
+    this.addSpriteButton.onclick = e => {
+        this.showCharacterSelectWindow(thing => {
+
+            this.previewSpriter = new OMGSpriter(thing, this.map.charCanvas)
+            this.previewSpriter.setSheet()
+            this.previewSpriter.w = this.previewSpriter.w * this.zoom
+            this.previewSpriter.h = this.previewSpriter.h * this.zoom
+        
+
+            e.target.innerHTML = "Place..."
+            this.mode = "HTML_PLACE"
+    
+        })
     }
     
 }
@@ -497,7 +516,7 @@ OMGMapEditor.prototype.addNPC = async function (x, y) {
     this.tileHighlightDiv.style.display = "none"
     this.addNPCButton.innerHTML = "+Add"
 
-    this.map.activeSprites.push({npc, spriter})
+    this.map.activeSprites.push({thing: npc, spriter})
     this.drawNPCs()
 }
 
@@ -518,7 +537,7 @@ OMGMapEditor.prototype.placeNPC = function (sprite) {
 
 OMGMapEditor.prototype.addHTML = function (x, y) {
     
-    var html = {
+    var region = {
         "name": "name me",
         "x": x,
         "y": y,
@@ -527,10 +546,16 @@ OMGMapEditor.prototype.addHTML = function (x, y) {
         "innerHTML": "<iframe src='URL_HERE'></iframe>"
     }
 
-    this.htmlBeingAdded = html
-    var div = this.setupHTMLToolBoxDiv(html)
+    if (this.previewSpriter) {
+        region.sprite = this.previewSpriter.data
+        this.map.activeSprites.push({thing: region, spriter: this.previewSpriter})
+    }
+    this.previewSpriter = null
+
+    this.htmlBeingAdded = region
+    var div = this.setupHTMLToolBoxDiv(region)
     
-    this.map.html.push(html)
+    this.map.data.regions.push(region)
     
     this.mode = "HTML_SELECT"
     this.tileHighlightDiv.style.display = "none"
@@ -555,7 +580,7 @@ OMGMapEditor.prototype.showNPCDetails = function (npc, npcDiv) {
 
 OMGMapEditor.prototype.showRegionDetails = function (region, div) {
     
-    var f = new fragments.SpecialRegionFragment(region, this)
+    var f = new fragments.RegionFragment(region, div, this)
     this.wm.showFragment(f, {
         width: 350,
         height: 500,
@@ -673,16 +698,13 @@ OMGMapEditor.prototype.loadNPCs = function () {
 
         this.spriters.set(item.npc, item.spriter)
 
-        this.setupNPCToolBoxDiv(item.npc)
+        this.setupNPCToolBoxDiv(item.thing)
     }
 }
 
-OMGMapEditor.prototype.loadHTML = function () {
-    if (!this.map.html) {
-        this.map.html = []
-    }
-    for (var i = 0; i < this.map.html.length; i++) {
-        this.setupHTMLToolBoxDiv(this.map.html[i])
+OMGMapEditor.prototype.loadRegions = function () {
+    for (var i = 0; i < this.map.data.regions.length; i++) {
+        this.setupHTMLToolBoxDiv(this.map.data.regions[i])
     }
 }
 
@@ -840,12 +862,12 @@ OMGMapEditor.prototype.setupMenu = function () {
             {name: "File", items: [
                 {name: "User", onclick: () => this.showUserWindow()},
                 {separator: true},
-                {name: "New", onclick: () => {window.location = window.location.pathname}},
-                {name: "Open", onclick: () => this.showOpenWindow()},
+                //{name: "New", onclick: () => {window.location = window.location.pathname}},
+                //{name: "Open", onclick: () => this.showOpenWindow()},
                 {name: "Save", onclick: () => this.save()},
                 {separator: true},
-                {name: "Settings", onclick: () => this.showSettingsWindow()},
-                {separator: true},
+                //{name: "Settings", onclick: () => this.showSettingsWindow()},
+                //{separator: true},
                 {name: "OMG Home", onclick: () => {window.location = "/"}}
             ]},
             {name: "Window", items: [

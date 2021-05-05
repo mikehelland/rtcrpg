@@ -307,7 +307,7 @@ SaveFragment.prototype.showSaveButtons = function () {
 }
 
 
-export function SpecialRegionFragment(region, editor) {
+export function RegionFragment(region, toolboxDiv, editor) {
     this.editor = editor
     this.div = document.createElement("div")
     
@@ -335,7 +335,7 @@ export function SpecialRegionFragment(region, editor) {
         if (e.key === "Enter") {
             region.name = this.nameInput.value
             
-            //div.getElementsByTagName("div")[0].innerHTML = html.name
+            toolboxDiv.innerHTML = region.name
         }
     }
 

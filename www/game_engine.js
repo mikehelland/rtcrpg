@@ -57,10 +57,7 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
     this.background.style.height = this.backgroundCanvas.height + "px"
 
     this.npcs = data.npcs || []
-    this.npcs.forEach(npc => {
-        this.map.loadNPC(npc)
-    })
-
+    
     if (this.map.data.gravity) {
         this.gravity = this.gravityOnValue
     }
@@ -487,8 +484,8 @@ OMGGameEngine.prototype.canProceedX = function () {
 
     for (var sprite of this.map.activeSprites) {
         for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
-            if (sprite.npc.y <= targets[this.imoveHitTest].y && sprite.npc.y + sprite.npc.height > targets[this.imoveHitTest].y && 
-                (targets[this.imoveHitTest].x === (this.hero.dx < 0 ? sprite.npc.x + sprite.npc.width - 1 : sprite.npc.x))) {
+            if (sprite.thing.y <= targets[this.imoveHitTest].y && sprite.thing.y + sprite.thing.height > targets[this.imoveHitTest].y && 
+                (targets[this.imoveHitTest].x === (this.hero.dx < 0 ? sprite.thing.x + sprite.thing.width - 1 : sprite.thing.x))) {
 
                 this.touchingNPC = sprite
                 return false
@@ -576,8 +573,8 @@ OMGGameEngine.prototype.canProceedY = function () {
     
     for (var sprite of this.map.activeSprites) {
         for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
-            if (sprite.npc.x <= targets[this.imoveHitTest].x && sprite.npc.x + sprite.npc.width > targets[this.imoveHitTest].x && 
-                (targets[this.imoveHitTest].y === (this.hero.dy < 0 ? sprite.npc.y + sprite.npc.height : sprite.npc.y))) {
+            if (sprite.thing.x <= targets[this.imoveHitTest].x && sprite.thing.x + sprite.thing.width > targets[this.imoveHitTest].x && 
+                (targets[this.imoveHitTest].y === (this.hero.dy < 0 ? sprite.thing.y + sprite.thing.height : sprite.thing.y))) {
                     if (this.hero.jumping) {
                         this.heroSpriter.i = 3
                         this.hero.jumping = 0

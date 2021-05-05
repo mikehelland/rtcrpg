@@ -41,7 +41,19 @@ export default function OMGRPGMap(data, options) {
     
     this.charCanvasOffsetX = 0
     this.charCanvasOffsetY = 0
-    this.loadNPCs()
+
+    if (!this.data.npcs) {
+        this.data.npcs = []
+    }
+    if (!this.data.regions) {
+        this.data.regions = []
+    }
+
+    this.activeSprites = []
+    var loadPromises = []
+    this.loadNPCs(loadPromises)
+    this.loadRegions(loadPromises)
+    Promise.all(loadPromises).then(() => this.drawNPCs())
 }
 
 OMGRPGMap.prototype.loadTileSet = function (tileSet) {
@@ -142,18 +154,18 @@ OMGRPGMap.prototype.updateYLines = function () {
     
 }
 
-OMGRPGMap.prototype.loadNPC = function (npc) {
+OMGRPGMap.prototype.loadSprite = function (thing) {
     
-    npc.width = npc.sprite.frameWidth / 32
-    npc.height = npc.sprite.frameHeight / 32
-    var spriter = new OMGSpriter(npc.sprite, this.charCanvas)
-    spriter.npc = npc
-    spriter.w = npc.width * this.tileSize
-    spriter.h = npc.height * this.tileSize
+    thing.width = thing.sprite.frameWidth / 32
+    thing.height = thing.sprite.frameHeight / 32
+    var spriter = new OMGSpriter(thing.sprite, this.charCanvas)
+    spriter.npc = thing
+    spriter.w = thing.width * this.tileSize
+    spriter.h = thing.height * this.tileSize
     
-    if (npc.soundURL) {
-        fetch(npc.soundURL).then(res => res.json()).then(data => {
-            this.loadNPCMusic(npc, data)
+    if (thing.soundURL) {
+        fetch(thing.soundURL).then(res => res.json()).then(data => {
+            this.loadNPCMusic(thing, data)
         }).catch(e => console.error(e))
     }
     return spriter
@@ -161,27 +173,36 @@ OMGRPGMap.prototype.loadNPC = function (npc) {
 
 OMGRPGMap.prototype.drawNPCs = function (advanceFrame) {
     for (this._dnpc of this.activeSprites) {
-        if (advanceFrame && this._dnpc.npc.animating) {
+        if (advanceFrame && this._dnpc.thing.animating) {
             this._dnpc.spriter.next()
         }
         this._dnpc.spriter.drawXY(
-            this._dnpc.npc.x * this.tileSize + this.charCanvasOffsetX, 
-            this._dnpc.npc.y * this.tileSize + this.charCanvasOffsetY)
+            this._dnpc.thing.x * this.tileSize + this.charCanvasOffsetX, 
+            this._dnpc.thing.y * this.tileSize + this.charCanvasOffsetY)
     }
 
 }
 
-OMGRPGMap.prototype.loadNPCs = async function () {
-    this.activeSprites = []
-    var loadPromises = []
+OMGRPGMap.prototype.loadNPCs = function (loadPromises) {
+    
     for (var npc of this.data.npcs) {
-        var spriter = this.loadNPC(npc)
+        var spriter = this.loadSprite(npc)
         loadPromises.push(spriter.setSheet())
-        this.activeSprites.push({npc, spriter})
+        this.activeSprites.push({thing: npc, spriter})
    }
-
-   Promise.all(loadPromises).then(() => this.drawNPCs())
 }
+
+OMGRPGMap.prototype.loadRegions = function (loadPromises) {
+    
+    for (var region of this.data.regions) {
+        if (region.sprite) {
+            var spriter = this.loadSprite(region)
+            loadPromises.push(spriter.setSheet())
+            this.activeSprites.push({thing: region, spriter})
+        }
+   }
+}
+
 
 OMGRPGMap.prototype.resizeSpriters = function () {
 
