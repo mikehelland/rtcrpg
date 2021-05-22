@@ -34,6 +34,9 @@ export default function OMGGameEngine(params) {
     this.targetTiles = []
 
     this.fudge = 8
+
+    this.beatColors = ["green", "yellow", "blue", "yellow"]
+
 }
 
 OMGGameEngine.prototype.mainLoop = function () {
@@ -326,7 +329,9 @@ OMGGameEngine.prototype.drawCharacters = function () {
 
     this.map.charCanvasOffsetX = this.middleTileX - this.hero.x
     this.map.charCanvasOffsetY = this.middleTileY - this.hero.y
-    
+
+    this.drawBeatRegions()
+
     this.map.drawNPCs(this.nextFrame)
 
     if (this.heroSpriter) {
@@ -347,6 +352,7 @@ OMGGameEngine.prototype.drawCharacters = function () {
         }
         this.heroSpriter.draw()
     }
+
 }
 
 OMGGameEngine.prototype.drawHighlightedTiles = function () {
@@ -458,7 +464,7 @@ OMGGameEngine.prototype.canProceedX = function () {
     if (!this.gravity) {
         boxStart = boxCount
     }
-    
+    var blocked = false
     if (this.hero.dx !== 0) {
         for (this.imoveHitTest = boxStart; this.imoveHitTest <=  boxCount; this.imoveHitTest++) {
             if (this.map.tiles[x]) {
@@ -472,12 +478,12 @@ OMGGameEngine.prototype.canProceedX = function () {
                     targets.push(targetTile)
                 }
 
-                if (!target || target.code.charAt(0) === target.code.charAt(0).toUpperCase()) {
-                    return false
+                if (!target || !target.walkable) {
+                    blocked = true
                 }
             }
             else {
-                return false
+                blocked = true
             }
         }
     }
@@ -493,7 +499,23 @@ OMGGameEngine.prototype.canProceedX = function () {
 
         }
     }
-    return true
+    
+    this.inRegion = undefined
+    for (var region of this.map.data.regions) {
+        for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
+            if (region.y <= targets[this.imoveHitTest].y && region.y + region.height > targets[this.imoveHitTest].y && 
+                (targets[this.imoveHitTest].x === (this.hero.dx < 0 ? region.x + region.width : region.x))) {
+                    this.inRegion = region
+                    if (region.walkable === "true" || (region.walkable === "onbeat" && region.musicBeat === this.currentBeat)) {
+                        return true
+                    } 
+
+                    return false
+            }
+
+        }
+    }
+    return !blocked
 }
 
 OMGGameEngine.prototype.canProceedY = function () {
@@ -532,12 +554,16 @@ OMGGameEngine.prototype.canProceedY = function () {
     }
     */
     
+    var blocked = false
     if (this.hero.dy !== 0) {
         if (!this.map.tiles[x]) {
             return false
         }
         targety = this.map.tiles[x][y]
-        if (targety) {
+        if (!targety) {
+            return false
+        }
+        else {
             for (this.imoveHitTest = boxStart; this.imoveHitTest <  boxCount; this.imoveHitTest++) {
                 if (this.map.tiles[x + this.imoveHitTest]) {
                     var targetTile = {
@@ -548,7 +574,7 @@ OMGGameEngine.prototype.canProceedY = function () {
                     targets.push(targetTile)
                     this.targetTiles.push(targetTile)
 
-                    if (targetTile.tile.code.charAt(0) === targetTile.tile.code.charAt(0).toUpperCase()) {
+                    if (!targetTile.tile.walkable) {
                         if (this.gravity && this.hero.dy > 1 && targetTile.y * this.tileSize > this.hero.y + this.heroSpriter.h) {
                             this.hero.dy = targetTile.y * this.tileSize - this.hero.y - this.heroSpriter.h
                             //console.log("land", this.hero.dy, targets[this.imoveHitTest].y * this.tileSize , this.hero.y + this.heroSpriter.h)
@@ -562,14 +588,13 @@ OMGGameEngine.prototype.canProceedY = function () {
                                 //this.heroSpriter.i = 0
                             }
                             //console.log("land2")
-                            return false
+                            blocked = true
                         }
                     }
                 }
             }
         }
     }
-
     
     for (var sprite of this.map.activeSprites) {
         for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
@@ -585,7 +610,26 @@ OMGGameEngine.prototype.canProceedY = function () {
 
         }
     }
-    return true
+    this.inRegion = undefined
+    for (var region of this.map.data.regions) {
+        for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
+            if (region.x <= targets[this.imoveHitTest].x && region.x + region.width > targets[this.imoveHitTest].x && 
+                (targets[this.imoveHitTest].y === (this.hero.dy < 0 ? region.y + region.height : region.y))) {
+                    if (this.hero.jumping) {
+                        this.heroSpriter.i = 3
+                        this.hero.jumping = 0
+                    }
+                    this.inRegion = region
+                    if (region.walkable) {
+                        return true
+                    } 
+
+                    return false
+            }
+
+        }
+    }
+    return !blocked
 }
 
 OMGGameEngine.prototype.actionKey = function () {
@@ -628,8 +672,6 @@ OMGGameEngine.prototype.setupBeatIndicator = function () {
     var beatDivs = []
     var lastDiv
 
-    var colors = ["green", "yellow", "blue", "yellow"]
-
     for (var i = 0; i < 4; i++) {
         let beatDiv = document.createElement("div")
 
@@ -637,20 +679,45 @@ OMGGameEngine.prototype.setupBeatIndicator = function () {
         beatDiv.className = "game-engine-beat-indicator-beat"
         beatDivs.push(beatDiv)
 
-        beatDiv.style.backgroundColor = colors[i]
+        beatDiv.style.backgroundColor = this.beatColors[i]
         beatDiv.style.border = "10px solid black"
     }
 
 
-    this.beatPlayedListener = (subbeat) => {
+    this.beatPlayedListener = (subbeat) => {        
         if (subbeat % 4 === 0) {
+            this.currentBeat = (subbeat / 4) + 1
             if (lastDiv) {
                 lastDiv.style.border = "10px solid black"
             }
             lastDiv = beatDivs[subbeat / 4]
-            lastDiv.style.border = "10px solid " + colors[subbeat / 4]
+            lastDiv.style.border = "10px solid " + this.beatColors[subbeat / 4]
         }
+        //this.drawBeatRegions()
     }
     this.musicPlayer.onBeatPlayedListeners.push(this.beatPlayedListener)
     document.body.appendChild(this.beatIndicatorDiv)
+}
+
+// maybe this should be in the map?
+OMGGameEngine.prototype.drawBeatRegions = function () {
+    if (!this.currentBeat) return
+
+    for (this._drawBeatRegionI of this.map.data.regions) {
+        if (this._drawBeatRegionI.musicBeat === this.currentBeat) {
+            this.map.charCtx.globalAlpha = 1
+        }
+        else {
+            this.map.charCtx.globalAlpha = 0.2
+        }
+
+        this.map.charCtx.fillStyle = this.beatColors[this._drawBeatRegionI.musicBeat - 1]
+        this.map.charCtx.fillRect(
+            this._drawBeatRegionI.x * this.tileSize + this.map.charCanvasOffsetX, 
+            this._drawBeatRegionI.y * this.tileSize + this.map.charCanvasOffsetY,
+            this._drawBeatRegionI.width * this.tileSize, 
+            this._drawBeatRegionI.height * this.tileSize) 
+        
+        this.map.charCtx.globalAlpha = 1
+    }
 }

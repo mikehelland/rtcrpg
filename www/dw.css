@@ -113,6 +113,8 @@ img {
 .game-engine-beat-indicator {
     width: 32px;
     height: 32px;
+    position: relative;
+    z-index: 1;
 }
 .game-engine-beat-indicator-beat {
     width: 32px;

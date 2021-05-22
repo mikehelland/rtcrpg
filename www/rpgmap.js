@@ -219,7 +219,9 @@ OMGRPGMap.prototype.loadTiles = function () {
 
         var ys = (this.data.yLines[x] || "").split(this.tileSplitChar)
         for (var y = 0; y < this.data.height; y++) {
-            this.tiles[x][y] = {code: ys[y] || ""}
+            var tile = {code: ys[y] || ""}
+            tile.walkable = !(tile.code.charAt(0) === tile.code.charAt(0).toUpperCase())
+            this.tiles[x][y] = tile
         }
     
     }

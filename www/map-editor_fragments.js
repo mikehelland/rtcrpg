@@ -67,7 +67,7 @@ export function NPCFragment(npc, npcDiv, editor) {
         
         npcDiv.parentElement.removeChild(npcDiv)
         this.map.activeSprites.forEach(sprite => {
-            if (sprite.npc === npc) {
+            if (sprite.thing === npc) {
                 this.map.activeSprites.splice(sprite, 1)
             }
         })
@@ -342,6 +342,28 @@ export function RegionFragment(region, toolboxDiv, editor) {
     this.dataInput.onkeyup = e => {
         region.data = this.dataInput.value //.split("\n")
     }
+
+    caption = document.createElement("div")
+    caption.innerHTML = "Music Beat:"
+    this.div.appendChild(caption)
+
+    this.selectBeat = document.createElement("select")
+    this.selectBeat.innerHTML = "<option></option><option>1</option><option>2</option><option>3</option><option>4</option>"
+    this.div.appendChild(this.selectBeat)
+
+    this.selectBeat.value = region.musicBeat || ""
+    this.selectBeat.onchange = e => region.musicBeat = this.selectBeat.value * 1
+
+    caption = document.createElement("div")
+    caption.innerHTML = "Walkable:"
+    this.div.appendChild(caption)
+
+    this.selectWalkable = document.createElement("select")
+    this.selectWalkable.innerHTML = "<option></option><option>true</option><option>onbeat</option><option>offbeat</option>"
+    this.div.appendChild(this.selectWalkable)
+
+    this.selectWalkable.value = region.walkable || ""
+    this.selectWalkable.onchange = e => region.walkable = this.selectWalkable.value
 
     
 }

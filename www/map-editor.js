@@ -130,8 +130,8 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         }
         this._movex = Math.floor((e.clientX - this.offsets.left) / this.map.tileSize)
         this._movey = Math.floor((e.clientY - this.offsets.top) / this.map.tileSize)
-        if (this.mode === "TILE" && this.tileDrawMode !== "Fill") {
-            if (this.isTouching) {
+        if (this.mode === "TILE") {
+            if (this.isTouching && this.tileDrawMode !== "Fill") {
                 this.tileEvent(this._movex, this._movey)
             }
             else {
@@ -266,10 +266,13 @@ OMGMapEditor.prototype.tilePreview = function (x, y, brushing) {
     }
 
     if (this.selectedTile) {
+        this.map.charCtx.globalAlpha = 0.6
         this.map.charCtx.drawImage(this.img.tiles[this.selectedTile],
             x * this.map.tileSize, 
             y * this.map.tileSize,
             this.map.tileSize, this.map.tileSize)
+        
+        this.map.charCtx.globalAlpha = 1
     }
 
     if (this.tileDrawMode === "Brush" && !brushing) {
@@ -591,6 +594,7 @@ OMGMapEditor.prototype.showRegionDetails = function (region, div) {
 
 
     this.selectedRegion = region
+    this.drawNPCs()
 }
 
 OMGMapEditor.prototype.setupNPCToolBoxDiv = function (npc) {
@@ -649,10 +653,11 @@ OMGMapEditor.prototype.drawNPCs = function () {
             this.htmlBeingAdded.height * this.map.tileSize)
     }
     
-    this.map.charCtx.strokeStyle = "blue"
-    if (this.map.html) {
-        for (this._loop_drawNPCs_i of this.map.html) {
+    if (this.map.data.regions) {
+        for (this._loop_drawNPCs_i of this.map.data.regions) {
             if (this._loop_drawNPCs_i !== this.htmlBeingAdded) {
+                this.map.charCtx.strokeStyle = this._loop_drawNPCs_i === this.selectedRegion ? "red" : "blue"
+    
                 this.map.charCtx.strokeRect(
                     this._loop_drawNPCs_i.x * this.map.tileSize,
                     this._loop_drawNPCs_i.y * this.map.tileSize,
@@ -675,7 +680,9 @@ OMGMapEditor.prototype.drawNPCs = function () {
     }
     
     if (this.previewSpriter) {
+        this.map.charCtx.globalAlpha = 0.6
         this.previewSpriter.draw()
+        this.map.charCtx.globalAlpha = 1
     }
 
     
@@ -913,7 +920,6 @@ OMGMapEditor.prototype.showMusicWindow = function () {
 
     var searchBox = new OMGSearchBox({types: ["SONG"]})
 
-    this.selectCharacterList.appendChild(searchBox.div)
     
     searchBox.onclickcontent = e => {
         this.selectMusic(e.data)
