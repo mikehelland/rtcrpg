@@ -877,6 +877,7 @@ OMGMapEditor.prototype.setupMenu = function () {
                 {separator: true},
                 {name: "Size", onclick: () => this.showSizeWindow()},
                 {name: "Mini Map", onclick: () => this.showMiniMap()},
+                {name: "Palette", onclick: () => this.showPalette()},
                 {separator: true},
                 {name: "Import Tile", onclick: () => this.showImportTileWindow()}
             ]},
@@ -1109,4 +1110,14 @@ OMGMapEditor.prototype.showPropertiesWindow = async function () {
         overflowY: "auto",
         x: 200
     })
+}
+
+OMGMapEditor.prototype.showPalette = async function () {
+    var f = new fragments.PaletteFragment(this)
+    this.wm.showFragment(f, {
+        caption: "Palette",
+        width: 300,
+        height: 400
+    })
+
 }

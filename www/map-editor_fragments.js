@@ -500,3 +500,33 @@ export function PropertiesFragment(editor) {
 
 
 }
+
+export function PaletteFragment(editor) {
+    this.editor = editor
+    this.map = editor.map
+    this.div = document.createElement("div")
+    
+    var caption
+    caption = document.createElement("div")
+    caption.innerHTML = "Palette Colors:"
+    this.div.appendChild(caption)
+
+    for (var i = 0; i < this.map.data.palette.length; i++) {
+        let div = document.createElement("div")
+        let color = this.map.data.palette[i]
+        div.style.fontSize = "1.4em"
+        div.innerHTML = "<span style='background-color:" + color + ";'>&nbsp;&nbsp;&nbsp;&nbsp;</span> " +  color
+
+        let deleteButton = document.createElement("span")
+        deleteButton.innerHTML = " &times;"
+        deleteButton.onclick = e => {
+            this.div.removeChild(div)
+            debugger
+            var index = this.map.data.palette.indexOf(color)
+            this.map.data.palette.splice(index, 1)
+        }
+        div.appendChild(deleteButton)
+        this.div.appendChild(div)
+    }
+
+}

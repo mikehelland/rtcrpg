@@ -105,6 +105,10 @@ OMGTileEditor.prototype.ondown = function (x, y) {
     if (this.toolSelect.value === "Pencil" || this.toolSelect.value === "Brush") {
         this.drawPixel(x, y, this.colorPicker.value, this.toolSelect.value === "Brush")
     }
+    else if (this.toolSelect.value = "Eyedropper") {
+        var imgData = this.sourceCtx.getImageData(x, y, 1, 1).data
+        this.colorPicker.value = this.rgbToHex(imgData[0], imgData[1], imgData[2])
+    }
 
 }
 
@@ -142,7 +146,7 @@ OMGTileEditor.prototype.onleave = function (x, y) {
 
 OMGTileEditor.prototype.setupControls = function () {
     this.toolSelect = document.createElement("select")
-    this.toolSelect.innerHTML = "<option>Pencil</option><option>Brush</option><option>Fill</option>"
+    this.toolSelect.innerHTML = "<option>Pencil</option><option>Brush</option><option>Fill</option><option>Eyedropper</option>"
 
     this.colorPicker = document.createElement("input")
     this.colorPicker.type = "color"
@@ -341,4 +345,13 @@ OMGTileEditor.prototype.onChange = function () {
     if (this.previewCallback) {
         this.previewCallback(this.sourceCtx.canvas.toDataURL("image/png"))
     }
+}
+
+OMGTileEditor.prototype.componentToHex = function (c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+  
+OMGTileEditor.prototype.rgbToHex = function (r, g, b) {
+    return "#" + this.componentToHex(r) + this.componentToHex(g) + this.componentToHex(b);
 }
