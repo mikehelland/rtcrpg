@@ -40,14 +40,11 @@ export default function OMGGameEngine(params) {
 }
 
 OMGGameEngine.prototype.mainLoop = function () {
-    //console.log("mainloop")
-    this.processKeys() 
-
+    
     this.physics()
 
     this.render()
 
-    //requestAnimationFrame(() => {this.mainLoop()})
 }
 
 OMGGameEngine.prototype.loadMap = function (data, mapName) {
@@ -66,12 +63,6 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
     }
 
 
-    //todo unload previous map html elements?
-    this.htmlElements = {}
-    //if (this.mapData.html) {    
-    //    this.mapData.html.forEach(html => this.addHTML(html))
-    //}
-    
     if (!this.running) {
         //this.mainLoop()
         setInterval(() => this.mainLoop(), 1000 / 60)
@@ -249,32 +240,6 @@ OMGGameEngine.prototype.move = function (x, y) {
         this.hero.dy = Math.max(-5, Math.min(5, this.hero.dy))
     }
 }
-
-
-
-
-OMGGameEngine.prototype.processKeys = function () {
-
-    /*if (this.keysPressed[" "]) {
-        if (this.hero.jumping < this.maxJump) {
-            console.log(this.hero.jumping)
-            this.hero.jumping++
-        }
-        else {
-            this.hero.wishY = 0
-        }
-    }
-    /*if (this.keysPressed["ArrowDown"]) {
-        this.move(0, 1)
-    }
-    if (this.keysPressed["ArrowLeft"]) {
-        this.move(-1, 0)
-    }
-    if (this.keysPressed["ArrowRight"]) {
-        this.move(1, 0)
-    }*/
-}
-
 
 
 

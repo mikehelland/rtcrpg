@@ -310,6 +310,7 @@ SaveFragment.prototype.showSaveButtons = function () {
 export function RegionFragment(region, toolboxDiv, editor) {
     this.editor = editor
     this.data = editor.map.data
+    this.map = editor.map
     this.div = document.createElement("div")
     
     var caption
@@ -379,6 +380,12 @@ export function RegionFragment(region, toolboxDiv, editor) {
         if (i > -1) {
             this.data.regions.splice(i, 1)
         }
+        for (i = 0; i < this.map.activeSprites.length; i++) {
+            if (this.map.activeSprites[i].thing === region) {
+                this.map.activeSprites.splice(i, 1)
+            }
+        }
+        
         editor.drawNPCs()
         this.window.close()
 
