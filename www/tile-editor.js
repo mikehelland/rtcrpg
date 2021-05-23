@@ -105,7 +105,7 @@ OMGTileEditor.prototype.ondown = function (x, y) {
     if (this.toolSelect.value === "Pencil" || this.toolSelect.value === "Brush") {
         this.drawPixel(x, y, this.colorPicker.value, this.toolSelect.value === "Brush")
     }
-    else if (this.toolSelect.value = "Eyedropper") {
+    else if (this.toolSelect.value === "Eyedropper") {
         var imgData = this.sourceCtx.getImageData(x, y, 1, 1).data
         this.colorPicker.value = this.rgbToHex(imgData[0], imgData[1], imgData[2])
     }
