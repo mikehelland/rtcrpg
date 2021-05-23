@@ -66,11 +66,11 @@ export function NPCFragment(npc, npcDiv, editor) {
         this.map.data.npcs.splice(i, 1)
         
         npcDiv.parentElement.removeChild(npcDiv)
-        this.map.activeSprites.forEach(sprite => {
-            if (sprite.thing === npc) {
-                this.map.activeSprites.splice(sprite, 1)
+        for (i = 0; i < this.map.activeSprites.length; i++) {
+            if (this.map.activeSprites[i].thing === npc) {
+                this.map.activeSprites.splice(i, 1)
             }
-        })
+        }
         this.editor.drawNPCs()
 
         this.window.close()
