@@ -309,6 +309,7 @@ SaveFragment.prototype.showSaveButtons = function () {
 
 export function RegionFragment(region, toolboxDiv, editor) {
     this.editor = editor
+    this.data = editor.map.data
     this.div = document.createElement("div")
     
     var caption
@@ -365,7 +366,26 @@ export function RegionFragment(region, toolboxDiv, editor) {
     this.selectWalkable.value = region.walkable || ""
     this.selectWalkable.onchange = e => region.walkable = this.selectWalkable.value
 
-    
+    caption = document.createElement("div")
+    caption.innerHTML = "<hr>"
+    this.div.appendChild(caption)
+
+    var deleteButton = document.createElement("button")
+    deleteButton.innerHTML = "Delete Region"
+    this.div.appendChild(deleteButton)
+
+    deleteButton.onclick = e => {
+        var i = this.data.regions.indexOf(region)
+        if (i > -1) {
+            this.data.regions.splice(i, 1)
+        }
+        editor.drawNPCs()
+        this.window.close()
+
+        toolboxDiv.parentElement.removeChild(toolboxDiv)
+        
+    }
+
 }
 
 export function SizeFragment(editor) {

@@ -405,6 +405,11 @@ OMGGameEngine.prototype.physics = function () {
 
 
     if (this.hero.dy && this.canProceedY()) {
+        if (this.gravity && !this.hero.jumping) {
+            this.heroSpriter.setSheet("jump")
+            this.heroSpriter.i = 0
+            this.hero.jumping = Date.now()
+        }
         this.hero.y += this.hero.dy
     }
     else {
@@ -490,7 +495,7 @@ OMGGameEngine.prototype.canProceedX = function () {
 
     for (var sprite of this.map.activeSprites) {
         for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
-            if (sprite.thing.y <= targets[this.imoveHitTest].y && sprite.thing.y + sprite.thing.height > targets[this.imoveHitTest].y && 
+            if (sprite.type === "npc" && sprite.thing.y <= targets[this.imoveHitTest].y && sprite.thing.y + sprite.thing.height > targets[this.imoveHitTest].y && 
                 (targets[this.imoveHitTest].x === (this.hero.dx < 0 ? sprite.thing.x + sprite.thing.width - 1 : sprite.thing.x))) {
 
                 this.touchingNPC = sprite
@@ -506,9 +511,11 @@ OMGGameEngine.prototype.canProceedX = function () {
             if (region.y <= targets[this.imoveHitTest].y && region.y + region.height > targets[this.imoveHitTest].y && 
                 (targets[this.imoveHitTest].x === (this.hero.dx < 0 ? region.x + region.width : region.x))) {
                     this.inRegion = region
-                    if (region.walkable === "true" || (region.walkable === "onbeat" && region.musicBeat === this.currentBeat)) {
+                    if (region.walkable === "true" 
+                            || (region.walkable === "onbeat" && region.musicBeat === this.currentBeat)
+                            || (region.walkable === "offbeat" && region.musicBeat !== this.currentBeat)) {
                         return true
-                    } 
+                    }
 
                     return false
             }
@@ -598,7 +605,7 @@ OMGGameEngine.prototype.canProceedY = function () {
     
     for (var sprite of this.map.activeSprites) {
         for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
-            if (sprite.thing.x <= targets[this.imoveHitTest].x && sprite.thing.x + sprite.thing.width > targets[this.imoveHitTest].x && 
+            if (sprite.type === "npc" && sprite.thing.x <= targets[this.imoveHitTest].x && sprite.thing.x + sprite.thing.width > targets[this.imoveHitTest].x && 
                 (targets[this.imoveHitTest].y === (this.hero.dy < 0 ? sprite.thing.y + sprite.thing.height : sprite.thing.y))) {
                     if (this.hero.jumping) {
                         this.heroSpriter.i = 3
@@ -620,10 +627,11 @@ OMGGameEngine.prototype.canProceedY = function () {
                         this.hero.jumping = 0
                     }
                     this.inRegion = region
-                    if (region.walkable) {
+                    if (region.walkable === "true" 
+                            || (region.walkable === "onbeat" && region.musicBeat === this.currentBeat)
+                            || (region.walkable === "offbeat" && region.musicBeat !== this.currentBeat)) {
                         return true
-                    } 
-
+                    }
                     return false
             }
 

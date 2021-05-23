@@ -154,15 +154,15 @@ OMGRPGMap.prototype.updateYLines = function () {
     
 }
 
-OMGRPGMap.prototype.loadSprite = function (thing) {
-    
+OMGRPGMap.prototype.loadSprite = function (thing, type) {
     thing.width = thing.sprite.frameWidth / 32
     thing.height = thing.sprite.frameHeight / 32
     var spriter = new OMGSpriter(thing.sprite, this.charCanvas)
-    spriter.npc = thing
+    spriter[type] = thing
     spriter.w = thing.width * this.tileSize
     spriter.h = thing.height * this.tileSize
     
+    //todo this isn't used
     if (thing.soundURL) {
         fetch(thing.soundURL).then(res => res.json()).then(data => {
             this.loadNPCMusic(thing, data)
@@ -186,9 +186,9 @@ OMGRPGMap.prototype.drawNPCs = function (advanceFrame) {
 OMGRPGMap.prototype.loadNPCs = function (loadPromises) {
     
     for (var npc of this.data.npcs) {
-        var spriter = this.loadSprite(npc)
+        var spriter = this.loadSprite(npc, "npc")
         loadPromises.push(spriter.setSheet())
-        this.activeSprites.push({thing: npc, spriter})
+        this.activeSprites.push({thing: npc, spriter, type: "npc"})
    }
 }
 
@@ -196,9 +196,9 @@ OMGRPGMap.prototype.loadRegions = function (loadPromises) {
     
     for (var region of this.data.regions) {
         if (region.sprite) {
-            var spriter = this.loadSprite(region)
+            var spriter = this.loadSprite(region, "region")
             loadPromises.push(spriter.setSheet())
-            this.activeSprites.push({thing: region, spriter})
+            this.activeSprites.push({thing: region, spriter, type: "region"})
         }
    }
 }
@@ -207,8 +207,9 @@ OMGRPGMap.prototype.loadRegions = function (loadPromises) {
 OMGRPGMap.prototype.resizeSpriters = function () {
 
     for (var sprite of this.activeSprites) {
-        sprite.spriter.w = sprite.npc.width * this.tileSize
-        sprite.spriter.h = sprite.npc.height * this.tileSize
+        console.log(sprite)
+        sprite.spriter.w = sprite.thing.width * this.tileSize
+        sprite.spriter.h = sprite.thing.height * this.tileSize
     }
 }
 

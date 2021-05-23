@@ -19,8 +19,6 @@ export default function OMGMapEditor (div) {
         tiles: {}
     }
 
-    this.spriters = new Map()
-
     this.wm = new OMGWindowManager({div: document.body})
     this.setupMenu()
     this.setupControls()
@@ -460,13 +458,31 @@ OMGMapEditor.prototype.setupHTMLControls = function () {
     this.addHTMLButton.onclick = e => {
         e.target.innerHTML = "Place..."
         this.mode = "HTML_PLACE"
+
+        var region = {
+            "name": "region",
+            "width": 1,
+            "height": 1,
+            "data": ""
+        }
+
+        this.preview = region
     }
     
     this.addSpriteButton = document.getElementById("add-region-sprite-button")
     this.addSpriteButton.onclick = e => {
         this.showCharacterSelectWindow(thing => {
 
-            this.previewSpriter = new OMGSpriter(thing, this.map.charCanvas)
+            var region = {
+                "name": thing.name || "",
+                "width": 1,
+                "height": 1,
+                "data": "",
+                "sprite": thing
+            }
+
+            this.preview = region
+            this.previewSpriter = this.map.loadSprite(region, "region")
             this.previewSpriter.setSheet()
             this.previewSpriter.w = this.previewSpriter.w * this.zoom
             this.previewSpriter.h = this.previewSpriter.h * this.zoom
@@ -490,23 +506,15 @@ OMGMapEditor.prototype.highlightTile = function (x, y) {
 
 OMGMapEditor.prototype.addNPC = async function (x, y) {
     
-    var npc = {
-        "name": this.selectedSprite ? this.selectedSprite.name : "name me",
-        "x": x,
-        "y": y,
-        "sprite": this.selectedSprite,
-        "dialog": [
-          "Hi!"
-        ]
-    }
-
+    let npc = this.previewSpriter.npc
+    npc.x = x
+    npc.y = y
     let spriter = this.previewSpriter
     spriter.w = spriter.w * this.zoom
     spriter.h = spriter.h * this.zoom
 
-    this.spriters.set(npc, spriter)
+    
     this.previewSpriter = null
-
 
     var div = this.setupNPCToolBoxDiv(npc)
     
@@ -524,10 +532,19 @@ OMGMapEditor.prototype.addNPC = async function (x, y) {
 }
 
 OMGMapEditor.prototype.placeNPC = function (sprite) {
+    console.log(sprite)
     this.addNPCButton.innerHTML = "Place..."
     this.mode = "NPC_PLACE"
-    this.selectedSprite = sprite
-    this.previewSpriter = new OMGSpriter(sprite, this.map.charCanvas)
+    
+    var npc = {
+        "name": sprite.name ? sprite.name : "name me",
+        "sprite": sprite,
+        "dialog": [
+          "Hi!"
+        ]
+    }
+    
+    this.previewSpriter = this.map.loadSprite(npc, "npc")
     this.previewSpriter.setSheet()
     this.previewSpriter.w = this.previewSpriter.w * this.zoom
     this.previewSpriter.h = this.previewSpriter.h * this.zoom
@@ -540,15 +557,9 @@ OMGMapEditor.prototype.placeNPC = function (sprite) {
 
 OMGMapEditor.prototype.addHTML = function (x, y) {
     
-    var region = {
-        "name": "name me",
-        "x": x,
-        "y": y,
-        "width": 1,
-        "height": 1,
-        "innerHTML": "<iframe src='URL_HERE'></iframe>"
-    }
-
+    var region = this.preview
+    region.x = x
+    region.y = y
     if (this.previewSpriter) {
         region.sprite = this.previewSpriter.data
         this.map.activeSprites.push({thing: region, spriter: this.previewSpriter})
@@ -702,8 +713,6 @@ OMGMapEditor.prototype.loadNPCs = function () {
         
         item.spriter.w = item.spriter.w * this.zoom
         item.spriter.h = item.spriter.h * this.zoom
-
-        this.spriters.set(item.npc, item.spriter)
 
         this.setupNPCToolBoxDiv(item.thing)
     }
