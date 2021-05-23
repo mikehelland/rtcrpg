@@ -96,6 +96,22 @@ OMGTileEditor.prototype.setupEvents = function (canvas) {
         this.onleave()
         this.isTouching = false
     }
+
+    this.div.tabIndex = 99
+    this.div.onkeypress = e => {
+        if (e.key === "i") {
+            this.toolSelect.value = "Eyedropper"
+        }
+        else if (e.key === "p") {
+            this.toolSelect.value = "Pencil"
+        }
+        else if (e.key === "b") {
+            this.toolSelect.value = "Brush"
+        }
+        else if (e.key === "f") {
+            this.toolSelect.value = "Fill"
+        }
+    }
 }
 
 
