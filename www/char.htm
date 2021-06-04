@@ -34,10 +34,16 @@
                 ge.loadMap(data, location.href)
 
                 var charSprite = window.location.host.startsWith("localhost") ? "https://localhost:8081/data/854" : "https://wesandm.com/data/64"
-                console.log(charSprite)
                 fetch(charSprite).then(res => res.json()).then(data => {
 
                     ge.loadHero(data)
+    
+                })
+
+                var charlieSprite = "https://wesandm.com/data/226"
+                fetch(charlieSprite).then(res => res.json()).then(data => {
+
+                    ge.loadCar(data)
     
                 })
                 

@@ -336,7 +336,7 @@ OMGGameEngine.prototype.drawHighlightedTiles = function () {
 OMGGameEngine.prototype.physics = function () {
 
     
-    var hyp = Math.sqrt(Math.pow(this.hero.dx + this.hero.wishX, 2) + Math.pow(this.hero.dy + this.hero.wishY, 2))
+    //var hyp = Math.sqrt(Math.pow(this.hero.dx + this.hero.wishX, 2) + Math.pow(this.hero.dy + this.hero.wishY, 2))
 
     /*var hyp = Math.sqrt(Math.pow(this.hero.dx, 2) + Math.pow(this.hero.dy, 2))
     //console.log(hyp)
@@ -361,6 +361,10 @@ OMGGameEngine.prototype.physics = function () {
     }
     this.hero.dx = Math.max(-this.dmax, Math.min(this.dmax, this.hero.dx + this.hero.wishX))    
     
+    if (this.hero.stunned) {
+        this.hero.dx = 0
+        this.hero.dy = 0
+    }
 
     this.targetTiles = []
 
@@ -397,7 +401,7 @@ OMGGameEngine.prototype.physics = function () {
         this.hero.dy += this.friction
     }
 
-    //console.log(this.hero.dy)
+    this.moveNPCs()
 }
 
 OMGGameEngine.prototype.canProceedX = function () {
@@ -742,6 +746,57 @@ OMGGameEngine.prototype.updateNPCs = function () {
             else {
                 this._iupdateNPCs.spriter.setSheet(this._iupdateNPCs.thing.offSheet)
             }
+        }
+    }
+}
+
+
+// todo make this part of the map?
+OMGGameEngine.prototype.enterRoad = function () {
+    if (this.onRoad) {
+        return
+    }
+
+    this.onRoad = true
+    this.carThing = {
+        x: -1,//this.hero.x / this.map.tileSize, 
+        y: this.hero.y / this.map.tileSize + 1
+    }
+    this.car = {spriter: this.carSpriter, thing: this.carThing}
+    this.map.activeSprites.push(this.car)
+
+    this.enteredRoadY = this.hero.facing === 0 ? this.hero.y : this.hero.y 
+}
+OMGGameEngine.prototype.loadCar = async function (spriteData) {
+    this.carSpriter = new OMGSpriter(spriteData, this.canvas)
+    this.carSpriter.setSheet("")
+    if (this.debugBoxes) {
+        this.carSpriter.drawBorder = true
+    }
+    this.carSpriter.x = this.offsetLeft+ this.middleTileX
+    this.carSpriter.y = this.offsetTop + this.middleTileY
+
+    this.carSpriter.w = spriteData.frameWidth // 32
+    this.carSpriter.h = spriteData.frameHeight // 32
+    
+}
+OMGGameEngine.prototype.moveNPCs = function () {
+    if (this.onRoad) {
+
+        if (this.carThing.x >= this.hero.x / this.map.tileSize) {
+            this.onRoad = false
+            this.hero.stunned = true 
+            setTimeout(() => {
+                delete this.hero.stunned
+                this.hero.y = this.enteredRoadY
+                let i = this.map.activeSprites.indexOf(this.car)
+                if (i > -1) {
+                    this.map.activeSprites.splice(i, 1)
+                }
+            }, 500)
+        }
+        else {
+            this.carThing.x += 2
         }
     }
 }
