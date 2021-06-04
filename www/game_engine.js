@@ -462,7 +462,6 @@ OMGGameEngine.prototype.canProceedX = function () {
         for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
             if (sprite.type === "npc" && sprite.thing.y <= targets[this.imoveHitTest].y && sprite.thing.y + sprite.thing.height > targets[this.imoveHitTest].y && 
                 (targets[this.imoveHitTest].x === (this.hero.dx < 0 ? sprite.thing.x + sprite.thing.width - 1 : sprite.thing.x))) {
-
                 this.touchingNPC = sprite
                 return false
             }
@@ -470,15 +469,22 @@ OMGGameEngine.prototype.canProceedX = function () {
         }
     }
     
+    var oldRegion = this.inRegion
     this.inRegion = undefined
     for (var region of this.map.data.regions) {
-        for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
+        for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {                    
             if (region.y <= targets[this.imoveHitTest].y && region.y + region.height > targets[this.imoveHitTest].y && 
                 (targets[this.imoveHitTest].x === (this.hero.dx < 0 ? region.x + region.width : region.x))) {
                     this.inRegion = region
+                    console.log(region)    
                     if (region.walkable === "true" 
                             || (region.walkable === "onbeat" && region.musicBeat === this.currentBeat)
                             || (region.walkable === "offbeat" && region.musicBeat !== this.currentBeat)) {
+                        if (!oldRegion || this.inRegion !== oldRegion) {
+                            if (region.function && ge[region.function]) {
+                                ge[region.function](region)
+                            }
+                        }
                         return true
                     }
 
@@ -582,6 +588,9 @@ OMGGameEngine.prototype.canProceedY = function () {
 
         }
     }
+    
+    var oldRegion = this.inRegion
+    
     this.inRegion = undefined
     for (var region of this.map.data.regions) {
         for (this.imoveHitTest = 0; this.imoveHitTest <  targets.length; this.imoveHitTest++) {
@@ -591,10 +600,17 @@ OMGGameEngine.prototype.canProceedY = function () {
                         this.heroSpriter.i = 3
                         this.hero.jumping = 0
                     }
+                    console.log(region)
                     this.inRegion = region
                     if (region.walkable === "true" 
                             || (region.walkable === "onbeat" && region.musicBeat === this.currentBeat)
                             || (region.walkable === "offbeat" && region.musicBeat !== this.currentBeat)) {
+                        if (!oldRegion || this.inRegion !== oldRegion) {
+                            if (region.function && ge[region.function]) {
+                                ge[region.function](region)
+                            }
+                        }
+                        
                         return true
                     }
                     return false
@@ -605,17 +621,30 @@ OMGGameEngine.prototype.canProceedY = function () {
     return !blocked
 }
 
-OMGGameEngine.prototype.actionKey = function () {
+OMGGameEngine.prototype.actionKey = function () {        
     if (this.touchingNPC) {
-        this.touchingNPC.npc.animating = !this.touchingNPC.npc.animating
-        
-        if (this.touchingNPC.npc.musicPart) {
-            let partName = this.touchingNPC.npc.musicPart
-            if (this.song && this.song.parts[partName]) {
-                let part = this.song.parts[partName]
-                this.musicCtx.mutePart(part, !part.data.audioParams.mute)
-            }
+
+        if (this.touchingNPC.on) {
+
         }
+
+        if (!this.touchingNPC.thing.musicBeat || this.touchingNPC.thing.musicBeat === this.currentBeat) {
+            this.touchingNPC.thing.on = !this.touchingNPC.thing.on
+            this.touchingNPC.spriter.setSheet(this.touchingNPC.thing.on ? this.touchingNPC.thing.onSheet : this.touchingNPC.thing.offSheet) 
+            this.touchingNPC.spriter.i = 0
+            this.touchingNPC.thing.animating = true//!this.touchingNPC.thing.animating
+
+            if (this.touchingNPC.thing.musicPart) {
+                let partName = this.touchingNPC.thing.musicPart
+                if (this.song && this.song.parts[partName]) {
+                    let part = this.song.parts[partName]
+                    this.musicCtx.mutePart(part, !this.touchingNPC.thing.on)
+                    console.log("muted")
+                }
+            }
+        
+        }
+
     }
 }
 
@@ -624,6 +653,7 @@ OMGGameEngine.prototype.loadMusic = async function (music) {
         var o = await import("/apps/music/js/omusic.js")
         var OMusicContext = o.default
         this.musicCtx = new OMusicContext()
+        this.musicCtx.loadFullSoundSets = true
     }
 
     if (music.type === "SONG" && music.omgurl) {
@@ -665,6 +695,7 @@ OMGGameEngine.prototype.setupBeatIndicator = function () {
             }
             lastDiv = beatDivs[subbeat / 4]
             lastDiv.style.border = "10px solid " + this.beatColors[subbeat / 4]
+            this.updateNPCs()
         }
         //this.drawBeatRegions()
     }
@@ -692,5 +723,25 @@ OMGGameEngine.prototype.drawBeatRegions = function () {
             this._drawBeatRegionI.height * this.tileSize) 
         
         this.map.charCtx.globalAlpha = 1
+    }
+}
+
+
+OMGGameEngine.prototype.turnGravityOn = function () {
+    this.gravity = this.gravityOnValue
+    console.log("gravity on")
+}
+
+OMGGameEngine.prototype.updateNPCs = function () {
+    for (this._iupdateNPCs of this.map.activeSprites) {
+        // if the npc has musicBeat, and is not on, show the beatSheet
+        if (this._iupdateNPCs.thing && this._iupdateNPCs.thing.beatSheet && !this._iupdateNPCs.thing.on) {
+            if (this._iupdateNPCs.thing.musicBeat === this.currentBeat) {
+                this._iupdateNPCs.spriter.setSheet(this._iupdateNPCs.thing.beatSheet)
+            }
+            else {
+                this._iupdateNPCs.spriter.setSheet(this._iupdateNPCs.thing.offSheet)
+            }
+        }
     }
 }

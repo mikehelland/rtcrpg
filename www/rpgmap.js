@@ -187,7 +187,8 @@ OMGRPGMap.prototype.loadNPCs = function (loadPromises) {
     
     for (var npc of this.data.npcs) {
         var spriter = this.loadSprite(npc, "npc")
-        loadPromises.push(spriter.setSheet())
+        npc.on = npc.initialState === "on"
+        loadPromises.push(spriter.setSheet(npc.on ? npc.onSheet : npc.offSheet))
         this.activeSprites.push({thing: npc, spriter, type: "npc"})
    }
 }

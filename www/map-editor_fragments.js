@@ -2,6 +2,7 @@ export function NPCFragment(npc, npcDiv, editor) {
     this.editor = editor
     this.map = editor.map
     this.div = document.createElement("div")
+    this.npc = npc
     
     var caption
     
@@ -57,6 +58,10 @@ export function NPCFragment(npc, npcDiv, editor) {
 
     this.div.appendChild(document.createElement("hr"))
 
+    this.setupSheetSelects()
+
+    this.div.appendChild(document.createElement("hr"))
+
     this.npcDetailsDelete = document.createElement("button")
     this.npcDetailsDelete.innerHTML = "Delete NPC"
     this.div.appendChild(this.npcDetailsDelete)
@@ -86,6 +91,80 @@ NPCFragment.prototype.loadMusicParts = function () {
         this.selectMusicPart.appendChild(option)
     }
     
+}
+
+NPCFragment.prototype.setupSheetSelects = function () {
+    var caption
+
+    caption = document.createElement("div")
+    caption.innerHTML = "Music Beat:"
+    this.div.appendChild(caption)
+
+    this.selectBeat = document.createElement("select")
+    this.selectBeat.innerHTML = "<option></option><option>1</option><option>2</option><option>3</option><option>4</option>"
+    this.div.appendChild(this.selectBeat)
+
+    this.selectBeat.value = this.npc.musicBeat || ""
+    this.selectBeat.onchange = e => this.npc.musicBeat = this.selectBeat.value * 1
+
+
+    var sheetOptions = "<option></option>"
+    var sheets = this.npc.sprite.sheets
+    for (var sheetName in sheets) {
+        sheetOptions += "<option>" + sheetName + "</option>"
+    }
+
+    caption = document.createElement("div")
+    caption.innerHTML = "Initial State:"
+    this.div.appendChild(caption)
+    
+    this.selectInitialState = document.createElement("select")
+    this.selectInitialState.innerHTML = "<option>off</option><option>on</option>"
+    this.selectInitialState.value = this.npc.initialState || "off"
+    this.selectInitialState.onchange = e => {
+        this.npc.initialState =  this.selectInitialState.value 
+    }
+    this.div.appendChild(this.selectInitialState)
+
+    caption = document.createElement("div")
+    caption.innerHTML = "On Sheet:"
+    this.div.appendChild(caption)
+    
+
+    this.selectOnSheet = document.createElement("select")
+    this.selectOnSheet.innerHTML = sheetOptions
+    this.selectOnSheet.value = this.npc.onSheet || ""
+    this.selectOnSheet.onchange = e => {
+        this.npc.onSheet =  this.selectOnSheet.value 
+    }
+    this.div.appendChild(this.selectOnSheet)
+
+    caption = document.createElement("div")
+    caption.innerHTML = "Off Sheet:"
+    this.div.appendChild(caption)
+
+    this.selectOffSheet = document.createElement("select")
+    this.selectOffSheet.innerHTML = sheetOptions
+    this.selectOffSheet.value = this.npc.offSheet || ""
+    this.selectOffSheet.onchange = e => {
+        this.npc.offSheet =  this.selectOffSheet.value 
+        console.log(this.npc)
+    }
+    this.div.appendChild(this.selectOffSheet)
+
+    caption = document.createElement("div")
+    caption.innerHTML = "Beat Sheet:"
+    this.div.appendChild(caption)
+
+    this.selectBeatSheet = document.createElement("select")
+    this.selectBeatSheet.innerHTML = sheetOptions
+    this.selectBeatSheet.value = this.npc.beatSheet || ""
+    this.selectBeatSheet.onchange = e => {
+        this.npc.beatSheet =  this.selectBeatSheet.value 
+        console.log(this.npc)
+    }
+    this.div.appendChild(this.selectBeatSheet)
+
 }
 
 export function ImportTileFragment(editor) {
@@ -366,6 +445,23 @@ export function RegionFragment(region, toolboxDiv, editor) {
 
     this.selectWalkable.value = region.walkable || ""
     this.selectWalkable.onchange = e => region.walkable = this.selectWalkable.value
+
+    caption = document.createElement("div")
+    caption.innerHTML = "Function:"
+    this.div.appendChild(caption)
+
+    this.functionInput   = document.createElement("input")
+    this.functionInput.value = region.function || ""
+    this.div.appendChild(this.functionInput)
+
+
+    this.functionInput.onkeypress = e => {
+        if (e.key === "Enter") {
+            region.function = this.functionInput.value
+            
+        }
+    }
+
 
     caption = document.createElement("div")
     caption.innerHTML = "<hr>"
