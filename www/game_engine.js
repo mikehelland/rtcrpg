@@ -22,7 +22,7 @@ export default function OMGGameEngine(params) {
         jumping: 0
     }
 
-    this.friction = 1
+    this.friction = 1.1
     this.maxJump = 1//25
 
     this.frameCount = 0
@@ -264,8 +264,11 @@ OMGGameEngine.prototype.render = function () {
     if (this.debugBoxes) {
         this.context.fillStyle = "white"
         this.context.font = "14pt serif"
-        this.context.fillText(this.hero.dx, 10, 20)
-        this.context.fillText(this.hero.dy, 10, 50)
+        this.context.fillText(this.hero.wishX, 10, 20)
+        this.context.fillText(this.hero.wishY, 10, 50)
+        this.context.fillText(this.hero.dx, 10, 80)
+        this.context.fillText(this.hero.dy, 10, 110)
+
         this.drawHighlightedTiles()
     }
     this.nextFrame = false
@@ -335,23 +338,6 @@ OMGGameEngine.prototype.drawHighlightedTiles = function () {
 
 OMGGameEngine.prototype.physics = function () {
 
-    
-    //var hyp = Math.sqrt(Math.pow(this.hero.dx + this.hero.wishX, 2) + Math.pow(this.hero.dy + this.hero.wishY, 2))
-
-    /*var hyp = Math.sqrt(Math.pow(this.hero.dx, 2) + Math.pow(this.hero.dy, 2))
-    //console.log(hyp)
-    if (hyp > this.dmax) {
-        console.log(hyp)
-        this.hero.dx = Math.floor((this.hero.wishX + this.hero.dx) / hyp * this.dmax)
-        this.hero.dy = Math.floor((this.hero.wishY + this.hero.dy) / hyp * this.dmax)
-    }
-    else {
-        this.hero.dy = Math.max(-this.dmax, Math.min(this.dmax, this.hero.dy + this.hero.wishY))
-        this.hero.dx = Math.max(-this.dmax, Math.min(this.dmax, this.hero.dx + this.hero.wishX))
-    
-    }*/
-    
-
     if (this.gravity) { 
         this.hero.dy += this.gravity
         this.hero.dy = Math.max(-2 * this.dmax, Math.min(2 * this.dmax, this.hero.dy + this.hero.wishY))
@@ -365,7 +351,16 @@ OMGGameEngine.prototype.physics = function () {
         this.hero.dx = 0
         this.hero.dy = 0
     }
+ 
+    if (!this.gravity && this.hero.dx && this.hero.dy) {
+        var hyp = Math.sqrt(Math.pow(this.hero.dx, 2) + Math.pow(this.hero.dy, 2))
+        if (hyp > this.dmax) {
+            this.hero.dx = this.hero.dx * (this.dmax / hyp) 
+            this.hero.dy = this.hero.dy * (this.dmax / hyp)
+        }
+    }
 
+    
     this.targetTiles = []
 
     if (this.hero.dy || this.hero.dx) {
@@ -389,16 +384,36 @@ OMGGameEngine.prototype.physics = function () {
     }
     
     if (!this.hero.jumping && this.hero.dx > 0 && !this.keysPressed["ArrowRight"]) {
-        this.hero.dx -= this.friction
+        if (this.hero.dx < this.friction) {
+            this.hero.dx = 0
+        }
+        else {    
+            this.hero.dx -= this.friction
+        }
     }
     else if (!this.hero.jumping && this.hero.dx < 0 && !this.keysPressed["ArrowLeft"]) {
-        this.hero.dx += this.friction
+        if (0 - this.hero.dx < this.friction) {
+            this.hero.dx = 0
+        }
+        else {    
+            this.hero.dx += this.friction
+        }
     }
     else if (!this.gravity && this.hero.dy > 0 && !this.keysPressed["ArrowDown"]) {
-        this.hero.dy -= this.friction
+        if (this.hero.dy < this.friction) {
+            this.hero.dy = 0
+        }
+        else {    
+            this.hero.dy -= this.friction
+        }
     }
     else if (!this.gravity && this.hero.dy < 0 && !this.keysPressed["ArrowUp"]) {
-        this.hero.dy += this.friction
+        if (0 - this.hero.dy < this.friction) {
+            this.hero.dy = 0
+        }
+        else {    
+            this.hero.dy += this.friction
+        }
     }
 
     this.moveNPCs()
