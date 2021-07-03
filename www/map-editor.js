@@ -886,6 +886,10 @@ OMGMapEditor.prototype.setupMenu = function () {
                 //{separator: true},
                 {name: "OMG Home", onclick: () => {window.location = "/"}}
             ]},
+            {name: "Edit", items: [
+                {name: "Flip Horizontal", onclick: () => this.flipX()},
+                {name: "Flip Vertical", onclick: () => this.flipY()}
+            ]},
             {name: "Window", items: [
                 {name: "Undo List", onclick: () => this.showUndoWindow()},
                 {separator: true},
@@ -1135,4 +1139,37 @@ OMGMapEditor.prototype.showPalette = async function () {
         height: 400
     })
 
+}
+
+
+OMGMapEditor.prototype.flipX = function () {
+
+    var tiles = []
+    var row 
+    var i = 0
+    for (var x = this.data.width - 1; x >= 0; x--) {
+        row = [] 
+        tiles.push(row)
+        for (var y = 0; y < this.data.height; y++) {
+            row.push(this.map.tiles[x][y])
+        }
+    }
+    this.map.tiles = tiles
+    this.map.draw()
+}
+
+OMGMapEditor.prototype.flipY = function () {
+
+    var tiles = []
+    var row 
+    var i = 0
+    for (var x = 0; x < this.data.width; x++) {
+        row = [] 
+        tiles.push(row)
+        for (var y = this.data.height - 1; y >= 0; y--) {
+            row.push(this.map.tiles[x][y])
+        }
+    }
+    this.map.tiles = tiles
+    this.map.draw()
 }
