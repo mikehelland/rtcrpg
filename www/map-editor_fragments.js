@@ -492,8 +492,10 @@ export function RegionFragment(region, toolboxDiv, editor) {
 }
 
 export function SizeFragment(editor) {
-    var data = editor.data
+    this.data = editor.data
+    this.editor = editor
     var map = editor.map
+    this.map = map
     this.div = document.createElement("div")
 
     var caption
@@ -509,8 +511,8 @@ export function SizeFragment(editor) {
     this.widthInput.className = "size-input"
     this.heightInput.className = "size-input"
 
-    this.widthInput.value = data.width
-    this.heightInput.value = data.height
+    this.widthInput.value = this.data.width
+    this.heightInput.value = this.data.height
  
     this.div.appendChild(this.widthInput)
     
@@ -546,6 +548,63 @@ export function SizeFragment(editor) {
         editor.resizeMap()
     }
 
+    this.div.appendChild(document.createElement("br"))
+    this.div.appendChild(document.createElement("hr"))
+    this.div.appendChild(document.createElement("br"))
+
+    this.doubleXButton = document.createElement("button")
+    this.doubleYButton = document.createElement("button")   
+
+    this.doubleXButton.innerHTML = "Double Width"
+    this.doubleYButton.innerHTML = "Double Height"
+
+    this.div.appendChild(this.doubleXButton)
+    this.div.appendChild(this.doubleYButton)
+
+    this.doubleXButton.onclick = e => this.doubleX()
+    this.doubleYButton.onclick = e => this.doubleY()
+}
+
+SizeFragment.prototype.doubleX = function () {
+
+    var tiles = []
+    var row
+    var i = 0
+    for (var x = 0; x < this.data.width; x++) {
+        row = [] 
+        tiles.push(row)
+        tiles.push(row)
+        for (var y = 0; y < this.data.height; y++) {
+            row.push(this.map.tiles[x][y])
+        }
+    }
+    this.map.tiles = tiles
+    this.data.width = this.data.width * 2
+    this.widthInput.value = this.data.width
+    this.map.draw()
+
+    this.editor.onChanged({type: "SIZE", mode: "Double Width"})
+}
+
+SizeFragment.prototype.doubleY = function () {
+
+    var tiles = []
+    var row
+    var i = 0
+    for (var x = 0; x < this.data.width; x++) {
+        row = [] 
+        tiles.push(row)
+        for (var y = 0; y < this.data.height; y++) {
+            row.push(this.map.tiles[x][y])
+            row.push(this.map.tiles[x][y])
+        }
+    }
+    this.map.tiles = tiles
+    this.data.height = this.data.height * 2
+    this.heightInput.value = this.data.height
+    this.map.draw()
+
+    this.editor.onChanged({type: "SIZE", mode: "Double Height"})
 }
 
 export function MiniMapFragment(editor) {

@@ -923,7 +923,7 @@ OMGMapEditor.prototype.showSizeWindow = function () {
 
     this.wm.showFragment(f, {
         div: document.getElementById("size-menu"),
-        caption: "Size", width: 200, height: 150
+        caption: "Size", width: 300, height: 250
     })
 
 }
@@ -1091,7 +1091,7 @@ OMGMapEditor.prototype.onChanged = function (info) {
     info.time = new Date()
     this.undoStack.push(info)
     
-    if (info && info.type === "TILE") {
+    if (info && (info.type === "TILE" || info.type === "SIZE")) {
         this.map.updateYLines()
     }
 
