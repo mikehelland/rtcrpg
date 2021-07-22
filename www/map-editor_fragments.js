@@ -37,6 +37,8 @@ export function NPCFragment(npc, npcDiv, editor) {
         npc.dialog = this.npcDetailsDialog.value.split("\n")
     }
 
+    this.setupMotionSelect()
+    
     this.selectMusicPart = document.createElement("select")
     if (this.editor.song) {
         this.loadMusicParts()
@@ -167,6 +169,20 @@ NPCFragment.prototype.setupSheetSelects = function () {
 
 }
 
+NPCFragment.prototype.setupMotionSelect = function () {
+    let caption = document.createElement("div")
+    caption.innerHTML = "Motion:"
+    this.div.appendChild(caption)
+    this.motionSelect = document.createElement("select")
+    this.motionSelect.innerHTML = "<option>NONE</option><option>UPDOWN</option><option>LEFTRIGHT</option>"
+    this.motionSelect.value = this.npc.motion || "NONE"
+    this.motionSelect.onchange = e => {
+        this.npc.motion = this.motionSelect.value
+    }
+    this.div.appendChild(this.motionSelect)
+    
+}
+
 export function ImportTileFragment(editor) {
     this.editor = editor
     this.div = document.createElement("div")
@@ -241,74 +257,12 @@ export function SaveFragment(editor) {
     this.gamePage = "char.htm"
 
     this.div = document.createElement("div")
+
+    this.data.music = song ? song.getData() : undefined
     
-    // check to see what's actually changed
+    // check to see what's actually changed?
     var mapChanged = true
-    var musicChanged = !!this.data.music && song
-
-    // if there's music, make sure to ask about changing that first
-
-    if (this.data.music && song && musicChanged) {
-        this.musicDiv = document.createElement("div")
-        this.div.appendChild(this.musicDiv)
-
-        var caption = document.createElement("div")
-        caption.innerHTML = "The music has changed. Save it?"
-        this.musicDiv.appendChild(caption)
-    
-        if (song.data.id) {
-            var overwriteSongButton = document.createElement("button")
-            overwriteSongButton.innerHTML = "Overwrite MUSIC"
-
-            var saveNewSongButton = document.createElement("button")
-            saveNewSongButton.innerHTML = "Save Copy of MUSIC"
-
-            this.musicDiv.appendChild(overwriteSongButton)
-            this.musicDiv.appendChild(saveNewSongButton)
-            
-            overwriteSongButton.onclick = e => {
-                omg.server.post(song.getData(), res => {
-                    this.showSaveButtons()
-                })
-            }
-
-            saveNewSongButton.onclick = e => {
-                delete song.data.id
-                omg.server.post(song.getData(), res => {
-                    this.showSaveButtons()
-                })
-            }
-        }
-        else {
-            var saveMusicButton = document.createElement("button")
-            saveMusicButton.innerHTML = "Save MUSIC"
-            saveMusicButton.onclick = e => {
-                omg.server.post(song.getData(), res => {
-                    this.showSaveButtons()
-                })
-            }
-
-            this.musicDiv.appendChild(saveMusicButton)
-        }
-        var discardMusicButton = document.createElement("button")
-        discardMusicButton.innerHTML = "SKIP MUSIC"
-        discardMusicButton.onclick = e => {
-            this.showSaveButtons()
-        }
-
-        this.musicDiv.appendChild(discardMusicButton)
-
-    }
-    else {
-        this.showSaveButtons()
-    }
-
-    if (mapChanged && musicChanged) {
-        var saveAllButton = document.createElement("button")
-        saveAllButton.innerHTML = "Save Map and Music"
-        saveAllButton.onclick = e => this.saveAll()
-    }
-
+    this.showSaveButtons()
 
 }
 
@@ -345,10 +299,6 @@ SaveFragment.prototype.savedMusic = function (res) {
 }
 
 SaveFragment.prototype.showSaveButtons = function () {
-
-    if (this.musicDiv) {
-        this.musicDiv.style.display = "none"
-    }
 
     this.nameInput = document.createElement("input")
     var caption = document.createElement("div")

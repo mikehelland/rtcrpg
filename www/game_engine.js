@@ -57,6 +57,19 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
     this.background.style.height = this.backgroundCanvas.height + "px"
 
     this.npcs = data.npcs || []
+
+    for (var npc of this.npcs) {
+        npc.dx = 0
+        npc.dy = 0
+        if (npc.motion === "LEFTRIGHT") {
+            npc.dx = -0.2
+            npc.reflect = true
+        }
+        if (npc.motion === "UPDOWN") {
+            npc.dy = -0.2
+            npc.reflect = true
+        }
+    }
     
     if (this.map.data.gravity) {
         this.gravity = this.gravityOnValue
@@ -139,6 +152,12 @@ OMGGameEngine.prototype.setupInputs = function () {
     
     document.onkeydown = e => {
         if (e.target.tagName.toLowerCase() === "input") {
+            return
+        }
+
+        if (this.activeDialog) {
+            document.body.removeChild(this.activeDialog)
+            this.activeDialog = null
             return
         }
 
@@ -495,7 +514,6 @@ OMGGameEngine.prototype.canProceedX = function () {
             if (region.y <= targets[this.imoveHitTest].y && region.y + region.height > targets[this.imoveHitTest].y && 
                 (targets[this.imoveHitTest].x === (this.hero.dx < 0 ? region.x + region.width : region.x))) {
                     this.inRegion = region
-                    console.log(region)    
                     if (region.walkable === "true" 
                             || (region.walkable === "onbeat" && region.musicBeat === this.currentBeat)
                             || (region.walkable === "offbeat" && region.musicBeat !== this.currentBeat)) {
@@ -640,8 +658,19 @@ OMGGameEngine.prototype.canProceedY = function () {
     return !blocked
 }
 
-OMGGameEngine.prototype.actionKey = function () {        
-    if (this.touchingNPC) {
+OMGGameEngine.prototype.actionKey = function () {
+
+    if (this.activeDialog) {
+        document.body.removeChild(this.activeDialog)
+        this.activeDialog = null
+        return
+    }
+
+    if (this.touchingNPC && this.touchingNPC.thing) {
+
+        if (this.touchingNPC.thing.dialog) {
+            this.showDialog(this.touchingNPC.thing.dialog)
+        }
 
         if (this.touchingNPC.on) {
 
@@ -795,7 +824,16 @@ OMGGameEngine.prototype.loadCar = async function (spriteData) {
     this.carSpriter.h = spriteData.frameHeight // 32
     
 }
+
+
+
 OMGGameEngine.prototype.moveNPCs = function () {
+
+    for (this._inpc of this.map.activeSprites) {
+        this._inpc.thing.x += this._inpc.thing.dx
+        this._inpc.thing.y += this._inpc.thing.dy
+    }
+
     if (this.onRoad) {
 
         if (this.carThing.x >= this.hero.x / this.map.tileSize) {
@@ -814,4 +852,17 @@ OMGGameEngine.prototype.moveNPCs = function () {
             this.carThing.x += 2
         }
     }
+}
+
+OMGGameEngine.prototype.showDialog = function (dialog) {
+
+    console.log(dialog)
+    var dialogDiv = document.createElement("div")
+    dialogDiv.className = "dialog menu"
+
+    dialogDiv.innerHTML = dialog
+
+    document.body.appendChild(dialogDiv)
+
+    this.activeDialog = dialogDiv
 }

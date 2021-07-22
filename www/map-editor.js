@@ -952,12 +952,12 @@ OMGMapEditor.prototype.showMusicWindow = function () {
 
 OMGMapEditor.prototype.selectMusic = async function (data) {
     console.log(data)
-    this.map.data.music = {
+    this.map.data.music = data
+    /*{
         type: data.type,
         omgurl: data.omgurl
-    }
+    }*/
 
-    this.musicData = data
     await this.loadMusic(data)
     this.showDawesome()
 }
@@ -1020,13 +1020,8 @@ OMGMapEditor.prototype.loadMusic = async function (music) {
     }
 
     if (music.type === "SONG") {
-        var data
-        if (music.omgurl) {
-            var res = await fetch(music.omgurl)
-            data = await res.json()
-        }
 
-        var {player, song} = await this.musicContext.load(data)
+        var {player, song} = await this.musicContext.load(music)
         this.musicPlayer = player
         this.song = song
 

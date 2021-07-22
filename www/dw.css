@@ -24,7 +24,6 @@ body {
     border-radius: 5px;
     padding:20px;
     color:white;
-    display:none;
     font-size:24px;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
@@ -49,7 +48,7 @@ body {
     left:25%;
     width:50%;
 }
-#dialogBox {
+.dialog {
     left:25%;
     width:50%;
     top:70%;
