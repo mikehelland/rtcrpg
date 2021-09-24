@@ -9,6 +9,8 @@ body {
 }
 #backgroundCanvas {
     position:absolute;
+    height:100%;
+    width:100%;
 
 }
 #mainCanvas, #game-display, #onscreen-display {
@@ -117,7 +119,6 @@ img {
 
 .game-engine-beat-indicator {
     position: absolute;
-    z-index: 1;
     bottom: 50px;
     left: 150px;
     display:flex;

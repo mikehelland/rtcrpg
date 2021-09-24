@@ -60,11 +60,12 @@ OMGGameEngine.prototype.mainLoop = function () {
 OMGGameEngine.prototype.loadMap = function (data, mapName) {
     this.roomName = mapName
 
-    this.map = new OMGRPGMap(data, {backCanvas: this.backgroundCanvas, charCanvas: this.canvas})
-    this.map.tileSize = this.tileSize
+    console.log(this.backgroundTileSize)
+    this.map = new OMGRPGMap(data, {tileSize: 32, backCanvas: this.backgroundCanvas, charCanvas: this.canvas})
+    //this.map.tileSize = this.tileSize
     
-    this.background.style.width = this.backgroundCanvas.width + "px"
-    this.background.style.height = this.backgroundCanvas.height + "px"
+    this.background.style.width = this.backgroundCanvas.width * (this.canvas.clientWidth / this.canvas.width) + "px"
+    this.background.style.height = this.backgroundCanvas.height * (this.canvas.clientWidth / this.canvas.width) + "px"
 
     this.npcs = data.npcs || []
 
@@ -112,25 +113,50 @@ OMGGameEngine.prototype.setupCanvas = function () {
     this.canvas = document.getElementById("mainCanvas")
     this.canvas.style.width = "100%" //window.innerWidth + "px"
     this.canvas.style.height = "100%" //window.innerHeight + "px"
-    this.canvas.width = this.canvas.clientWidth // todo 1920
-    this.canvas.height = this.canvas.clientHeight // 1080
+    this.canvas.width = 1920 // this.canvas.clientWidth // todo 1920
+    this.canvas.height = 1080 // this.canvas.clientHeight // 1080
     this.context = this.canvas.getContext("2d")
 
     // 1080p is 1,920x1,080
 
-    /*var aspectRatio = 1920 / 1080
-    var windowAspectRatio = window.innerWidth / window.innerHeight
-    if (windowAspectRatio === aspectRatio) {
-        this.offsetLeft = 0
-        this.offsetTop = 0
+    var gameUI = document.getElementById("game-display")
+
+    let borderX = 0
+    let borderY = 0
+    let width = 1920
+    let height = 1080
+    let ratio =  width / height
+    let winRatio = window.innerWidth / window.innerHeight
+    
+    this.tileOffset = 8
+    this.tileSize = 32
+    if (ratio > winRatio) {
+        borderY = (window.innerHeight - window.innerWidth / ratio) / 2
+
+        gameUI.style.height = window.innerHeight + "px" //- (borderY * 2) + "px"
+        gameUI.style.borderTop = borderY + "px solid #111111"
+        gameUI.style.borderBottom = borderY + "px solid #111111"
+
+        this.backgroundTileSize = Math.floor(this.canvas.width / (this.tileOffset * 2 + 1))
+
     }
-    else if (windowAspectRatio > aspectRatio) {
-        this.offsetLeft = 0
-        this.offsetTop = 0
-    }*/
+    else if (ratio < winRatio) {
+        
+        //borderX = (window.innerHeight - window.innerWidth / ratio) / 2
+        borderX = (window.innerWidth - window.innerHeight * ratio) / 2
+        
+        gameUI.style.width = window.innerWidth + "px" //- (borderX * 2) + "px"
+        gameUI.style.borderLeft = borderX + "px solid #111111"
+        gameUI.style.borderRight = borderX + "px solid #111111"
+
+        
+        
+    }
+
+    this.backgroundTileSize = this.tileSize * (this.canvas.clientWidth / this.canvas.width)
 
     // make it square
-    this.tileOffset = 8
+    /*this.tileOffset = 8
     if (this.canvas.height > this.canvas.width) {
         this.tileSize = 32 //Math.floor(this.canvas.width / (this.tileOffset * 2 + 1))
         this.offsetTop = (this.canvas.height - this.canvas.width) / 2
@@ -140,7 +166,9 @@ OMGGameEngine.prototype.setupCanvas = function () {
         this.tileSize = 32 // Math.floor(this.canvas.height / (this.tileOffset * 2 + 1))
         this.offsetLeft = (this.canvas.width - this.canvas.height) / 2
         this.offsetTop = 0
-    }
+    }*/
+
+    //this.tileSize = 32 * (winRatio / ratio)
 
     this.offsetTop = 0
     this.offsetLeft = 0
@@ -152,8 +180,8 @@ OMGGameEngine.prototype.setupCanvas = function () {
 
     //our character is always in the middle
     //this sets how many tiles each direction are shown
-    this.middleTileX = this.canvas.width / 2 - this.tileWidth / 2
-    this.middleTileY = this.canvas.height / 2 - this.tileHeight / 2
+    this.middleTileX = this.canvas.width / 2 - this.backgroundTileSize / 2
+    this.middleTileY = this.canvas.height / 2 - this.backgroundTileSize / 2
 
 }
 
@@ -285,8 +313,8 @@ OMGGameEngine.prototype.render = function () {
         this.drawnBackground = true
     }
 
-    this.background.style.left = this.hero.x * -1 + this.middleTileX + "px"
-    this.background.style.top = this.hero.y * -1 + this.middleTileY  + "px"
+    this.background.style.left = (this.hero.x * -1 + this.middleTileX) * (this.canvas.clientWidth / this.canvas.width) + "px"
+    this.background.style.top = (this.hero.y * -1 + this.middleTileY) * (this.canvas.clientWidth / this.canvas.width)  + "px"
 
     this.canvas.width = this.canvas.width
     

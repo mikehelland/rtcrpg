@@ -4,7 +4,7 @@ export default function OMGRPGMap(data, options) {
     
     options = options || {}
 
-    this.tileSize = 32
+    this.tileSize = options.tileSize || 32
     this.data = data || {}
 
     this.canvas = options.backCanvas || document.createElement("canvas")

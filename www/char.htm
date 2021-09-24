@@ -31,40 +31,6 @@
     <script type="module">
         import OMGGameEngine from "./game_engine.js"
 
-        var gameUI = document.getElementById("game-display")
-
-        let borderX = 0
-        let borderY = 0
-        let width = 1920
-        let height = 1080
-        let ratio =  width / height
-        let winRatio = window.innerWidth / window.innerHeight
-        
-        if (ratio > winRatio) {
-            borderY = (window.innerHeight - window.innerWidth / ratio) / 2
-
-            gameUI.style.height = window.innerHeight + "px" //- (borderY * 2) + "px"
-            gameUI.style.borderTop = borderY + "px solid black"
-            gameUI.style.borderBottom = borderY + "px solid black"
-
-        }
-        else if (ratio < winRatio) {
-            //borderX = (window.innerHeight - window.innerWidth / ratio) / 2
-            borderX = (window.innerWidth - window.innerHeight * ratio) / 2
-
-            
-            gameUI.style.width = window.innerWidth + "px" //- (borderX * 2) + "px"
-            gameUI.style.borderLeft = borderX + "px solid black"
-            gameUI.style.borderRight = borderX + "px solid black"
-
-        }
-
-        //gameUI.style.backgroundColor = "red"
-        console.log(ratio, winRatio, borderY)
-
-
-
-
 
         var ge
         var params = omg.util.getPageParams()
