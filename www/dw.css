@@ -120,13 +120,15 @@ img {
 .game-engine-beat-indicator {
     position: absolute;
     bottom: 5px;
-    left: 346px;
+    left: 25%;
+    width:100%;
+    height: 20%;
     display:flex;
     background-color: black;
 }
 .game-engine-beat-indicator-beat {
-    width: 128px;
-    height: 128px;
-    margin-right: 98px;
+    width: 9%;
+    height: 100%;
+    margin-right: 6.65%;
     opacity: 0.2;
 }
