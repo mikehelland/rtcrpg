@@ -142,7 +142,6 @@ OMGGameEngine.prototype.setupCanvas = function () {
     }
     else if (ratio < winRatio) {
         
-        //borderX = (window.innerHeight - window.innerWidth / ratio) / 2
         borderX = (window.innerWidth - window.innerHeight * ratio) / 2
         
         gameUI.style.width = window.innerWidth + "px" //- (borderX * 2) + "px"
@@ -155,24 +154,8 @@ OMGGameEngine.prototype.setupCanvas = function () {
 
     this.backgroundTileSize = this.tileSize * (this.canvas.clientWidth / this.canvas.width)
 
-    // make it square
-    /*this.tileOffset = 8
-    if (this.canvas.height > this.canvas.width) {
-        this.tileSize = 32 //Math.floor(this.canvas.width / (this.tileOffset * 2 + 1))
-        this.offsetTop = (this.canvas.height - this.canvas.width) / 2
-        this.offsetLeft = 0
-    }
-    else {
-        this.tileSize = 32 // Math.floor(this.canvas.height / (this.tileOffset * 2 + 1))
-        this.offsetLeft = (this.canvas.width - this.canvas.height) / 2
-        this.offsetTop = 0
-    }*/
-
-    //this.tileSize = 32 * (winRatio / ratio)
-
     this.offsetTop = 0
-    this.offsetLeft = 0
-    
+    this.offsetLeft = 0    
 
     this.tileWidth = this.tileSize
     this.tileHeight = this.tileSize
