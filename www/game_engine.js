@@ -725,11 +725,11 @@ OMGGameEngine.prototype.loadMusic = async function (music) {
         this.musicCtx.loadFullSoundSets = true
     }
 
-    if (music.type === "SONG" && music.omgurl) {
-        var res = await fetch(music.omgurl)
-        var data = await res.json()
+    if (music.type === "SONG") {// && music.omgurl) {
+        //var res = await fetch(music.omgurl)
+        //var data = await res.json()
         
-        var {player, song} = await this.musicCtx.load(data)
+        var {player, song} = await this.musicCtx.load(music)
         this.musicPlayer = player
         this.song = song
 
