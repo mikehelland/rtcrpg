@@ -11,11 +11,13 @@ body {
     position:absolute;
 
 }
-#mainCanvas {
+#mainCanvas, #game-display, #onscreen-display {
     position:absolute;
     height:100%;
     width:100%;
+    box-sizing: border-box;
 }
+
 .menu {
     z-index: 9;
     position:absolute;
@@ -110,12 +112,13 @@ img {
 }
 
 .game-engine-beat-indicator {
-    width: 32px;
-    height: 32px;
-    position: relative;
+    position: absolute;
     z-index: 1;
+    bottom: 50px;
+    left: 150px;
+    display:flex;
 }
 .game-engine-beat-indicator-beat {
-    width: 32px;
-    height: 32px;
+    width: 60px;
+    height: 60px;
 }

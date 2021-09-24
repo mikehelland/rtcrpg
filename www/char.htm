@@ -16,14 +16,55 @@
 </head>
 <body>
 
+    <div id="game-display">
+    
     <div id="background">
         <canvas id="backgroundCanvas"></canvas>    
     </div>
     <canvas tabindex="1" id="mainCanvas"></canvas>
+    <img id="onscreen-display"></img>
 
+    </div>
+    
     <script src="/js/omgservice.js"></script>
     <script type="module">
         import OMGGameEngine from "./game_engine.js"
+
+        var gameUI = document.getElementById("game-display")
+
+        let borderX = 0
+        let borderY = 0
+        let width = 1920
+        let height = 1080
+        let ratio =  width / height
+        let winRatio = window.innerWidth / window.innerHeight
+        
+        if (ratio > winRatio) {
+            borderY = (window.innerHeight - window.innerWidth / ratio) / 2
+
+            gameUI.style.height = window.innerHeight - (borderY * 2) + "px"
+            gameUI.style.paddingTop = borderY + "px"
+            gameUI.style.paddingBottom = borderY + "px"
+
+        }
+        else if (ratio < winRatio) {
+            //borderX = (window.innerHeight - window.innerWidth / ratio) / 2
+            borderX = (window.innerWidth - window.innerHeight * ratio) / 2
+
+            
+            gameUI.style.width = window.innerWidth - (borderX * 2) + "px"
+            gameUI.style.paddingLeft = borderX + "px"
+            gameUI.style.paddingRight = borderX + "px"
+
+        }
+
+        //gameUI.style.backgroundColor = "red"
+        console.log(ratio, winRatio, borderY)
+
+
+
+
+
         var ge
         var params = omg.util.getPageParams()
         if (params.id) {
@@ -40,12 +81,23 @@
     
                 })
 
-                var charlieSprite = "https://wesandm.com/data/226"
+                /*var charlieSprite = "https://wesandm.com/data/226"
                 fetch(charlieSprite).then(res => res.json()).then(data => {
 
                     ge.loadCar(data)
     
+                })*/
+    
+                var gameUIUrl = "https://wesandm.com/data/292"
+                fetch(gameUIUrl).then(res => res.json()).then(data => {
+                    var gameOSD = document.getElementById("onscreen-display")
+                    gameOSD.src = Object.values(data.sheets)[0].url
+
+                    gameOSD.onload = e => gameOSD.style.display = "block"
+                    
+
                 })
+
                 
             })
         }

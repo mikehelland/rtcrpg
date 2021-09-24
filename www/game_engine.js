@@ -37,10 +37,20 @@ export default function OMGGameEngine(params) {
 
     this.beatColors = ["green", "yellow", "blue", "yellow"]
 
+    this.setupGamepad()
+
 }
 
 OMGGameEngine.prototype.mainLoop = function () {
     
+    if (this.gamepad) {
+        if (this.gamepad.buttons[0] && this.gamepad.buttons[0].pressed) {
+            console.log("button0 pressed")
+        }
+
+    }
+
+
     this.physics()
 
     this.render()
@@ -829,10 +839,9 @@ OMGGameEngine.prototype.loadCar = async function (spriteData) {
 
 OMGGameEngine.prototype.moveNPCs = function () {
 
-    for (this._inpc of this.map.activeSprites) {
-        this._inpc.thing.x += this._inpc.thing.dx
-        this._inpc.thing.y += this._inpc.thing.dy
-    }
+    /*for (this._mnpc of this.map.activeSprites) {
+        this.moveNPC(this._mnpc)
+    }*/
 
     if (this.onRoad) {
 
@@ -854,6 +863,10 @@ OMGGameEngine.prototype.moveNPCs = function () {
     }
 }
 
+OMGGameEngine.prototype.moveNPC = function (sprite) {
+
+}
+
 OMGGameEngine.prototype.showDialog = function (dialog) {
 
     console.log(dialog)
@@ -866,3 +879,26 @@ OMGGameEngine.prototype.showDialog = function (dialog) {
 
     this.activeDialog = dialogDiv
 }
+
+
+
+OMGGameEngine.prototype.setupGamepad = function () {
+    console.log("setup gp")
+    this.gamepads = {}
+    var gamepadHandler = (event, connecting) => {
+        console.log(event, connecting)
+        var gamepad = event.gamepad;
+
+        if (connecting) {
+            this.gamepads[gamepad.index] = gamepad;
+            this.gamepad = gamepad
+        } else {
+            delete this.gamepads[gamepad.index];
+        }
+    }
+
+    window.addEventListener("gamepadconnected", function(e) { gamepadHandler(e, true); }, false);
+    window.addEventListener("gamepaddisconnected", function(e) { gamepadHandler(e, false); }, false);
+
+}
+
