@@ -112,9 +112,9 @@ OMGGameEngine.prototype.setupCanvas = function () {
 
     this.canvas = document.getElementById("mainCanvas")
     this.canvas.style.width = "100%" //window.innerWidth + "px"
-    this.canvas.style.height = "100%" //window.innerHeight + "px"
+    this.canvas.style.height = "80%" //window.innerHeight + "px"
     this.canvas.width = 1920 // this.canvas.clientWidth // todo 1920
-    this.canvas.height = 1080 // this.canvas.clientHeight // 1080
+    this.canvas.height = 1080  * 0.8// this.canvas.clientHeight // 1080
     this.context = this.canvas.getContext("2d")
 
     // 1080p is 1,920x1,080
@@ -164,7 +164,7 @@ OMGGameEngine.prototype.setupCanvas = function () {
     //our character is always in the middle
     //this sets how many tiles each direction are shown
     this.middleTileX = this.canvas.width / 2 - this.backgroundTileSize / 2
-    this.middleTileY = this.canvas.height / 2 - this.backgroundTileSize / 2
+    this.middleTileY = this.canvas.height / 2 - this.backgroundTileSize * 2
 
 }
 
@@ -659,7 +659,6 @@ OMGGameEngine.prototype.canProceedY = function () {
                         this.heroSpriter.i = 3
                         this.hero.jumping = 0
                     }
-                    console.log(region)
                     this.inRegion = region
                     if (region.walkable === "true" 
                             || (region.walkable === "onbeat" && region.musicBeat === this.currentBeat)
@@ -753,7 +752,6 @@ OMGGameEngine.prototype.setupBeatIndicator = function () {
         beatDivs.push(beatDiv)
 
         beatDiv.style.backgroundColor = this.beatColors[i]
-        beatDiv.style.border = "10px solid black"
     }
 
 
@@ -761,10 +759,10 @@ OMGGameEngine.prototype.setupBeatIndicator = function () {
         if (subbeat % 4 === 0) {
             this.currentBeat = (subbeat / 4) + 1
             if (lastDiv) {
-                lastDiv.style.border = "10px solid black"
+                lastDiv.style.opacity = 0.2
             }
             lastDiv = beatDivs[subbeat / 4]
-            lastDiv.style.border = "10px solid " + this.beatColors[subbeat / 4]
+            lastDiv.style.opacity = 1
             this.updateNPCs()
         }
         //this.drawBeatRegions()
