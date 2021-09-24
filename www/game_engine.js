@@ -104,15 +104,16 @@ OMGGameEngine.prototype.loadMap = function (data, mapName) {
 
 OMGGameEngine.prototype.setupCanvas = function () {
 
+    this.gameDisplay = document.getElementById("game-display")
     this.background = document.getElementById("background")
     this.backgroundCanvas = document.getElementById("backgroundCanvas")
     this.backgroundContext = this.backgroundCanvas.getContext("2d")
 
     this.canvas = document.getElementById("mainCanvas")
-    this.canvas.style.width = window.innerWidth + "px"
-    this.canvas.style.height = window.innerHeight + "px"
-    this.canvas.width = this.canvas.clientWidth
-    this.canvas.height = this.canvas.clientHeight
+    this.canvas.style.width = "100%" //window.innerWidth + "px"
+    this.canvas.style.height = "100%" //window.innerHeight + "px"
+    this.canvas.width = this.canvas.clientWidth // todo 1920
+    this.canvas.height = this.canvas.clientHeight // 1080
     this.context = this.canvas.getContext("2d")
 
     // 1080p is 1,920x1,080
@@ -728,7 +729,7 @@ OMGGameEngine.prototype.loadMusic = async function (music) {
 }
 
 OMGGameEngine.prototype.setupBeatIndicator = function () {
-    this.beatIndicatorDiv = document.createElement("div")
+    this.beatIndicatorDiv = document.getElementById("beat-indicator")
     this.beatIndicatorDiv.className = "game-engine-beat-indicator"
     var beatDivs = []
     var lastDiv
@@ -758,7 +759,7 @@ OMGGameEngine.prototype.setupBeatIndicator = function () {
         //this.drawBeatRegions()
     }
     this.musicPlayer.onBeatPlayedListeners.push(this.beatPlayedListener)
-    document.body.appendChild(this.beatIndicatorDiv)
+    //this.gameDisplay.appendChild(this.beatIndicatorDiv)
 }
 
 // maybe this should be in the map?

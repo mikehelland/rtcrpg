@@ -18,6 +18,10 @@ body {
     box-sizing: border-box;
 }
 
+#game-display {
+    overflow: hidden;
+}
+
 .menu {
     z-index: 9;
     position:absolute;

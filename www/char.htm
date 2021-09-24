@@ -18,11 +18,12 @@
 
     <div id="game-display">
     
-    <div id="background">
-        <canvas id="backgroundCanvas"></canvas>    
-    </div>
-    <canvas tabindex="1" id="mainCanvas"></canvas>
-    <img id="onscreen-display"></img>
+        <div id="background">
+            <canvas id="backgroundCanvas"></canvas>    
+        </div>
+        <canvas tabindex="1" id="mainCanvas"></canvas>
+        <div id="beat-indicator"></div>
+        <img id="onscreen-display"></img>
 
     </div>
     
@@ -42,9 +43,9 @@
         if (ratio > winRatio) {
             borderY = (window.innerHeight - window.innerWidth / ratio) / 2
 
-            gameUI.style.height = window.innerHeight - (borderY * 2) + "px"
-            gameUI.style.paddingTop = borderY + "px"
-            gameUI.style.paddingBottom = borderY + "px"
+            gameUI.style.height = window.innerHeight + "px" //- (borderY * 2) + "px"
+            gameUI.style.borderTop = borderY + "px solid black"
+            gameUI.style.borderBottom = borderY + "px solid black"
 
         }
         else if (ratio < winRatio) {
@@ -52,9 +53,9 @@
             borderX = (window.innerWidth - window.innerHeight * ratio) / 2
 
             
-            gameUI.style.width = window.innerWidth - (borderX * 2) + "px"
-            gameUI.style.paddingLeft = borderX + "px"
-            gameUI.style.paddingRight = borderX + "px"
+            gameUI.style.width = window.innerWidth + "px" //- (borderX * 2) + "px"
+            gameUI.style.borderLeft = borderX + "px solid black"
+            gameUI.style.borderRight = borderX + "px solid black"
 
         }
 
