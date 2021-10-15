@@ -112,7 +112,7 @@ OMGGameEngine.prototype.setupCanvas = function () {
 
     this.canvas = document.getElementById("mainCanvas")
     this.canvas.style.width = "100%" //window.innerWidth + "px"
-    this.canvas.style.height = "80%" //window.innerHeight + "px"
+    this.canvas.style.height = "90%" //window.innerHeight + "px"
     this.canvas.width = 1920 // this.canvas.clientWidth // todo 1920
     this.canvas.height = 1080  * 0.8// this.canvas.clientHeight // 1080
     this.context = this.canvas.getContext("2d")
