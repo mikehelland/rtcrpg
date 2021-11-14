@@ -567,7 +567,10 @@ export function MiniMapFragment(editor) {
 }
 
 MiniMapFragment.prototype.draw = function () {
-    this.map.drawCustom(this.div, 16)
+    this.map.drawCustom({
+        canvas: this.div, 
+        tileSize: 16
+    })
 }
 
 
@@ -675,7 +678,7 @@ export function PaletteFragment(editor) {
         deleteButton.innerHTML = " &times;"
         deleteButton.onclick = e => {
             this.div.removeChild(div)
-            debugger
+            //debugger
             var index = this.map.data.palette.indexOf(color)
             this.map.data.palette.splice(index, 1)
         }

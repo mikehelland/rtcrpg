@@ -32,13 +32,21 @@ export default function OMGRPGMap(data, options) {
     this.img = options.img || {}
     this.tileSplitChar = "·"
 
+    this.onload = options.onload 
+
     this.loadTileSet(data.tileSet)
 
     this.loadTiles()
 
+    // todo the game engine needs this, but the other uses don't (embed, editor) so remove it?
     this.canvas.width = this.data.width * this.tileSize
     this.canvas.height = this.data.height * this.tileSize
     
+    // for previews, like in the gallery, don't load everything else
+    if (options.mapOnly) {
+        return
+    }
+
     this.charCanvasOffsetX = 0
     this.charCanvasOffsetY = 0
 
@@ -65,7 +73,12 @@ OMGRPGMap.prototype.loadTileSet = function (tileSet) {
     var onload = () => {
         loaded++
         if (loaded === toLoad) {
-            this.draw()
+            if (this.onload) {
+                this.onload()
+            }
+            else {
+                this.draw()
+            }
         }
     }
     var toLoad = 0
@@ -115,15 +128,20 @@ OMGRPGMap.prototype.draw = function () {
     }
 }
 
-OMGRPGMap.prototype.drawCustom = function (canvas, tileSize) {
-    canvas.width = this.data.width * tileSize
-    canvas.height = this.data.height * tileSize
+OMGRPGMap.prototype.drawCustom = function (params) {
+    var canvas = params.canvas || this.canvas
+    var tileSize = params.tileSize || this.tileSize
+    var width = params.width || this.data.width
+    var height = params.height || this.data.height
+
+    canvas.width = width * tileSize
+    canvas.height = height * tileSize
     var ctx = canvas.getContext("2d")
     ctx.fillStyle = "black"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    for (var x = 0; x < this.data.width; x++) {
-        for (var y = 0; y < this.data.height; y++) { 
+    for (var x = 0; x < width; x++) {
+        for (var y = 0; y < height; y++) { 
             if (this.tiles[x] && this.tiles[x][y]) {
                 var tileCode = this.tiles[x][y].code
                 if (this.img.tiles[tileCode]) {
