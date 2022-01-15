@@ -12,11 +12,22 @@ export function NPCFragment(npc, npcDiv, editor) {
     this.div.appendChild(this.npcDetailsSound)
     this.npcDetailsDialog = document.createElement("textarea")
     this.div.appendChild(this.npcDetailsDialog)
+    
+    caption = document.createElement("div")
+    caption.innerHTML = "Animating"
+    this.div.appendChild(caption)
+    
+    this.npcAnimating = document.createElement("input")
+    this.npcAnimating.type = "checkbox"
+    this.div.appendChild(this.npcAnimating)
+    this.npcAnimating.checked = npc.animating
+    this.npcAnimating.onchange = e => npc.animating = this.npcAnimating.checked
+
     this.npcDetailsCanvas = document.createElement("canvas")
     this.npcDetailsCanvas.width = 32
     this.npcDetailsCanvas.height = 32
     
-    this.div.appendChild(this.npcDetailsCanvas)
+    //this.div.appendChild(this.npcDetailsCanvas)
 
     this.npcDetailsName.value = npc.name
     this.npcDetailsSound.value = npc.soundURL || ""
