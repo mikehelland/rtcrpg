@@ -46,6 +46,10 @@
 
                     ge.loadHero(data)
     
+                    var exitSprite = window.location.host.startsWith("localhost") ? "https://localhost:8081/data/911" : "https://wesandm.com/data/332"
+                    fetch(exitSprite).then(res => res.json()).then(data => {
+                        ge.loadExit(data)
+                    })
                 })
 
                 /*var charlieSprite = "https://wesandm.com/data/226"

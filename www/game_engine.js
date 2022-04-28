@@ -22,6 +22,8 @@ export default function OMGGameEngine(params) {
         jumping: 0
     }
 
+    this.objectives = {}
+
     this.friction = 1.1
     this.maxJump = 1//25
 
@@ -47,6 +49,9 @@ OMGGameEngine.prototype.mainLoop = function () {
         if (this.gamepad.buttons[0] && this.gamepad.buttons[0].pressed) {
             console.log("button0 pressed")
         }
+
+        this.hero.wishX = this.gamepad.axes[0]
+        this.hero.wishY = this.gamepad.axes[1]
 
     }
 
@@ -334,12 +339,25 @@ OMGGameEngine.prototype.loadHero = async function (spriteData) {
 
 }
 
+OMGGameEngine.prototype.loadExit = async function (spriteData) {    
+    this.exitDoor = {}
+    this.exitDoor.thing = this.map.data.exitDoor
+    this.exitDoor.sprite = spriteData
+    this.exitDoor.spriter = new OMGSpriter(spriteData, this.canvas)
+    this.exitDoor.type = "npc" //exit door?
+
+    this.exitDoor.spriter.setSheet()
+    this.map.activeSprites.push(this.exitDoor)
+}
+
 OMGGameEngine.prototype.drawCharacters = function () {
 
     this.map.charCanvasOffsetX = this.middleTileX - this.hero.x
     this.map.charCanvasOffsetY = this.middleTileY - this.hero.y
 
     this.drawBeatRegions()
+
+    this.drawExitDoorPanels()
 
     this.map.drawNPCs(this.nextFrame)
 
@@ -362,6 +380,46 @@ OMGGameEngine.prototype.drawCharacters = function () {
         this.heroSpriter.draw()
     }
 
+}
+OMGGameEngine.prototype.unlockedDoorPanelAlpha = 0.
+
+OMGGameEngine.prototype.drawExitDoorPanels = function () {
+    if (this.exitDoor) {
+
+        this.map.charCtx.globalAlpha = this.objectives.blue ? 1 : this.unlockedDoorPanelAlpha
+
+        this.map.charCtx.fillStyle = "blue"
+        this.map.charCtx.fillRect(
+            this.exitDoor.thing.x * this.tileSize + this.map.charCanvasOffsetX,
+            this.exitDoor.thing.y * this.tileSize + this.map.charCanvasOffsetY + 44,
+            64, 40)
+
+        this.map.charCtx.globalAlpha = this.objectives.red ? 1 : this.unlockedDoorPanelAlpha
+
+        this.map.charCtx.fillStyle = "red"
+        this.map.charCtx.fillRect(
+            this.exitDoor.thing.x * this.tileSize + this.map.charCanvasOffsetX + 64,
+            this.exitDoor.thing.y * this.tileSize + this.map.charCanvasOffsetY + 44,
+            64, 40)
+
+        this.map.charCtx.globalAlpha = this.objectives.green ? 1 : this.unlockedDoorPanelAlpha
+
+        this.map.charCtx.fillStyle = "green"
+        this.map.charCtx.fillRect(
+            this.exitDoor.thing.x * this.tileSize + this.map.charCanvasOffsetX,
+            this.exitDoor.thing.y * this.tileSize + this.map.charCanvasOffsetY + 80,
+            64, 40)
+
+        this.map.charCtx.globalAlpha = this.objectives.yellow ? 1 : this.unlockedDoorPanelAlpha
+
+        this.map.charCtx.fillStyle = "yellow"
+        this.map.charCtx.fillRect(
+            this.exitDoor.thing.x * this.tileSize + this.map.charCanvasOffsetX + 64,
+            this.exitDoor.thing.y * this.tileSize + this.map.charCanvasOffsetY + 80,
+            64, 40)
+    
+        this.map.charCtx.globalAlpha = 1
+    }
 }
 
 OMGGameEngine.prototype.drawHighlightedTiles = function () {
@@ -424,7 +482,8 @@ OMGGameEngine.prototype.physics = function () {
         this.hero.x += this.hero.dx
     }
     
-    if (!this.hero.jumping && this.hero.dx > 0 && !this.keysPressed["ArrowRight"]) {
+    //if (!this.hero.jumping && this.hero.dx > 0 && !this.keysPressed["ArrowRight"]) {
+    if (!this.hero.jumping && this.hero.dx > 0 && this.hero.wishX <= 0) {
         if (this.hero.dx < this.friction) {
             this.hero.dx = 0
         }
@@ -432,7 +491,8 @@ OMGGameEngine.prototype.physics = function () {
             this.hero.dx -= this.friction
         }
     }
-    else if (!this.hero.jumping && this.hero.dx < 0 && !this.keysPressed["ArrowLeft"]) {
+    //else if (!this.hero.jumping && this.hero.dx < 0 && !this.keysPressed["ArrowLeft"]) {
+    else if (!this.hero.jumping && this.hero.dx < 0 && this.hero.wishX >= 0) {
         if (0 - this.hero.dx < this.friction) {
             this.hero.dx = 0
         }
@@ -440,7 +500,8 @@ OMGGameEngine.prototype.physics = function () {
             this.hero.dx += this.friction
         }
     }
-    else if (!this.gravity && this.hero.dy > 0 && !this.keysPressed["ArrowDown"]) {
+    //else 
+    if (!this.gravity && this.hero.dy > 0 && !this.keysPressed["ArrowDown"]) {
         if (this.hero.dy < this.friction) {
             this.hero.dy = 0
         }
@@ -693,6 +754,10 @@ OMGGameEngine.prototype.actionKey = function () {
             this.showDialog(this.touchingNPC.thing.dialog)
         }
 
+        if (this.touchingNPC.thing.objective) {
+            this.meetObjective(this.touchingNPC.thing.objective)
+        }
+
         if (this.touchingNPC.on) {
 
         }
@@ -912,3 +977,7 @@ OMGGameEngine.prototype.setupGamepad = function () {
 
 }
 
+OMGGameEngine.prototype.meetObjective = function (objective) {
+    this.objectives[objective] = true
+
+}

@@ -7,6 +7,10 @@ export default function OMGRPGMap(data, options) {
     this.tileSize = options.tileSize || 32
     this.data = data || {}
 
+    if (!this.data.exitDoor) {
+        this.data.exitDoor = {x: 1, y: 1}
+    }
+
     this.canvas = options.backCanvas || document.createElement("canvas")
     this.ctx = this.canvas.getContext("2d")
     this.charCanvas = options.charCanvas ||document.createElement("canvas")

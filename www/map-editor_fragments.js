@@ -43,7 +43,7 @@ export function NPCFragment(npc, npcDiv, editor) {
         }
     }
 
-    this.npcDetailsDialog.value = npc.dialog.join("\n")
+    this.npcDetailsDialog.value = npc.dialog ? npc.dialog.join("\n") : ""
     this.npcDetailsDialog.onkeyup = e => {
         npc.dialog = this.npcDetailsDialog.value.split("\n")
     }
@@ -68,6 +68,31 @@ export function NPCFragment(npc, npcDiv, editor) {
             npc.musicPart =  this.selectMusicPart.value 
         }
     }
+
+    this.selectObjective = document.createElement("select")
+    this.selectObjective.innerHTML = `
+        <option>none</option>
+        <option>red</option>
+        <option>blue</option>
+        <option>green</option>
+        <option>yellow</option>
+        <option>metronome</option>
+        <option>key</option>`
+    caption = document.createElement("div")
+    caption.innerHTML = "Objective:"
+    this.div.appendChild(caption)
+    this.div.appendChild(this.selectObjective)
+
+    this.selectObjective.value = npc.objective || "none"
+    this.selectObjective.onchange = e => {
+        if (this.selectObjective.selectedIndex === 0) {
+            delete npc.objective 
+        }
+        else {
+            npc.objective =  this.selectObjective.value 
+        }
+    }
+
 
     this.div.appendChild(document.createElement("hr"))
 

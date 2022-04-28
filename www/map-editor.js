@@ -172,6 +172,9 @@ OMGMapEditor.prototype.setupEvents = function (canvas) {
         else if (this.mode === "HERO_MOVE") {
             this.moveHero(this._movex, this._movey)
         }
+        else if (this.mode === "EXIT_MOVE") {
+            this.moveExit(this._movex, this._movey)
+        }
         else if (this.mode === "HTML_STRETCH") {
             //this.addHTML(e)
             this.mode = "HTML_SELECT"
@@ -434,6 +437,9 @@ OMGMapEditor.prototype.selectToolBox = function (e) {
     else if (e.target.value === "Hero") {
         this.mode = "HERO_MOVE"
     }
+    else if (e.target.value === "Exit") {
+        this.mode = "EXIT_MOVE"
+    }
     else if (e.target.value === "Music") {
         this.musicModeDiv.style.display = "block"
         this.mode = "MUSIC"
@@ -655,6 +661,13 @@ OMGMapEditor.prototype.drawNPCs = function () {
         this.data.startY * this.map.tileSize,
         this.map.tileSize, this.map.tileSize)
 
+    this.map.charCtx.fillStyle = "red"
+
+    this.map.charCtx.fillRect(
+        this.data.exitDoor.x * this.map.tileSize,
+        this.data.exitDoor.y * this.map.tileSize,
+        this.map.tileSize, this.map.tileSize)
+
     this.map.charCtx.lineWidth = 2    
     this.map.charCtx.strokeStyle = "red"
     if (this.htmlBeingAdded) {
@@ -744,6 +757,14 @@ OMGMapEditor.prototype.moveHero = function (x, y) {
     this.map.data.startX = x
     this.map.data.startY = y
     this.mode = "HERO_MOVE" 
+    this.tileHighlightDiv.style.display = "none"
+    this.drawNPCs()
+}
+
+OMGMapEditor.prototype.moveExit = function (x, y) {
+    this.map.data.exitDoor.x = x
+    this.map.data.exitDoor.y = y
+    this.mode = "EXIT_MOVE" 
     this.tileHighlightDiv.style.display = "none"
     this.drawNPCs()
 }
