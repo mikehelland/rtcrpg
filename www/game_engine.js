@@ -750,8 +750,14 @@ OMGGameEngine.prototype.actionKey = function () {
 
     if (this.touchingNPC && this.touchingNPC.thing) {
 
-        if (this.touchingNPC.thing.dialog) {
-            this.showDialog(this.touchingNPC.thing.dialog)
+        // todo  this should be an array, for a multi part discussion, but it's not being used
+        let dialog = this.touchingNPC.thing.dialog
+        if (Array.isArray(dialog)) {
+            dialog = dialog[0]
+        }
+
+        if (dialog) {
+            this.showDialog(dialog)
         }
 
         if (this.touchingNPC.thing.objective) {
@@ -809,14 +815,14 @@ OMGGameEngine.prototype.setupBeatIndicator = function () {
     var beatDivs = []
     var lastDiv
 
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < 8; i++) {
         let beatDiv = document.createElement("div")
 
         this.beatIndicatorDiv.appendChild(beatDiv)
         beatDiv.className = "game-engine-beat-indicator-beat"
         beatDivs.push(beatDiv)
 
-        beatDiv.style.backgroundColor = this.beatColors[i]
+        beatDiv.style.backgroundColor = this.beatColors[i%4]
     }
 
 
@@ -827,7 +833,9 @@ OMGGameEngine.prototype.setupBeatIndicator = function () {
                 lastDiv.style.opacity = 0.2
             }
             lastDiv = beatDivs[subbeat / 4]
-            lastDiv.style.opacity = 1
+            if (lastDiv) {
+                lastDiv.style.opacity = 1
+            }
             this.updateNPCs()
         }
         //this.drawBeatRegions()
@@ -979,5 +987,74 @@ OMGGameEngine.prototype.setupGamepad = function () {
 
 OMGGameEngine.prototype.meetObjective = function (objective) {
     this.objectives[objective] = true
+
+    if (objective === "metronome") {
+        this.showBeatParameters()
+    }
+    if (objective === "key") {
+        this.showKeyParameters()
+    }
+}
+
+OMGGameEngine.prototype.showBeatParameters = function () {
+    var dialogDiv = document.createElement("div")
+    dialogDiv.className = "dialog menu"
+
+    import("/apps/dawesome/js/slider_canvas.js").then(imp => {
+        let SliderCanvas = imp.default
+
+        let beatParams = this.song.data.beatParams
+        let bpmProperty = {"property": "bpm", "name": "BPM", "type": "slider", "min": 20, "max": 250, 
+            "color": "#008800", step: 1};
+        let bpmSlider = new SliderCanvas(null, bpmProperty, null, beatParams, onchange);
+        bpmSlider.div.className = "fx-slider";
+        
+        dialogDiv.appendChild(bpmSlider.div)
+
+        bpmSlider.drawCanvas()
+    })
+
+    document.body.appendChild(dialogDiv)
+
+    this.activeDialog = dialogDiv
+
+}
+
+OMGGameEngine.prototype.showKeyParameters = function () {
+    var dialogDiv = document.createElement("div")
+    dialogDiv.className = "dialog menu"
+
+    var keysRow = document.createElement("div")
+    keysRow.className = "music-keys-row"
+
+    var currentKey = this.song.data.keyParams.rootNote
+    var currentDiv
+
+    this.musicCtx.keys.forEach((key, i) => {
+        let keyDiv = document.createElement("div")
+        keyDiv.innerHTML = key
+        keyDiv.className = "music-key-button"
+        if (i === currentKey) {
+            keyDiv.className = "music-key-button-selected"
+            currentDiv = keyDiv
+        }
+
+        keyDiv.onclick = e => {
+            currentDiv.className = "music-key-button"
+            this.song.data.keyParams.rootNote = i
+            this.musicCtx.rescaleSong(this.song)
+            keyDiv.className = "music-key-button-selected"
+            currentDiv = keyDiv
+        }
+
+        keysRow.appendChild(keyDiv)
+    })
+
+
+    dialogDiv.appendChild(keysRow)
+
+    document.body.appendChild(dialogDiv)
+
+    this.activeDialog = dialogDiv
 
 }

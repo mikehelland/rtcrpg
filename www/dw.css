@@ -139,3 +139,18 @@ img {
     /*margin-right: 6.65%;*/
     opacity: 0.2;
 }
+
+.music-keys-row {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.music-key-button {
+    border:1px solid #808080;
+    padding:4px;
+}
+
+.music-key-button-selected {
+    color:black;
+    background-color:#888888;
+}
