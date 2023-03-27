@@ -181,8 +181,9 @@ OMGGameEngine.prototype.setupInputs = function () {
         if (e.target.tagName.toLowerCase() === "input") {
             return
         }
+        console.log("keydown")
 
-        if (this.activeDialog) {
+        if (this.activeDialog && this.lastTouchingNPC !== this.touchingNPC) {
             document.body.removeChild(this.activeDialog)
             this.activeDialog = null
             return
@@ -462,12 +463,13 @@ OMGGameEngine.prototype.physics = function () {
     
     this.targetTiles = []
 
-    if (this.hero.dy || this.hero.dx) {
-        this.touchingNPC = null
-    }
+    //if (this.hero.dy || this.hero.dx) {
+    this.lastTouchingNPC = this.touchingNPC
+    this.touchingNPC = null
+    //}
 
 
-    if (this.hero.dy && this.canProceedY()) {
+    if (this.hero.dy && this.canMoveY()) {
         if (this.gravity && !this.hero.jumping) {
             this.heroSpriter.setSheet("jump")
             this.heroSpriter.i = 0
@@ -478,8 +480,13 @@ OMGGameEngine.prototype.physics = function () {
     else {
         this.hero.dy = 0
     }
-    if (this.hero.dx && this.canProceedX()) {
+    if (this.hero.dx && this.canMoveX()) {
         this.hero.x += this.hero.dx
+    }
+
+    if (this.touchingNPC && this.touchingNPC !== this.lastTouchingNPC) {
+        this.actionKey()
+        return
     }
     
     //if (!this.hero.jumping && this.hero.dx > 0 && !this.keysPressed["ArrowRight"]) {
@@ -521,7 +528,7 @@ OMGGameEngine.prototype.physics = function () {
     this.moveNPCs()
 }
 
-OMGGameEngine.prototype.canProceedX = function () {
+OMGGameEngine.prototype.canMoveX = function () {
     
     var targets = []
     var target
@@ -616,7 +623,7 @@ OMGGameEngine.prototype.canProceedX = function () {
     return !blocked
 }
 
-OMGGameEngine.prototype.canProceedY = function () {
+OMGGameEngine.prototype.canMoveY = function () {
     
     var targets = []
     var target
